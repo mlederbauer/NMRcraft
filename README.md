@@ -29,6 +29,8 @@ Finally, install the environment and the pre-commit hooks with
 make install
 ```
 
+(You might need to run `pip install poetry` after creating a venv first.)
+
 You are now ready to start development on your project!
 The CI/CD pipeline will be triggered when you open a pull request, merge to main, or when you create a new release.
 
