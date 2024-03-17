@@ -1,4 +1,4 @@
-![nmrcraft_logo](assets/nmrcraft_logo.png)
+![nmrcraft_logo](assets/NMRCRAFT-logo.png)
 
 # nmrcraft
 
