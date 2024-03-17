@@ -23,6 +23,7 @@ dependencies:
       - async-timeout==4.0.3
       - attrs==23.2.0
       - binaryornot==0.4.4
+      - black==24.3.0
       - build==1.1.1
       - cachecontrol==0.14.0
       - cachetools==5.3.3
@@ -43,6 +44,7 @@ dependencies:
       - exceptiongroup==1.2.0
       - fastjsonschema==2.19.1
       - filelock==3.13.1
+      - flake8==7.0.0
       - frozenlist==1.4.1
       - fsspec==2024.2.0
       - huggingface-hub==0.21.4
@@ -56,6 +58,7 @@ dependencies:
       - keyring==24.3.1
       - markdown-it-py==3.0.0
       - markupsafe==2.1.5
+      - mccabe==0.7.0
       - mdurl==0.1.2
       - more-itertools==10.2.0
       - msgpack==1.0.8
@@ -68,6 +71,7 @@ dependencies:
       - numpy==1.26.4
       - packaging==24.0
       - pandas==2.2.1
+      - pathspec==0.12.1
       - pexpect==4.9.0
       - pkginfo==1.10.0
       - platformdirs==4.2.0
@@ -79,7 +83,9 @@ dependencies:
       - ptyprocess==0.7.0
       - pyarrow==15.0.1
       - pyarrow-hotfix==0.6
+      - pycodestyle==2.11.1
       - pycparser==2.21
+      - pyflakes==3.2.0
       - pygments==2.17.2
       - pyproject-api==1.6.1
       - pyproject-hooks==1.0.0
