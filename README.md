@@ -1,3 +1,5 @@
+![nmrcraft_logo](assets/nmrcraft_logo.png)
+
 # nmrcraft
 
 [![Release](https://img.shields.io/github/v/release/mlederbauer/nmrcraft)](https://img.shields.io/github/v/release/mlederbauer/nmrcraft)
@@ -39,8 +41,6 @@ For activating the automatic documentation with MkDocs, see [here](https://fpgma
 To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-poetry/features/codecov/).
 
 ## Releasing a new version
-
-
 
 ---
 
