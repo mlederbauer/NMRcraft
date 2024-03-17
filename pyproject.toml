@@ -88,3 +88,14 @@ preview = true
 
 [tool.ruff.per-file-ignores]
 "tests/*" = ["S101"]
+
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | build
+  | dist
+)/
+'''
