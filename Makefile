@@ -10,7 +10,7 @@ check: ## Run code quality tools.
 	@echo "🚀 Checking Poetry lock file consistency with 'pyproject.toml': Running poetry lock --check"
 	@poetry lock --check
 	@echo "🚀 Linting code: Running pre-commit"
-	@poetry run pre-commit run -a
+	@ poetry run pre-commit run -a
 	@echo "🚀 Static type checking: Running mypy"
 	@poetry run mypy
 

@@ -7,7 +7,7 @@ repository = "https://github.com/mlederbauer/nmrcraft"
 documentation = "https://mlederbauer.github.io/nmrcraft/"
 # readme = "README.md"
 #packages = [
-#  {include = "rdkit"}
+#  {include = "nmrcraft"}
 #]
 
 [tool.poetry.dependencies]
