@@ -6,9 +6,9 @@ authors = ["Karolina Biniek, Magdalena Lederbauer, Samuel Stricker, Tiago Würth
 repository = "https://github.com/mlederbauer/nmrcraft"
 documentation = "https://mlederbauer.github.io/nmrcraft/"
 # readme = "README.md"
-packages = [
-  {include = "nmrcraft"}
-]
+#packages = [
+#  {include = "rdkit"}
+#]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
