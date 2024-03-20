@@ -1,4 +1,4 @@
-FROM python
+FROM jupyter/minimal-notebook
 
 # Package stuff: Install poetry with pip, install everything else with poetry
 RUN pip install --no-cache-dir poetry
@@ -8,9 +8,9 @@ RUN poetry install
 
 WORKDIR /code
 
-COPY ./nmrcraft/ ./nmrcraft/
+COPY . .
 VOLUME [ "/code/gen-data" ]
-COPY ./tests ./tests
 
-# Use the python binary of the local environment
-CMD ["poetry", "run", "python", "nmrcraft/main.py"]
+# Launch the Jupyter environment
+
+CMD [ "bash" ]
