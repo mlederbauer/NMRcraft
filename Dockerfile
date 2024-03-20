@@ -6,11 +6,10 @@ WORKDIR /code
 COPY poetry.toml pyproject.toml ./
 RUN poetry install
 
-WORKDIR /code
+WORKDIR /NMRcraft
 
-COPY ./nmrcraft/ ./nmrcraft/
-VOLUME [ "/code/gen-data" ]
+VOLUME [ "/NMRcraft" ]
 COPY ./tests ./tests
 
 # Use the python binary of the local environment
-CMD ["poetry", "run", "python", "nmrcraft/main.py"]
+CMD ["bash"]
