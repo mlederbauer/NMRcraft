@@ -17,19 +17,19 @@ NMR Chemical Reactivity Analysis with Feature Tracking
 To use the docker just git clone this repo and run the following commands on *Linux/MacOS* to build and run an image:
 
 ```bash
-docker buildx build -t pypy .
+docker buildx build -t archpy .
 ```
 ```bash
-docker run -v ./.:/NMRcraft -it pypy
+docker run -v ./.:/NMRcraft -it archpy
 ```
 
 On Windows powershell the commands are:
 
 ```bash
-docker.exe buildx build -t pypy .
+docker.exe buildx build -t archpy .
 ```
 ```bash
-docker.exe run -v ./.:/NMRcraft -it pypy
+docker.exe run -v ./.:/NMRcraft -it archpy
 ```
 
 ## Getting started with your project
