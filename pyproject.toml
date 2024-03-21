@@ -5,10 +5,10 @@ description = "NMR Chemical Reactivity Analysis with Feature Tracking"
 authors = ["Karolina Biniek, Magdalena Lederbauer, Samuel Stricker, Tiago Würthner <fmlederbauer@ethz.ch>"]
 repository = "https://github.com/mlederbauer/nmrcraft"
 documentation = "https://mlederbauer.github.io/nmrcraft/"
-# readme = "README.md"
-#packages = [
-#  {include = "nmrcraft"}
-#]
+readme = "README.md"
+packages = [
+  {include = "nmrcraft"}
+]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
@@ -19,12 +19,6 @@ numpy = "^1.26.4"
 scipy = "^1.12.0"
 pandas = "^2.2.1"
 torch = "^2.2.1"
-tensorflow = "^2.16.1"
-
-
-[tool.poetry.group.dev.dependencies]
-
-
 
 
 [build-system]
