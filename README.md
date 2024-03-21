@@ -13,6 +13,25 @@ NMR Chemical Reactivity Analysis with Feature Tracking
 - **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
 - **Documentation** <https://mlederbauer.github.io/nmrcraft/>
 
+## Docker
+To use the docker just git clone this repo and run the following commands on *Linux/MacOS* to build and run an image:
+
+```bash
+docker buildx build -t pypy .
+```
+```bash
+docker run -v ./.:/NMRcraft -it pypy
+```
+
+On Windows powershell the commands are:
+
+```bash
+docker.exe buildx build -t pypy .
+```
+```bash
+docker.exe run -v ./.:/NMRcraft -it pypy
+```
+
 ## Getting started with your project
 
 First, create a repository on GitHub with the same name as this project, and then run the following commands:
