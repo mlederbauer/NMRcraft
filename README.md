@@ -13,6 +13,37 @@ NMR Chemical Reactivity Analysis with Feature Tracking
 - **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
 - **Documentation** <https://mlederbauer.github.io/nmrcraft/>
 
+## Loading the Data
+
+The dataset is stored in a private repository on HuggingFace. It can easily be loaded as
+
+Begin by installing the library, if not already installed:
+```bash
+pip install huggingface_hub
+```
+
+To download the dataset on the Hub in Python, you need to log in to your Hugging Face account:
+```bash
+huggingface-cli login
+```
+
+Access the dataset:
+```python
+from datasets import load_dataset
+dataset = load_dataset("NMRcraft/nmrcraft", data_files='all_no_nan.csv')
+dataset['train'] # contains the data for now
+```
+
+Or download locally in just a few lines:
+```python
+from huggingface_hub import hf_hub_download
+hf_hub_download(repo_id="NMRcraft/nmrcraft", filename="all_no_nan.csv", repo_type="dataset", local_dir="./data/")
+
+```
+
+The dataset is provided in its "raw" form as a dataframe in `all_no_nan.csv`, meaning without a train/test split or feature selection.
+in the folder `./xyz.zip`, all optimized geometries are added as an .xtpopt.xyz file.
+
 ## Docker
 To use the docker just git clone this repo and run the following commands on *Linux/MacOS* to build and run an image:
 
@@ -51,16 +82,5 @@ make install
 ```
 
 (You might need to run `pip install poetry` after creating a venv first.)
-
-You are now ready to start development on your project!
-The CI/CD pipeline will be triggered when you open a pull request, merge to main, or when you create a new release.
-
-To finalize the set-up for publishing to PyPi or Artifactory, see [here](https://fpgmaas.github.io/cookiecutter-poetry/features/publishing/#set-up-for-pypi).
-For activating the automatic documentation with MkDocs, see [here](https://fpgmaas.github.io/cookiecutter-poetry/features/mkdocs/#enabling-the-documentation-on-github).
-To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-poetry/features/codecov/).
-
-## Releasing a new version
-
----
 
 Repository initiated with [fpgmaas/cookiecutter-poetry](https://github.com/fpgmaas/cookiecutter-poetry).
