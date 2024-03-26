@@ -31,7 +31,7 @@ Access the dataset:
 ```python
 from datasets import load_dataset
 dataset = load_dataset("NMRcraft/nmrcraft", data_files='all_no_nan.csv')
-dataset['train'] # contains the data for now
+dataset['train'].to_pandas() # contains the data for now
 ```
 
 Or download locally in just a few lines:
