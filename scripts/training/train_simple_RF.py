@@ -20,12 +20,14 @@ def main():
     # Extract features and target variables
     X = dataset[["E_sigmaiso_ppm", "M_sigmaiso_ppm"]].to_numpy()
     y = dataset["bond_length_M_E"].to_numpy()
+    # TODO automatize feature selection with hydra for runs
 
     # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = split_data(X, y)
 
     # Create a pipeline with data preprocessing and random forest regressor
     pipe = make_pipeline(StandardScaler(), RandomForestRegressor())
+    # TODO create classifier, explore pipeline building
 
     # Fit the pipeline to the training data
     pipe.fit(X_train, y_train)
@@ -36,8 +38,11 @@ def main():
     # Print the R^2 score
     print(f"R^2 score: {score}")
 
+    # TODO uncertainty prediction?
+
     # Plot the predicted vs ground truth values
-    plot_predicted_vs_ground_truth(y_test, pipe.predict(X_test))
+    title = r"Bond Length for M-E from $\sigma_{iso,E}$ and $\sigma_{iso,M}$"
+    plot_predicted_vs_ground_truth(y_test, pipe.predict(X_test), title)
 
 
 if __name__ == "__main__":
