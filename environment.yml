@@ -1,4 +1,4 @@
-name: nmrcraft2
+name: nmrcraft
 channels:
   - conda-forge
   - defaults
