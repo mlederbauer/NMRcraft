@@ -41,6 +41,20 @@ WIP #TODO
 
 To develop this project, install the environment and the pre-commit hooks with
 
+## Getting started with your project
+
+First, create a repository on GitHub with the same name as this project, and then run the following commands:
+
+```bash
+git init -b main
+git add .
+git commit -m "init commit"
+git remote add origin git@github.com:mlederbauer/nmrcraft.git
+git push -u origin main
+```
+
+Finally, install the environment and the pre-commit hooks with
+
 ```bash
 conda env create -f environment.yml # alternatively: conda create -n nmrcraft python=3.11 pip
 conda activate nmrcraft
