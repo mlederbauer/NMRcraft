@@ -25,7 +25,11 @@ WIP #TODO
 
 ## 👩‍💻 App
 
-WIP #TODO
+Run the app demo locally with
+
+```bash
+python nmrcraft/app.py
+```
 
 ## 🖼️Poster
 
