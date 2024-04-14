@@ -22,5 +22,3 @@ clear
 if [ $PWD = "/NMRcraft" ]; then
   neofetch
 fi
-
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
