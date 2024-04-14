@@ -2,9 +2,9 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from nmrcraft.analysis import plot_predicted_vs_ground_truth
-from nmrcraft.data import load_data, split_data
-from nmrcraft.utils import set_seed
+from nmrcraft.analysis.plotting import plot_predicted_vs_ground_truth
+from nmrcraft.data.dataset import load_data, split_data
+from nmrcraft.utils.set_seed import set_seed
 
 set_seed()
 
