@@ -13,9 +13,6 @@ RUN poetry install
 RUN chsh -s $(which zsh)
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 RUN cp /home/steve/NMRcraft/.zshrc /root/.zshrc
-RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git /root/powerlevel10k
-RUN echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>/root/.zshrc
-RUN cp /home/steve/NMRcraft/.p10k.zsh /root/.p10k.zsh
 VOLUME [ "/home/steve" ]
 
 # start a zsh shell
