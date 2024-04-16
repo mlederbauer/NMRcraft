@@ -1016,6 +1016,17 @@ http2 = ["h2 (>=3,<5)"]
 socks = ["socksio (==1.*)"]
 
 [[package]]
+name = "huggingface-cli"
+version = "0.1"
+description = "HuggingFace integration"
+optional = false
+python-versions = "*"
+files = [
+    {file = "huggingface-cli-0.1.tar.gz", hash = "sha256:314ad7bd4475dee2ed1f9440f4c2aaaad2515a560bec5156849c050afa2e8211"},
+    {file = "huggingface_cli-0.1-py3-none-any.whl", hash = "sha256:78728ed06e0a0c8c4a6aa599652ad5ea60de187b33a21816eabb045c609f8832"},
+]
+
+[[package]]
 name = "huggingface-hub"
 version = "0.22.2"
 description = "Client library to download and publish models, datasets and other repos on the huggingface.co hub"
@@ -3542,4 +3553,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11,<4.0"
-content-hash = "7e79eb2ff394dbbb25aecfd6e03978b8cd3e71a324fba13c98f7413d4778d000"
+content-hash = "c3d79a94b00b75fc367bdd4d35a74b4d7e0c1ce1c31b916f18d233f369da8e59"
