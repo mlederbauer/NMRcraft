@@ -63,19 +63,15 @@ poetry add <package-name>
 
 ### Loading the Data
 
-The dataset is stored in a private repository on HuggingFace. It can easily be loaded as
-
-Begin by installing the library, if not already installed:
-
-```bash
-pip install huggingface_hub
-```
+The dataset is stored in a private repository on HuggingFace.
 
 To download the dataset on the Hub in Python, you need to log in to your Hugging Face account:
 
 ```bash
 huggingface-cli login
 ```
+
+Huggingface is already installed via poetry, so make sure you either entered the command `make install`or you entered `poetry shell`, so you are in the poetry environment.
 
 Access the dataset:
 
