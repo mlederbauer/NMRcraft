@@ -1,6 +1,8 @@
 FROM archlinux
 
 # Install python, poetry and looks stuff from arch system repos
+RUN pacman-key --init
+RUN pacman-key --populate
 RUN pacman -Syu python python-poetry ranger neovim eza git tree zsh openssh which neofetch github-cli make --noconfirm
 
 # Set working directory and copy over config files and install python packages
