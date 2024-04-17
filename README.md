@@ -21,7 +21,9 @@ NMRcraft leverages ...
 
 ## 🔥 Usage
 
-WIP #TODO
+```bash
+python scripts/train.py # Placeholder for now, scripts for reproducing results
+```
 
 ## 👩‍💻 App
 
@@ -37,23 +39,73 @@ WIP #TODO
 
 ## 🧑‍💻 Developing
 
-### Installation
+### Setting it up
 
-To develop this project, start the environment by either
+To use the docker image just pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch) and make sure [Docker](https://www.docker.com/products/docker-desktop/) is installed. To pull it you can execute this command:
 
 ```bash
-make install
+docker pull tiaguinho/nmrcraft_arch
 ```
 
-to update all the packages in case you added any poetry packages for testing or just
+Open the container either via console or in Vscode:
+
+_Linux/MacOS_ console command:
+```bash
+docker run -it nmrcraft_arch
+```
+
+Windows powershell command:
+```bash
+docker.exe run -it nmrcraft_arch
+```
+
+<details>
+<summary>Using Docker in VS Code</summary>
+<ol>
+<li> Open VS Code and install the extensions for Docker and Dev Containers.</li>
+<li> Go to the newly added Docker Tab. Here you should now see three sections: Containers, Images and Registries. And under Images the tiaguinho/nmrcraft_arch image should be visible.</li>
+<li> In order for the container not to be deleted every time you stop it we have to remove the --rm commad. For this go to the settings (Ctrl + , on Mac) and type `docker run`. Select 'Edit the settings.json' for the 'Run Interactive' command and remove the --rm to get: "docker.commands.runInteractive": "${containerCommand} run -it ${exposedPorts} ${tag}", "docker.commands.run": "${containerCommand} run -d ${exposedPorts} ${tag}". Save the file.</li>
+<li> In the Docker Tab on the right, right click on the image and select run interactive. Now a conainer should appear in the Container section. Right click on it and select stop to start it back up.</li>
+<li> Right click again on the container and select start to start it back up.</li>
+<li> Right click again on the container and select attach Visual Studio Code. A new VS Code window should apear, this window is now fully in the container. If necessary, switch to `/home/steve/NMRcraft`.</li>
+<li>Pull the latest changes to the repository with `git pull origin main`.</li>
+<li> Have fun developing.</li>
+</ol>
+</details>
+
+### Activate the Poetry venv
+
+To use the packages installed via poetry you need to execute the following command:
 
 ```bash
 poetry shell
 ```
 
-if you just pulled this docker image.
+This will put you into the poetry shell from where you have direct access to all packages managed by poetry.
 
-Repository initiated with [fpgmaas/cookiecutter-poetry](https://github.com/fpgmaas/cookiecutter-poetry).
+### GitHub pushing auth
+
+To authenticate the Docker comes with the github cli application. To login execute this command:
+
+```bash
+gh auth login
+```
+
+and follow the interactive instructions with enter and the arrow keys. Once logged in you should be able to push changes to the repo.
+
+### Building a Docker Image and running it manually
+
+To build a Docker image you can run the following commands on _Linux/MacOS_ to build and run an image:
+
+```bash
+docker buildx build -t $Image_Name .
+```
+
+or on Windows
+
+```bash
+docker.exe buildx build -t $Image_Name .
+```
 
 ### Adding dependencies to the project
 
@@ -75,8 +127,6 @@ To download the dataset on the Hub in Python, you need to log in to your Hugging
 huggingface-cli login
 ```
 
-Huggingface is already installed via poetry, so make sure you either entered the command `make install`or you entered `poetry shell`, so you are in the poetry environment.
-
 Access the dataset:
 
 ```python
@@ -96,43 +146,6 @@ hf_hub_download(repo_id="NMRcraft/nmrcraft", filename="all_no_nan.csv", repo_typ
 The dataset is provided in its "raw" form as a dataframe in `all_no_nan.csv`, meaning without a train/test split or feature selection.
 in the folder `./xyz.zip`, all optimized geometries are added as an .xtpopt.xyz file.
 
-### Using Docker
+### References
 
-To use the docker image just pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch)
-
-<details>
-<summary>Docker in VS Code</summary>
-<ol>
-<li> Docker Desktop has to be installed for your specific operating system. (https://www.docker.com/products/docker-desktop/)</li>
-<li> Open a new shell and download the NMRcraft image called tiaguinho/nmrcraft_arch with the command `docker pull tiaguinho/nmrcraft_arch`</li>
-<li> Open VS Code and install the extensions for Docker and Dev Containers.</li>
-<li> Go to the newly added Docker Tab. Here you should now see three sections: Containers, Images and Registries. And under Images the tiaguinho/nmrcraft_arch image should be visible.</li>
-<li> In order for the container not to be deleted every time you stop it we have to remove the --rm commad. For this go to the settings and type docker run. Select 'Edit the settings.jason' for the 'Run Interactive' command and remove the --rm to get: "docker.commands.runInteractive": "${containerCommand} run -it ${exposedPorts} ${tag}", "docker.commands.run": "${containerCommand} run -d ${exposedPorts} ${tag}". Save the file.</li>
-<li> In the Docker Tab on the right, right click on the image and select run interactive. Now a conainer should appear in the Container section. Right click on it and select stop to start it back up.</li>
-<li> Right click again on the container and select start to start it back up.</li>
-<li> Right click again on the container and select attach Visual Studio Code. A new VS Code window should apear, this window is now fully in the container.</li>
-<li> Have fun developing.</li>
-</ol>
-</details>
-
-### Building a Docker Image and running it manually
-
-To build a Docker image you can run the following commands on _Linux/MacOS_ to build and run an image:
-
-```bash
-docker buildx build -t pypy .
-```
-
-```bash
-docker run -v ./.:/NMRcraft -it pypy
-```
-
-On Windows powershell, the commands are:
-
-```bash
-docker.exe buildx build -t pypy .
-```
-
-```bash
-docker.exe run -v ./.:/NMRcraft -it pypy
-```
+Repository initiated with [fpgmaas/cookiecutter-poetry](https://github.com/fpgmaas/cookiecutter-poetry).
