@@ -50,9 +50,14 @@ docker pull tiaguinho/nmrcraft_arch
 Open the container either via console or in Vscode:
 
 _Linux/MacOS_ console command:
+```bash
 docker run -it nmrcraft_arch
+```
+
 Windows powershell command:
+```bash
 docker.exe run -it nmrcraft_arch
+```
 
 <details>
 <summary>Using Docker in VS Code</summary>
