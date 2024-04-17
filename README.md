@@ -68,6 +68,7 @@ docker.exe run -it nmrcraft_arch
 <li> In the Docker Tab on the right, right click on the image and select run interactive. Now a conainer should appear in the Container section. Right click on it and select stop to start it back up.</li>
 <li> Right click again on the container and select start to start it back up.</li>
 <li> Right click again on the container and select attach Visual Studio Code. A new VS Code window should apear, this window is now fully in the container. If necessary, switch to `/home/steve/NMRcraft`.</li>
+<li>Pull the latest changes to the repository with `git pull origin main`.</li>
 <li> Have fun developing.</li>
 </ol>
 </details>
