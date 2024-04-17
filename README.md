@@ -21,7 +21,25 @@ NMRcraft leverages ...
 
 ## 🔥 Usage
 
-#### Setting it up
+```bash
+python scripts/train.py # Placeholder for now, scripts for reproducing results
+```
+
+## 👩‍💻 App
+
+Run the app demo locally with
+
+```bash
+python nmrcraft/app.py
+```
+
+## 🖼️Poster
+
+WIP #TODO
+
+## 🧑‍💻 Developing
+
+### Setting it up
 
 To use the docker image just pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch) and make sure [Docker](https://www.docker.com/products/docker-desktop/) is installed. To pull it you can execute this command:
 
@@ -49,7 +67,7 @@ docker.exe run -it nmrcraft_arch
 </ol>
 </details>
 
-#### Activate the Poetry venv
+### Activate the Poetry venv
 
 To use the packages installed via poetry you need to execute the following command:
 
@@ -59,7 +77,7 @@ poetry shell
 
 This will put you into the poetry shell from where you have direct access to all packages managed by poetry.
 
-#### GitHub pushing auth
+### GitHub pushing auth
 
 To authenticate the Docker comes with the github cli application. To login execute this command:
 
@@ -69,19 +87,19 @@ gh auth login
 
 and follow the interactive instructions with enter and the arrow keys. Once logged in you should be able to push changes to the repo.
 
-## 👩‍💻 App
+### Building a Docker Image and running it manually
 
-Run the app demo locally with
+To build a Docker image you can run the following commands on _Linux/MacOS_ to build and run an image:
 
 ```bash
-python nmrcraft/app.py
+docker buildx build -t $Image_Name .
 ```
 
-## 🖼️Poster
+or on Windows
 
-WIP #TODO
-
-## 🧑‍💻 Developing
+```bash
+docker.exe buildx build -t $Image_Name .
+```
 
 ### Adding dependencies to the project
 
@@ -121,20 +139,6 @@ hf_hub_download(repo_id="NMRcraft/nmrcraft", filename="all_no_nan.csv", repo_typ
 
 The dataset is provided in its "raw" form as a dataframe in `all_no_nan.csv`, meaning without a train/test split or feature selection.
 in the folder `./xyz.zip`, all optimized geometries are added as an .xtpopt.xyz file.
-
-### Building a Docker Image and running it manually
-
-To build a Docker image you can run the following commands on _Linux/MacOS_ to build and run an image:
-
-```bash
-docker buildx build -t $Image_Name .
-```
-
-or on Windwos
-
-```bash
-docker.exe buildx build -t $Image_Name .
-```
 
 ### References
 
