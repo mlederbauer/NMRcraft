@@ -12,9 +12,24 @@
 
 NMR Chemical Reactivity Analysis with Feature Tracking
 
-INSERT CATCHPHRASE #TODO
-How to ... ?
-NMRcraft leverages ...
+[//]: # "Catchphrase may be subject to change"
+
+<html>
+<head>
+  <style>
+    @font-face {
+      font-family: "Minecraftia";
+      src: url("assets/Minecraftia-Regular.ttf") format("truetype");
+    }
+    .minecraft-text {
+      font-family: "Minecraftia";
+    }
+  </style>
+</head>
+<body>
+  <span class="minecraft-text">NMRcraft will help you to mine into your NMR data and craft awesome predictions!</span>
+</body>
+</html>
 
 - **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
 - **Documentation** <https://mlederbauer.github.io/nmrcraft/>
@@ -50,11 +65,13 @@ docker pull tiaguinho/nmrcraft_arch
 Open the container either via console or in Vscode:
 
 _Linux/MacOS_ console command:
+
 ```bash
 docker run -it nmrcraft_arch
 ```
 
 Windows powershell command:
+
 ```bash
 docker.exe run -it nmrcraft_arch
 ```
