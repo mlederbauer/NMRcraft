@@ -1,56 +1,62 @@
+import mlflow
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
-# from nmrcraft.analysis.plotting import plot_predicted_vs_ground_truth
-from nmrcraft.data.dataset import load_data, split_data
+# Assuming these are your custom modules
+from nmrcraft.data.dataset import load_data
 from nmrcraft.utils.set_seed import set_seed
 
 set_seed()
 
 
 def main():
-    """Train a simple random forest model."""
-    # Load the data
-    dataset = load_data()
+    """Train a simple random forest model with MLflow tracking."""
+    # Start an MLflow experiment
+    mlflow.set_experiment("Random_Forest_Classification")
 
-    # Only take 1% of the dataset
-    dataset = dataset.sample(frac=0.01)
+    with mlflow.start_run():
+        # Load and preprocess data
+        dataset = load_data()
+        dataset = dataset.sample(frac=0.01)  # Only take 1% of the dataset
 
-    # Extract features and target variables
-    X = dataset[['M_sigma11_ppm', 'M_sigma22_ppm', 'M_sigma33_ppm', 'E_sigma11_ppm', 'E_sigma22_ppm', 'E_sigma33_ppm']].to_numpy()
-    y_label = dataset['metal'].to_numpy()
-    # TODO automatize feature selection with hydra for runs
+        # Extract features and target variables
+        feature_columns = [
+            "M_sigma11_ppm",
+            "M_sigma22_ppm",
+            "M_sigma33_ppm",
+            "E_sigma11_ppm",
+            "E_sigma22_ppm",
+            "E_sigma33_ppm",
+        ]
+        X = dataset[feature_columns].to_numpy()
+        y_label = dataset["metal"].to_numpy()
 
-    # Transform the target variable using the label encoder
-    label_encoder = LabelEncoder()
-    label_encoder.fit(["Mo", "W"])
-    y = label_encoder.transform(y_label)
-    # TODO create pipeline
+        # Transform the target variable using the label encoder
+        label_encoder = LabelEncoder()
+        label_encoder.fit(["Mo", "W"])
+        y = label_encoder.transform(y_label)
 
-    # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = split_data(X, y)
+        # Split the data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-    # Create a random forest classifier
-    model = RandomForestClassifier()
-    # TODO optimize hyperparameters
+        # Create and train the model
+        model = RandomForestClassifier(n_estimators=100, random_state=42)
+        model.fit(X_train, y_train)
 
-    # Train the model
-    model.fit(X_train, y_train)
+        # Predict and evaluate the model
+        y_pred = model.predict(X_test)
+        score = accuracy_score(y_test, y_pred)
 
-    # Evaluate the model on the testing data
-    y_pred = model.predict(X_test)
+        # Log parameters, metrics, and model
+        mlflow.log_params({"n_estimators": 100, "test_size": 0.3, "random_state": 42, "sample_fraction": 0.01})
+        mlflow.log_metric("accuracy", score)
 
-    # Calculate the accuracy score
-    score = accuracy_score(y_test, y_pred)
+        # Log the model
+        mlflow.sklearn.log_model(model, "model")
 
-    # Print the accuracy score
-    print(f"Accuracy: {score}")
-    # TODO uncertainty prediction?
-
-    # Plot the classification results
-    # title = r"M Classification from $\sigma_{11,E}$, $\sigma_{22,E}$, $\sigma_{33,E}$, $\sigma_{11,M}$, $\sigma_{22,M}$, and $\sigma_{33,M}$"
-    # TODO implement plots for classification results
+        print(f"Accuracy: {score}")
 
 
 if __name__ == "__main__":
