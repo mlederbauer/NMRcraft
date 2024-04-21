@@ -60,18 +60,21 @@ def main(dataset_size, target, model_name):
 
         mlflow.sklearn.log_model(model, "model")
 
-        cm_path = "scratch/cm.png"
+        fig_path = "scratch/"
+        if not os.path.exists(fig_path):
+            os.makedirs(fig_path)
+        cm_path = os.path.join(fig_path, "cm.png")
         title = r"Confusion matrix, TODO add LaTeX symbols"
         plot_confusion_matrix(cm, classes=label_encoder.classes_, title=title, path=cm_path)
-        roc_path = "scratch/roc.png"
+        roc_path = os.path.join(fig_path, "roc.png")
         title = r"ROC curve, TODO add LaTeX symbols"
         plot_roc_curve(fpr, tpr, roc_auc, title=title, path=roc_path)
 
         mlflow.log_artifact(cm_path)
         mlflow.log_artifact(roc_path)
 
-        os.remove(cm_path)
-        os.remove(roc_path)
+        # os.remove(cm_path)
+        # os.remove(roc_path)
 
         print(f"Accuracy: {score}")
 
