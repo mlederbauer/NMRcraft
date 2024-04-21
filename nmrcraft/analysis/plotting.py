@@ -15,6 +15,7 @@ plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
 
 # Use the first color from the custom color cycle
 first_color = plt.rcParams["axes.prop_cycle"].by_key()["color"][0]
+plt.rcParams["text.usetex"] = False
 
 
 def plot_predicted_vs_ground_truth(y_test: np.array, y_pred: np.array, title: str):
@@ -67,3 +68,49 @@ def plot_predicted_vs_ground_truth_density(y_test: np.array, y_pred: np.array, t
     plt.ylabel("Predicted")
     plt.title(title)
     plt.show()
+
+
+def plot_confusion_matrix(cm, classes, title, path):
+    """
+    Plots the confusion matrix.
+    Parameters:
+    - cm (array-like): Confusion matrix data.
+    - classes (list): List of classes for the axis labels.
+    - title (str): Title of the plot.
+    Returns:
+    None
+    """
+    plt.figure(figsize=(10, 8))
+    plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+    plt.tight_layout()
+    plt.ylabel("True label")
+    plt.xlabel("Predicted label")
+    plt.savefig(path)
+    plt.close()
+
+
+def plot_roc_curve(fpr, tpr, roc_auc, title, path):
+    """
+    Plots the ROC curve.
+    Parameters:
+    - fpr (array-like): False positive rate.
+    - tpr (array-like): True positive rate.
+    - roc_auc (float): Area under the ROC curve.
+    - title (str): Title of the plot.
+    Returns:
+    None
+    """
+    plt.figure(figsize=(10, 8))
+    plt.plot(fpr, tpr, color="darkorange", lw=2, label=f"ROC curve (area = {roc_auc:.2f})")
+    plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title(title)
+    plt.legend(loc="lower right")
+    plt.savefig(path)
+    plt.close()

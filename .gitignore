@@ -1,6 +1,5 @@
-svelte-app/
-# for now
-
+mlruns/
+scratch/
 dataset/
 
 docs/source
