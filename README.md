@@ -9,27 +9,10 @@
 <h1 align="center">
   NMRcraft
 </h1>
-
-NMR Chemical Reactivity Analysis with Feature Tracking
-
-[//]: # "Catchphrase may be subject to change"
-
-<html>
-<head>
-  <style>
-    @font-face {
-      font-family: "Minecraftia";
-      src: url("assets/Minecraftia-Regular.ttf") format("truetype");
-    }
-    .minecraft-text {
-      font-family: "Minecraftia";
-    }
-  </style>
-</head>
-<body>
-  <span class="minecraft-text">NMRcraft will help you to mine into your NMR data and craft awesome predictions!</span>
-</body>
-</html>
+<h2 align="center">
+  NMR Chemical Reactivity Analysis with Feature Tracking
+</h2>
+*NMRcraft will help you to mine into your NMR data and craft awesome predictions!*
 
 - **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
 - **Documentation** <https://mlederbauer.github.io/nmrcraft/>
