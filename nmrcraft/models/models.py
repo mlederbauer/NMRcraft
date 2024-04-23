@@ -52,21 +52,16 @@ def load_model(model_name: str, **kwargs: Any):
         "svc": SVC,
     }
 
-    try:
-        model_class = models.get(model_name.lower())
-        validate_model_availability(model_name, models)
-    except Exception as e:
-        print(f"Error loading model: {e}")
-        return None
+    # First, check if the model exists
+    validate_model_availability(model_name, models)
+    model_class = models[model_name.lower()]
 
+    # Second, validate all provided kwargs before creating the model instance
+    validate_kwargs(kwargs, model_class, model_name)
+
+    # Third, adjust default parameters if necessary
     if model_name == "random_forest":
         kwargs.setdefault("n_jobs", -1)  # Set max number of jobs
 
-    # Get the arguments of the model constructor and check if they are valid
-    try:
-        model = model_class(**kwargs)
-        validate_kwargs(kwargs, model_class, model_name)
-    except Exception as e:
-        print(f"Error with the passed arguments!: {e}")
-        return None
-    return model
+    # Instantiate and return the model
+    return model_class(**kwargs)
