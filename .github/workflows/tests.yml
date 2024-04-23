@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: arch-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: |
-          pip install poetry
+          pacman -S poetry
           poetry install
       - name: Run tests
         run: make test
