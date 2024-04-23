@@ -12,7 +12,9 @@
 <h2 align="center">
   NMR Chemical Reactivity Analysis with Feature Tracking
 </h2>
-*NMRcraft will help you to mine into your NMR data and craft awesome predictions!*
+<p align="center">
+NMRcraft will help you to mine into your NMR data and craft awesome predictions!
+</p>
 
 - **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
 - **Documentation** <https://mlederbauer.github.io/nmrcraft/>
