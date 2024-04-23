@@ -1,4 +1,5 @@
 import inspect
+from typing import Any
 
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -15,16 +16,6 @@ class InvalidArgumentError(ValueError):
         super().__init__(f"Invalid argument {kwarg} for model {model_name}")
 
 
-class InvalidModelNameTypeError(TypeError):
-    def __init__(self):
-        super().__init__("model_name must be a string")
-
-
-def validate_model_instance(model_name):
-    if not isinstance(model_name, str):
-        raise InvalidModelNameTypeError()
-
-
 def validate_model_availability(model_name, models):
     if model_name.lower() not in models:
         raise InvalidModelNameError(model_name, models)
@@ -37,7 +28,7 @@ def validate_kwargs(kwargs, model_class, model_name):
             raise InvalidArgumentError(kwarg, model_name)
 
 
-def load_model(model_name, **kwargs):
+def load_model(model_name: str, **kwargs: Any):
     """
     Load a model dynamically based on the model_name argument.
 
@@ -56,7 +47,6 @@ def load_model(model_name, **kwargs):
     }
 
     try:
-        validate_model_instance(model_name)
         model_class = models.get(model_name.lower())
         validate_model_availability(model_name, models)
     except Exception as e:
@@ -65,14 +55,6 @@ def load_model(model_name, **kwargs):
 
     if model_name == "random_forest":
         kwargs.setdefault("n_jobs", -1)  # Set max number of jobs
-
-    # if(model_name == "gradient_boosting"):
-
-    # if(model_name == "logistic_regression"):
-
-    # if(model_name == "svc"):
-
-    # TODO: add exceptions and more models
 
     # Get the arguments of the model constructor and check if they are valid
     try:
