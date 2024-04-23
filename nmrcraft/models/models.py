@@ -51,6 +51,7 @@ def load_model(model_name: str, **kwargs: Any):
         "logistic_regression": LogisticRegression,
         "svc": SVC,
     }
+    # TODO: put model config here
 
     # First, check if the model exists
     validate_model_availability(model_name, models)
