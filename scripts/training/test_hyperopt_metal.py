@@ -2,20 +2,20 @@
 # import os
 
 # import mlflow
-from sklearn.metrics import accuracy_score # , auc, confusion_matrix, f1_score, roc_curve
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.preprocessing import LabelEncoder
-
-# from nmrcraft.analysis.plotting import plot_confusion_matrix, plot_roc_curve
-
-# Assuming these are your custom modules
-from nmrcraft.data.dataset import load_data
-# from nmrcraft.models.models import load_model
-from nmrcraft.utils.set_seed import set_seed
+from hyperopt import STATUS_OK, Trials, fmin, hp, tpe
 
 # Test hyperparameter tuning
 from sklearn.ensemble import RandomForestClassifier
-from hyperopt import hp, fmin, tpe, Trials, STATUS_OK
+from sklearn.metrics import accuracy_score  # , auc, confusion_matrix, f1_score, roc_curve
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+# from nmrcraft.analysis.plotting import plot_confusion_matrix, plot_roc_curve
+# Assuming these are your custom modules
+from nmrcraft.data.dataset import load_data
+
+# from nmrcraft.models.models import load_model
+from nmrcraft.utils.set_seed import set_seed
 
 set_seed(42)
 
@@ -35,7 +35,7 @@ X = dataset[feature_columns].to_numpy()
 y_label = dataset["metal"].to_numpy()
 
 label_encoder = LabelEncoder()
-label_encoder.fit(["Mo", "W"]) 
+label_encoder.fit(["Mo", "W"])
 y = label_encoder.transform(y_label)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
@@ -48,7 +48,8 @@ space = {
     "min_samples_split": hp.uniform("min_samples_split", 0, 1),
     "min_samples_leaf": hp.uniform("min_samples_leaf", 0, 0.5),
     "max_features": hp.choice("max_features", ["sqrt", "log2", None]),
-    }
+}
+
 
 def objective(space):
     model = RandomForestClassifier(
@@ -66,10 +67,11 @@ def objective(space):
     # score = cross_val_score(model, X_train, y_train, cv=4).mean()
     return {"loss": -score, "status": STATUS_OK}
 
+
 print("\nStarting hyperparameter tuning...")
 trials = Trials()
 best = fmin(
-    fn=objective, 
+    fn=objective,
     space=space,
     algo=tpe.suggest,
     max_evals=100,
