@@ -6,7 +6,13 @@ from nmrcraft.models.models import load_model
 
 
 class HyperparameterTuner:
-    def __init__(self, model_name: str, model_config: dict, algo=tpe.suggest, max_evals=10):
+    def __init__(
+        self,
+        model_name: str,
+        model_config: dict,
+        algo=tpe.suggest,
+        max_evals=10,
+    ):
         """
         Initialize the HyperparameterTuner class.
 
@@ -22,7 +28,9 @@ class HyperparameterTuner:
         self.max_evals = max_evals
         self.algo = algo
 
-    def _objective(self, params: dict, X_train, y_train, X_test, y_test) -> dict:
+    def _objective(
+        self, params: dict, X_train, y_train, X_test, y_test
+    ) -> dict:
         """
         Objective function for hyperparameter tuning.
 
@@ -36,7 +44,9 @@ class HyperparameterTuner:
         Returns:
             dict: The loss and status of the objective function.
         """
-        model = load_model(self.model_name, **{**params, **self.model_config["model_params"]})
+        model = load_model(
+            self.model_name, **{**params, **self.model_config["model_params"]}
+        )
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
         score = accuracy_score(y_test, y_pred)
@@ -56,7 +66,9 @@ class HyperparameterTuner:
             tuple: The best parameters and the tuning trials.
         """
         best = fmin(
-            fn=lambda params: self._objective(params, X_train, y_train, X_test, y_test),
+            fn=lambda params: self._objective(
+                params, X_train, y_train, X_test, y_test
+            ),
             space=self.model_config["hyperparameters"],
             algo=self.algo,
             max_evals=self.max_evals,
