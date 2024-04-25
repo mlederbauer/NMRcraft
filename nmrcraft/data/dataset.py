@@ -2,7 +2,11 @@
 import pandas as pd
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+from nmrcraft.utils.set_seed import set_seed
+
+set_seed()
 
 
 def filename_to_ligands(dataset: pd.DataFrame):
@@ -24,7 +28,7 @@ def filename_to_ligands(dataset: pd.DataFrame):
     return dataset
 
 
-def load_data(
+def load_dataset_from_hf(
     dataset_name: str = "NMRcraft/nmrcraft", data_files: str = "all_no_nan.csv"
 ):
     """
@@ -33,24 +37,33 @@ def load_data(
     dataset = load_dataset(dataset_name, data_files=data_files)[
         "train"
     ].to_pandas()
-    dataset = filename_to_ligands(dataset)
     return dataset
 
 
 class DataLoader:
     def __init__(
         self,
-        dataset,
-        feature_columns,
-        target_column,
+        dataset_name="NMRcraft/nmrcraft",
+        data_files="all_no_nan.csv",
+        feature_columns=None,
+        target_column="metal",
         test_size=0.3,
         random_state=42,
+        dataset_size=0.01,
     ):
-        self.dataset = dataset
         self.feature_columns = feature_columns
         self.target_column = target_column
         self.test_size = test_size
         self.random_state = random_state
+        self.dataset_size = dataset_size
+        self.dataset = load_dataset_from_hf()
+
+    def load_data(self):
+        self.dataset = filename_to_ligands(
+            self.dataset
+        )  # Assuming filename_to_ligands is defined elsewhere
+        self.dataset = self.dataset.sample(frac=self.dataset_size)
+        return self.split_and_preprocess()
 
     def preprocess_features(self, X):
         """
@@ -66,7 +79,11 @@ class DataLoader:
         Ensures that the test data does not leak into training data preprocessing.
         """
         X = self.dataset[self.feature_columns].to_numpy()
-        y = self.dataset[self.target_column].to_numpy()
+        y_label = self.dataset[self.target_column].to_numpy()
+
+        label_encoder = LabelEncoder()
+        label_encoder.fit(["Mo", "W"])  # TODO adapt this for other targets!
+        y = label_encoder.transform(y_label)
 
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=self.test_size, random_state=self.random_state
