@@ -1,10 +1,18 @@
 from typing import Any, Dict, Tuple
 
 from sklearn.base import BaseEstimator
-from sklearn.metrics import accuracy_score, auc, confusion_matrix, f1_score, roc_curve
+from sklearn.metrics import (
+    accuracy_score,
+    auc,
+    confusion_matrix,
+    f1_score,
+    roc_curve,
+)
 
 
-def model_evaluation(model: BaseEstimator, X_test: Any, y_test: Any) -> Tuple[Dict[str, float], Any, Any, Any]:
+def model_evaluation(
+    model: BaseEstimator, X_test: Any, y_test: Any
+) -> Tuple[Dict[str, float], Any, Any, Any]:
     """
     Evaluate the performance of the trained machine learning model.
 

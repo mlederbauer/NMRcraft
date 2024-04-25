@@ -18,7 +18,9 @@ first_color = plt.rcParams["axes.prop_cycle"].by_key()["color"][0]
 plt.rcParams["text.usetex"] = False
 
 
-def plot_predicted_vs_ground_truth(y_test: np.array, y_pred: np.array, title: str):
+def plot_predicted_vs_ground_truth(
+    y_test: np.array, y_pred: np.array, title: str
+):
     """
     Plots the predicted values against the ground truth values.
     Parameters:
@@ -31,14 +33,18 @@ def plot_predicted_vs_ground_truth(y_test: np.array, y_pred: np.array, title: st
     # Creating the plot
     plt.figure(figsize=(10, 8))
     plt.scatter(y_test, y_pred, color=first_color, edgecolor="k", alpha=0.6)
-    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "k--", lw=2)
+    plt.plot(
+        [y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "k--", lw=2
+    )
     plt.xlabel("Actual")
     plt.ylabel("Predicted")
     plt.title(title)
     plt.show()
 
 
-def plot_predicted_vs_ground_truth_density(y_test: np.array, y_pred: np.array, title: str):
+def plot_predicted_vs_ground_truth_density(
+    y_test: np.array, y_pred: np.array, title: str
+):
     """
     Plots the predicted values against the ground truth values with a color gradient based on point density.
     Parameters:
@@ -62,8 +68,12 @@ def plot_predicted_vs_ground_truth_density(y_test: np.array, y_pred: np.array, t
 
     # Creating the plot
     plt.figure(figsize=(10, 8))
-    plt.scatter(y_test, y_pred, c=scalar_map.to_rgba(kernel), edgecolor="k", alpha=0.9)
-    plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "k--", lw=2)
+    plt.scatter(
+        y_test, y_pred, c=scalar_map.to_rgba(kernel), edgecolor="k", alpha=0.9
+    )
+    plt.plot(
+        [y_test.min(), y_test.max()], [y_test.min(), y_test.max()], "k--", lw=2
+    )
     plt.xlabel("Actual")
     plt.ylabel("Predicted")
     plt.title(title)
@@ -106,7 +116,13 @@ def plot_roc_curve(fpr, tpr, roc_auc, title, path):
     None
     """
     plt.figure(figsize=(10, 8))
-    plt.plot(fpr, tpr, color="darkorange", lw=2, label=f"ROC curve (area = {roc_auc:.2f})")
+    plt.plot(
+        fpr,
+        tpr,
+        color="darkorange",
+        lw=2,
+        label=f"ROC curve (area = {roc_auc:.2f})",
+    )
     plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")

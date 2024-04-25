@@ -10,7 +10,9 @@ class InvalidModelNameError(ValueError):
     """Exception raised when the specified model name is not found."""
 
     def __init__(self, model_name, models):
-        super().__init__(f"Model {model_name} not found. Available models are {list(models.keys())}")
+        super().__init__(
+            f"Model {model_name} not found. Available models are {list(models.keys())}"
+        )
 
 
 class InvalidArgumentError(ValueError):

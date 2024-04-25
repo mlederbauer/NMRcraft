@@ -16,7 +16,9 @@ def test_load_model():
 
     for model_name, model_class in models.items():
         model = load_model(model_name)
-        assert isinstance(model, model_class), f"Expected {model_class}, got {type(model)}"
+        assert isinstance(
+            model, model_class
+        ), f"Expected {model_class}, got {type(model)}"
 
 
 def test_load_model_unsupported_model():

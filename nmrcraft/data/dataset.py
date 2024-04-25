@@ -29,12 +29,16 @@ def filename_to_ligands(dataset: pd.DataFrame):
     dataset["X2_ligand"] = filename_parts.get(4)
     dataset["X3_ligand"] = filename_parts.get(5)
     dataset["X4_ligand"] = filename_parts.get(6)
-    dataset["L_ligand"] = filename_parts.get(7).fillna("none")  # Fill missing L_ligand with 'none'
+    dataset["L_ligand"] = filename_parts.get(7).fillna(
+        "none"
+    )  # Fill missing L_ligand with 'none'
 
     return dataset
 
 
-def load_data(dataset_name: str = "NMRcraft/nmrcraft", data_files: str = "all_no_nan.csv"):
+def load_data(
+    dataset_name: str = "NMRcraft/nmrcraft", data_files: str = "all_no_nan.csv"
+):
     """Load the dataset.
 
     This function loads the dataset using the specified dataset name and data files.
@@ -72,6 +76,8 @@ def split_data(X: np.array, y: np.array, test_size: float = 0.2):
     - np.array: The test target variable.
     """
     # TODO potentially add more sophisticated splitting / bootstrapping methods
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=42
+    )
 
     return X_train, X_test, y_train, y_test
