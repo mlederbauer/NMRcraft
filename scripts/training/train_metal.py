@@ -107,7 +107,10 @@ if __name__ == "__main__":
         help="Fraction of dataset to use",
     )
     parser.add_argument(
-        "--target", type=str, default="metal", help="Target variable name"
+        "--target",
+        type=str,
+        default="metal",
+        help="Specify the target(s) to select (metal, X1-X4, L, E or combinations of them, e.g., metal_1X_L)",
     )
     parser.add_argument(
         "--model_name",
