@@ -22,7 +22,7 @@ jobs:
           poetry install
       - name: Format with Black
         run: |
-          pip install black
-          black --check --line-length 79 .
+          poetry add black
+          poetry run black --check --line-length 79 .
       - name: Run tests
         run: make test
