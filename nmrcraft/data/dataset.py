@@ -106,7 +106,6 @@ class DataLoader:
         self.random_state = random_state
         self.dataset_size = dataset_size
         self.dataset = load_dataset_from_hf()
-        self.load_data()
 
     def load_data(self):
         self.dataset = filename_to_ligands(
@@ -129,61 +128,26 @@ class DataLoader:
         Ensures that the test data does not leak into training data preprocessing.
         """
         X = self.dataset[self.feature_columns].to_numpy()
-        self.dataset.to_csv("indide_yeeter.csv")
         target_unique_labels = get_target_labels(
             target_columns=self.target_columns, dataset=self.dataset
         )
-        print(
-            "============================================================================================="
-        )
-        print(target_unique_labels)
-        print(
-            "============================================================================================="
-        )
+
+        # Get the targets, rotate, apply encoding, rotate back
         y_labels_rotated = self.dataset[self.target_columns].to_numpy()
         y_labels = [
             list(x) if i == 0 else x
             for i, x in enumerate(map(list, zip(*y_labels_rotated)))
         ]
+        self.target_unique_labels = target_unique_labels
         ys = []
         for i in range(len(target_unique_labels)):
             tmp_encoder = LabelEncoder()
             tmp_encoder.fit(target_unique_labels[i])
             ys.append(tmp_encoder.transform(y_labels[i]))
         y = list(zip(*ys))
-        # label_encoder = LabelEncoder()
-        # label_encoder.fit()  # TODO adapt this for other targets!
-        # y = label_encoder.transform(y_labels)
-        print(
-            "============================================================================================"
-        )
-        print(y)
-        print(
-            "============================================================================================"
-        )
-        print(list(zip(*y_labels)))
-        print(
-            "============================================================================================"
-        )
+
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=self.test_size, random_state=self.random_state
-        )
-        print(
-            "============================================================================================"
-        )
-        print(X_train)
-        print(len(X_train))
-
-        print(
-            "============================================================================================"
-        )
-        print(
-            "============================================================================================"
-        )
-        print(y_train)
-        print(len(y_train))
-        print(
-            "============================================================================================"
         )
 
         # Normalize features with no leakage from test set

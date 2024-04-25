@@ -2,7 +2,6 @@ import argparse
 import os
 
 import mlflow
-from sklearn.preprocessing import LabelEncoder
 
 from nmrcraft.analysis.plotting import plot_confusion_matrix, plot_roc_curve
 from nmrcraft.data.dataset import DataLoader
@@ -42,16 +41,18 @@ def main(dataset_size, target, model_name):
 
         data_loader = DataLoader(
             feature_columns=feature_columns,
-            target_column=args.target,
+            target_columns=args.target,
             dataset_size=args.dataset_size,
         )
 
-        label_encoder = LabelEncoder()
-        label_encoder.fit(["Mo", "W"])  # TODO adapt this for other targets!
-        # FIXME: ugly hard coded right now to make confusion matrix plotting work
-
         # Load and preprocess data
         X_train, X_test, y_train, y_test = data_loader.load_data()
+
+        # Make targets 1D (needs to be solved better but for now im very tierd)
+        import itertools
+
+        y_train = list(itertools.chain(*y_train))
+        y_test = list(itertools.chain(*y_test))
 
         tuner = HyperparameterTuner(model_name, config)
         best_params, _ = tuner.tune(X_train, y_train, X_test, y_test)
@@ -80,7 +81,10 @@ def main(dataset_size, target, model_name):
         cm_path = os.path.join(fig_path, "cm.png")
         title = r"Confusion matrix, TODO add LaTeX symbols"
         plot_confusion_matrix(
-            cm, classes=label_encoder.classes_, title=title, path=cm_path
+            cm,
+            classes=data_loader.target_unique_labels,
+            title=title,
+            path=cm_path,
         )
         roc_path = os.path.join(fig_path, "roc.png")
         title = r"ROC curve, TODO add LaTeX symbols"
