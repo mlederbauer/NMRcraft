@@ -150,18 +150,40 @@ class DataLoader:
             tmp_encoder = LabelEncoder()
             tmp_encoder.fit(target_unique_labels[i])
             ys.append(tmp_encoder.transform(y_labels[i]))
+        y = list(zip(*ys))
         # label_encoder = LabelEncoder()
         # label_encoder.fit()  # TODO adapt this for other targets!
         # y = label_encoder.transform(y_labels)
         print(
             "============================================================================================"
         )
-        print(ys)
+        print(y)
+        print(
+            "============================================================================================"
+        )
+        print(list(zip(*y_labels)))
         print(
             "============================================================================================"
         )
         X_train, X_test, y_train, y_test = train_test_split(
-            X, ys, test_size=self.test_size, random_state=self.random_state
+            X, y, test_size=self.test_size, random_state=self.random_state
+        )
+        print(
+            "============================================================================================"
+        )
+        print(X_train)
+        print(len(X_train))
+
+        print(
+            "============================================================================================"
+        )
+        print(
+            "============================================================================================"
+        )
+        print(y_train)
+        print(len(y_train))
+        print(
+            "============================================================================================"
         )
 
         # Normalize features with no leakage from test set
