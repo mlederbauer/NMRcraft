@@ -150,6 +150,12 @@ class DataLoader:
             X, y, test_size=self.test_size, random_state=self.random_state
         )
 
+        # Make targets 1D if only one is targeted
+        import itertools
+
+        y_train = list(itertools.chain(*y_train))
+        y_test = list(itertools.chain(*y_test))
+
         # Normalize features with no leakage from test set
         X_train_scaled, scaler = self.preprocess_features(X_train)
         X_test_scaled = scaler.transform(
