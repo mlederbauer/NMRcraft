@@ -39,8 +39,17 @@ def filename_to_ligands(dataset: pd.DataFrame):
 def load_dataset_from_hf(
     dataset_name: str = "NMRcraft/nmrcraft", data_files: str = "all_no_nan.csv"
 ):
-    """
-    Load the dataset and preprocess it with ligands extraction.
+    """Load the dataset.
+
+    This function loads the dataset using the specified dataset name and data files.
+    It assumes that you have logged into the Hugging Face CLI prior to calling this function.
+
+    Args:
+        dataset_name (str, optional): The name of the dataset. Defaults to "NMRcraft/nmrcraft".
+        data_files (str, optional): The name of the data file. Defaults to 'all_no_nan.csv'.
+
+    Returns:
+        pandas.DataFrame: The loaded dataset as a pandas DataFrame.
     """
     dataset = load_dataset(dataset_name, data_files=data_files)[
         "train"
