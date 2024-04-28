@@ -1,5 +1,7 @@
 """Load and preprocess data."""
 
+import itertools
+
 import pandas as pd
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
@@ -98,6 +100,14 @@ def get_target_labels(target_columns: str, dataset: pd.DataFrame):
 #     return result
 
 
+def one_hot_encoding(y):
+    if isinstance((y[0]), int):
+        print("int")
+    if isinstance((y[0]), tuple):
+        max_values = (max(row) for row in zip(*y))
+        print(max_values)
+
+
 class DataLoader:
     def __init__(
         self,
@@ -158,12 +168,10 @@ class DataLoader:
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=self.test_size, random_state=self.random_state
         )
-
         # Make targets 1D if only one is targeted
-        import itertools
-
-        y_train = list(itertools.chain(*y_train))
-        y_test = list(itertools.chain(*y_test))
+        if len(y[0]) == 1:
+            y_train = list(itertools.chain(*y_train))
+            y_test = list(itertools.chain(*y_test))
 
         # Normalize features with no leakage from test set
         X_train_scaled, scaler = self.preprocess_features(X_train)
