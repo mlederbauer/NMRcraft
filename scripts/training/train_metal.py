@@ -2,11 +2,9 @@ import argparse
 import os
 
 import mlflow
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
 from nmrcraft.analysis.plotting import plot_confusion_matrix, plot_roc_curve
-from nmrcraft.data.dataset import load_data
+from nmrcraft.data.dataset import DataLoader
 from nmrcraft.evaluation.evaluation import model_evaluation
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
@@ -23,10 +21,6 @@ def main(dataset_size, target, model_name):
     with mlflow.start_run():
         config = model_configs[model_name]
 
-        # TODO: add data loader in nmrcraft/data/dataset.py
-        dataset = load_data()
-        dataset = dataset.sample(frac=dataset_size)
-
         feature_columns = [
             "M_sigma11_ppm",
             "M_sigma22_ppm",
@@ -35,18 +29,24 @@ def main(dataset_size, target, model_name):
             "E_sigma22_ppm",
             "E_sigma33_ppm",
         ]
-        # TODO: add feature columns if we want to add other features
 
-        X = dataset[feature_columns].to_numpy()
-        y_label = dataset[target].to_numpy()
+        if target == "metal":
+            # if the target is that, we encode the metals as Mo, W.
+            # this is hard coded in the data loader and needs to be changed next
+            pass
 
-        label_encoder = LabelEncoder()
-        label_encoder.fit(["Mo", "W"])  # TODO: change if we have other targets
-        y = label_encoder.transform(y_label)
+        # TODO: add categorical feature columns
+        # TODO: add target column, here e.g. "metal" with the two possibilities "Mo, W"
+        # Create a DataLoader instance
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=0.3, random_state=42
+        data_loader = DataLoader(
+            feature_columns=feature_columns,
+            target_columns=args.target,
+            dataset_size=args.dataset_size,
         )
+
+        # Load and preprocess data
+        X_train, X_test, y_train, y_test = data_loader.load_data()
 
         tuner = HyperparameterTuner(model_name, config)
         best_params, _ = tuner.tune(X_train, y_train, X_test, y_test)
@@ -75,7 +75,10 @@ def main(dataset_size, target, model_name):
         cm_path = os.path.join(fig_path, "cm.png")
         title = r"Confusion matrix, TODO add LaTeX symbols"
         plot_confusion_matrix(
-            cm, classes=label_encoder.classes_, title=title, path=cm_path
+            cm,
+            classes=data_loader.target_unique_labels,
+            title=title,
+            path=cm_path,
         )
         roc_path = os.path.join(fig_path, "roc.png")
         title = r"ROC curve, TODO add LaTeX symbols"
@@ -102,7 +105,10 @@ if __name__ == "__main__":
         help="Fraction of dataset to use",
     )
     parser.add_argument(
-        "--target", type=str, default="metal", help="Target variable name"
+        "--target",
+        type=str,
+        default="metal",
+        help="Specify the target(s) to select (metal, X1-X4, L, E or combinations of them, e.g., metal_1X_L)",
     )
     parser.add_argument(
         "--model_name",
