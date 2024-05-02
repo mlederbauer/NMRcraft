@@ -2,10 +2,11 @@
 
 import itertools
 
+import numpy as np
 import pandas as pd
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
 
 from nmrcraft.utils.set_seed import set_seed
 
@@ -17,6 +18,13 @@ class InvalidTargetError(ValueError):
 
     def __init__(self, t):
         super().__init__(f"Invalid target '{t}'")
+
+
+class InvalidTargetTypeError(ValueError):
+    """Exception raised when the specified target type is not valid."""
+
+    def __init__(self, t):
+        super().__init__(f"Invalid target Type '{t}'")
 
 
 def filename_to_ligands(dataset: pd.DataFrame):
@@ -115,6 +123,7 @@ class DataLoader:
         data_files="all_no_nan.csv",
         feature_columns=None,
         target_columns="metal",
+        target_type="one-hot",  # can be "categorical" or "one-hot"
         test_size=0.3,
         random_state=42,
         dataset_size=0.01,
@@ -124,6 +133,7 @@ class DataLoader:
         self.test_size = test_size
         self.random_state = random_state
         self.dataset_size = dataset_size
+        self.target_type = target_type
         self.dataset = load_dataset_from_hf()
 
     def load_data(self):
@@ -131,7 +141,14 @@ class DataLoader:
             self.dataset
         )  # Assuming filename_to_ligands is defined elsewhere
         self.dataset = self.dataset.sample(frac=self.dataset_size)
-        return self.split_and_preprocess()
+        if self.target_type == "categorical":
+            return self.split_and_preprocess_categorical()
+        elif (
+            self.target_type == "one-hot"
+        ):  # Target is binarized and Features are one hot
+            return self.split_and_preprocess_one_hot()
+        else:
+            raise InvalidTargetTypeError()
 
     def preprocess_features(self, X):
         """
@@ -141,7 +158,7 @@ class DataLoader:
         X_scaled = scaler.fit_transform(X)
         return X_scaled, scaler
 
-    def split_and_preprocess(self):
+    def split_and_preprocess_categorical(self):
         """
         Split data into training and test sets, then apply normalization.
         Ensures that the test data does not leak into training data preprocessing.
@@ -173,6 +190,44 @@ class DataLoader:
             y_train = list(itertools.chain(*y_train))
             y_test = list(itertools.chain(*y_test))
 
+        # Normalize features with no leakage from test set
+        X_train_scaled, scaler = self.preprocess_features(X_train)
+        X_test_scaled = scaler.transform(
+            X_test
+        )  # Apply the same transformation to test set
+
+        return X_train_scaled, X_test_scaled, y_train, y_test
+
+    def split_and_preprocess_one_hot(self):
+        """
+        Split data into training and test sets, then apply normalization.
+        Ensures that the test data does not leak into training data preprocessing.
+        """
+        X = self.dataset[self.feature_columns].to_numpy()
+        target_unique_labels = get_target_labels(
+            target_columns=self.target_columns, dataset=self.dataset
+        )
+
+        # Get the Targets, rotate, apply binarization, funze into a single array
+        y_labels_rotated = self.dataset[self.target_columns].to_numpy()
+        y_labels = [
+            list(x) if i == 0 else x
+            for i, x in enumerate(map(list, zip(*y_labels_rotated)))
+        ]
+        self.target_unique_labels = target_unique_labels
+        ys = []
+        for i in range(len(target_unique_labels)):
+            ys.append(LabelBinarizer().fit_transform(y_labels[i]))
+        y = np.concatenate(list(ys), axis=1)
+        print(y)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=self.test_size, random_state=self.random_state
+        )
+        # Make targets 1D if only one is targeted
+        if len(y[0]) == 1:
+            y_train = list(itertools.chain(*y_train))
+            y_test = list(itertools.chain(*y_test))
+        print(X_train)
         # Normalize features with no leakage from test set
         X_train_scaled, scaler = self.preprocess_features(X_train)
         X_test_scaled = scaler.transform(
