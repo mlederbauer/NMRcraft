@@ -6,7 +6,12 @@ import numpy as np
 import pandas as pd
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
+from sklearn.preprocessing import (
+    LabelBinarizer,
+    LabelEncoder,
+    OneHotEncoder,
+    StandardScaler,
+)
 
 from nmrcraft.utils.set_seed import set_seed
 
@@ -91,6 +96,23 @@ def get_target_columns(target_columns: str):
     targets_transformed = [target_map[t] for t in targets]
 
     return targets_transformed
+
+
+def get_structural_feature_columns(target_columns: list):
+    TARGET_TYPES = [
+        "metal",
+        "X1_ligand",
+        "X2_ligand",
+        "X3_ligand",
+        "X4_ligand",
+        "L_ligand",
+        "E_ligand",
+    ]
+
+    # Get the features as the not targets
+    features = [x for x in TARGET_TYPES if x not in target_columns]
+
+    return features
 
 
 def get_target_labels(target_columns: str, dataset: pd.DataFrame):
@@ -195,7 +217,6 @@ class DataLoader:
         Split data into training and test sets, then apply normalization.
         Ensures that the test data does not leak into training data preprocessing.
         """
-        X = self.dataset[self.feature_columns].to_numpy()
         target_unique_labels = get_target_labels(
             target_columns=self.target_columns, dataset=self.dataset
         )
@@ -211,19 +232,53 @@ class DataLoader:
         for i in range(len(target_unique_labels)):
             ys.append(LabelBinarizer().fit_transform(y_labels[i]))
         y = np.concatenate(list(ys), axis=1)
-        print(y)
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=self.test_size, random_state=self.random_state
+
+        # Get NMR and structural Features, one-hot-encode and combine
+        X_NMR = self.dataset[self.feature_columns].to_numpy()
+        X_Structural_Features_Columns = get_structural_feature_columns(
+            self.target_columns
+        )
+        X_Structural_Features = self.dataset[
+            X_Structural_Features_Columns
+        ].to_numpy()
+        one_hot = OneHotEncoder().fit(X_Structural_Features)
+        X_Structural_Features_enc = one_hot.transform(
+            X_Structural_Features
+        ).toarray()
+        # X = [X_NMR, X_Structural_Features_enc]
+        # print(X)
+
+        # Split the datasets
+        (
+            X_train_NMR,
+            X_test_NMR,
+            X_train_structural,
+            X_test_structural,
+            y_train,
+            y_test,
+        ) = train_test_split(
+            X_NMR,
+            X_Structural_Features_enc,
+            y,
+            test_size=self.test_size,
+            random_state=self.random_state,
         )
         # Make targets 1D if only one is targeted
         if len(y[0]) == 1:
             y_train = list(itertools.chain(*y_train))
             y_test = list(itertools.chain(*y_test))
-        print(X_train)
+
         # Normalize features with no leakage from test set
-        X_train_scaled, scaler = self.preprocess_features(X_train)
-        X_test_scaled = scaler.transform(
-            X_test
+        X_train_NMR_scaled, scaler = self.preprocess_features(X_train_NMR)
+        X_test_NMR_scaled = scaler.transform(
+            X_test_NMR
         )  # Apply the same transformation to test set
+        # Combine scaled NMR features with structural features
+        X_train_scaled = np.concatenate(
+            [X_train_NMR_scaled, X_train_structural], axis=1
+        )
+        X_test_scaled = np.concatenate(
+            [X_test_NMR_scaled, X_test_structural], axis=1
+        )
 
         return X_train_scaled, X_test_scaled, y_train, y_test
