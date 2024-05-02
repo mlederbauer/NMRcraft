@@ -108,14 +108,6 @@ def get_target_labels(target_columns: str, dataset: pd.DataFrame):
 #     return result
 
 
-def one_hot_encoding(y):
-    if isinstance((y[0]), int):
-        print("int")
-    if isinstance((y[0]), tuple):
-        max_values = (max(row) for row in zip(*y))
-        print(max_values)
-
-
 class DataLoader:
     def __init__(
         self,
