@@ -143,6 +143,13 @@ def target_label_readabilitizer(readable_labels):
     return human_readable_label_list
 
 
+def target_label_readabilitizer_categorical(target_labels):
+    good_labels = []
+    for label_array in target_labels:
+        good_labels.append(list(label_array))
+    return good_labels
+
+
 # def get_target_labels(target_columns: str, dataset: pd.DataFrame):
 #     # Get unique values for each column
 #     unique_values = [set(dataset[col]) for col in target_columns]
@@ -231,12 +238,13 @@ class DataLoader:
         ]
         self.target_unique_labels = target_unique_labels
         ys = []
+        readable_labels = []
         for i in range(len(target_unique_labels)):
             tmp_encoder = LabelEncoder()
             tmp_encoder.fit(target_unique_labels[i])
             ys.append(tmp_encoder.transform(y_labels[i]))
+            readable_labels.append(tmp_encoder.classes_)
         y = list(zip(*ys))
-
         (
             X_NMR_train,
             X_NMR_test,
@@ -268,7 +276,9 @@ class DataLoader:
             [X_test_NMR_scaled, X_test_structural], axis=1
         )
 
-        return X_train_scaled, X_test_scaled, y_train, y_test
+        # Get the target labels going
+        y_label = target_label_readabilitizer_categorical(readable_labels)
+        return X_train_scaled, X_test_scaled, y_train, y_test, y_label
 
     def split_and_preprocess_one_hot(self):
         """
