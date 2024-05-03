@@ -122,18 +122,24 @@ def get_target_labels(target_columns: str, dataset: pd.DataFrame):
     return unique_values
 
 
-def target_label_readabilitizer(target_unique_labels):
+def target_label_readabilitizer(readable_labels):
     """
-    function takes the unique target labels and does some stuff so they become human readable for debugging. This function is basically hardcoded and not expandable
+    function takes in the classes from the binarzier and turns them into something human usable.
     """
-    for i in enumerate(target_unique_labels):
-        if target_unique_labels[i] == ["Mo", "W"] or target_unique_labels[
-            i
-        ] == ["W", "Mo"]:
-            target_unique_labels[i] = ["Mo or W"]
-        if target_unique_labels[i] == ["Cl"]:
-            target_unique_labels[i] = ["Cl is always 0"]
-    human_readable_label_list = list(itertools.chain(*target_unique_labels))
+    # Trun that class_ into list
+    human_readable_label_list = list(itertools.chain(*readable_labels))
+    # Handle Binarized metal stuff and make the two columns become a single one
+    for i in enumerate(human_readable_label_list):
+        if (
+            human_readable_label_list[i[0]] == "Mo"
+            and human_readable_label_list[i[0] + 1] == "W"
+        ) or (
+            human_readable_label_list[i[0]] == "W"
+            and human_readable_label_list[i[0] + 1] == "Mo"
+        ):
+            human_readable_label_list[i[0]] = "Mo W"
+            human_readable_label_list.pop(i[0] + 1)
+
     return human_readable_label_list
 
 
@@ -335,7 +341,14 @@ class DataLoader:
         X_test_scaled = np.concatenate(
             [X_test_NMR_scaled, X_test_structural], axis=1
         )
-        print(readable_labels)
-        # print(len(target_label_readabilitizer(one_hot.categories_())))
-        print(y_labels_rotated)
-        return X_train_scaled, X_test_scaled, y_train, y_test
+
+        # Creates the labels that can be used to identify the targets in the binaized y-array
+        good_target_labels = target_label_readabilitizer(readable_labels)
+
+        return (
+            X_train_scaled,
+            X_test_scaled,
+            y_train,
+            y_test,
+            good_target_labels,
+        )
