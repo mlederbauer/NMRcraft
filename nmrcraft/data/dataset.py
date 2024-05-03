@@ -122,6 +122,21 @@ def get_target_labels(target_columns: str, dataset: pd.DataFrame):
     return unique_values
 
 
+def target_label_readabilitizer(target_unique_labels):
+    """
+    function takes the unique target labels and does some stuff so they become human readable for debugging. This function is basically hardcoded and not expandable
+    """
+    for i in enumerate(target_unique_labels):
+        if target_unique_labels[i] == ["Mo", "W"] or target_unique_labels[
+            i
+        ] == ["W", "Mo"]:
+            target_unique_labels[i] = ["Mo or W"]
+        if target_unique_labels[i] == ["Cl"]:
+            target_unique_labels[i] = ["Cl is always 0"]
+    human_readable_label_list = list(itertools.chain(*target_unique_labels))
+    return human_readable_label_list
+
+
 # def get_target_labels(target_columns: str, dataset: pd.DataFrame):
 #     # Get unique values for each column
 #     unique_values = [set(dataset[col]) for col in target_columns]
@@ -266,8 +281,11 @@ class DataLoader:
         ]
         self.target_unique_labels = target_unique_labels
         ys = []
+        readable_labels = []
         for i in range(len(target_unique_labels)):
-            ys.append(LabelBinarizer().fit_transform(y_labels[i]))
+            LBiner = LabelBinarizer()
+            ys.append(LBiner.fit_transform(y_labels[i]))
+            readable_labels.append(LBiner.classes_)
         y = np.concatenate(list(ys), axis=1)
 
         # Get NMR and structural Features, one-hot-encode and combine
@@ -317,5 +335,7 @@ class DataLoader:
         X_test_scaled = np.concatenate(
             [X_test_NMR_scaled, X_test_structural], axis=1
         )
-
+        print(readable_labels)
+        # print(len(target_label_readabilitizer(one_hot.categories_())))
+        print(y_labels_rotated)
         return X_train_scaled, X_test_scaled, y_train, y_test
