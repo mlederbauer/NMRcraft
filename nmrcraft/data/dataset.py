@@ -177,12 +177,32 @@ class DataLoader:
         Split data into training and test sets, then apply normalization.
         Ensures that the test data does not leak into training data preprocessing.
         """
-        X = self.dataset[self.feature_columns].to_numpy()
+        # Get NMR and structural Features and combine
+        X_NMR = self.dataset[self.feature_columns].to_numpy()
+        X_Structural_Features_Columns = get_structural_feature_columns(
+            target_columns=self.target_columns
+        )
+        X_Structural_Features = self.dataset[
+            X_Structural_Features_Columns
+        ].to_numpy()
+        X_Structural_Features = [
+            list(x) if i == 0 else x
+            for i, x in enumerate(map(list, zip(*X_Structural_Features)))
+        ]
+        self.feature_unique_labels = get_target_labels(
+            dataset=self.dataset, target_columns=X_Structural_Features_Columns
+        )
+        xs = []
+        for i in range(len(self.feature_unique_labels)):
+            tmp_encoder = LabelEncoder()
+            tmp_encoder.fit(self.feature_unique_labels[i])
+            xs.append(tmp_encoder.transform(X_Structural_Features[i]))
+        X_Structural_Features = list(zip(*xs))
+
+        # Get the targets, rotate, apply encoding, rotate back
         target_unique_labels = get_target_labels(
             target_columns=self.target_columns, dataset=self.dataset
         )
-
-        # Get the targets, rotate, apply encoding, rotate back
         y_labels_rotated = self.dataset[self.target_columns].to_numpy()
         y_labels = [
             list(x) if i == 0 else x
@@ -196,8 +216,19 @@ class DataLoader:
             ys.append(tmp_encoder.transform(y_labels[i]))
         y = list(zip(*ys))
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=self.test_size, random_state=self.random_state
+        (
+            X_NMR_train,
+            X_NMR_test,
+            X_train_structural,
+            X_test_structural,
+            y_train,
+            y_test,
+        ) = train_test_split(
+            X_NMR,
+            X_Structural_Features,
+            y,
+            test_size=self.test_size,
+            random_state=self.random_state,
         )
         # Make targets 1D if only one is targeted
         if len(y[0]) == 1:
@@ -205,10 +236,16 @@ class DataLoader:
             y_test = list(itertools.chain(*y_test))
 
         # Normalize features with no leakage from test set
-        X_train_scaled, scaler = self.preprocess_features(X_train)
-        X_test_scaled = scaler.transform(
-            X_test
+        X_train_NMR_scaled, scaler = self.preprocess_features(X_NMR_train)
+        X_test_NMR_scaled = scaler.transform(
+            X_NMR_test
         )  # Apply the same transformation to test set
+        X_train_scaled = np.concatenate(
+            [X_train_NMR_scaled, X_train_structural], axis=1
+        )
+        X_test_scaled = np.concatenate(
+            [X_test_NMR_scaled, X_test_structural], axis=1
+        )
 
         return X_train_scaled, X_test_scaled, y_train, y_test
 
