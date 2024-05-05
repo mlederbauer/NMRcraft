@@ -4,7 +4,8 @@ from sklearn.base import BaseEstimator
 from sklearn.metrics import (
     accuracy_score,
     auc,
-    confusion_matrix,
+    # confusion_matrix,
+    multilabel_confusion_matrix,
     f1_score,
     roc_curve,
 )
@@ -30,8 +31,8 @@ def model_evaluation(
     """
     y_pred = model.predict(X_test)
     score = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred, average="binary")
-    cm = confusion_matrix(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred, average="weighted")
+    cm = multilabel_confusion_matrix(y_test, y_pred)
     fpr, tpr, thresholds = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
     roc_auc = auc(fpr, tpr)
 

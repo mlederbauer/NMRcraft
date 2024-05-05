@@ -48,7 +48,7 @@ def main(dataset_size, target, model_name):
         # Load and preprocess data
         X_train, X_test, y_train, y_test = data_loader.load_data()
 
-        tuner = HyperparameterTuner(model_name, config)
+        tuner = HyperparameterTuner(model_name, config, max_evals=1)
         best_params, _ = tuner.tune(X_train, y_train, X_test, y_test)
 
         model_func = lambda **params: load_model(
@@ -107,14 +107,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--target",
         type=str,
-        default="metal",
+        default="X1",
         help="Specify the target(s) to select (metal, X1-X4, L, E or combinations of them, e.g., metal_1X_L)",
     )
     parser.add_argument(
         "--model_name",
         type=str,
         default="random_forest",
-        help="Model name to load",
+        help="Model name to load ('random_forest', 'gradient_boosting', 'logistic_regression', 'svc')",
     )
     args = parser.parse_args()
 
