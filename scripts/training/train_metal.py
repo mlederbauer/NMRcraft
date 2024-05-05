@@ -114,7 +114,7 @@ if __name__ == "__main__":
         "--model_name",
         type=str,
         default="random_forest",
-        help="Model name to load ('random_forest', 'gradient_boosting', 'logistic_regression', 'svc')"
+        help="Model name to load ('random_forest', 'gradient_boosting', 'logistic_regression', 'svc')",
     )
     args = parser.parse_args()
 

@@ -1,5 +1,6 @@
 import numpy as np
 from hyperopt import STATUS_OK, Trials, fmin, space_eval, tpe
+
 # from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
 
@@ -51,7 +52,7 @@ class HyperparameterTuner:
         model.fit(X_train, y_train)
         # y_pred = model.predict(X_test)
         # score = accuracy_score(y_test, y_pred)
-        score = cross_val_score(model, X_train, y_train, cv = 5).mean()
+        score = cross_val_score(model, X_train, y_train, cv=5).mean()
         return {"loss": -score, "status": STATUS_OK}
 
     def tune(self, X_train, y_train, X_test, y_test) -> tuple:
