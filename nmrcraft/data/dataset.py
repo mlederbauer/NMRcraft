@@ -150,14 +150,6 @@ def target_label_readabilitizer_categorical(target_labels):
     return good_labels
 
 
-# def get_target_labels(target_columns: str, dataset: pd.DataFrame):
-#     # Get unique values for each column
-#     unique_values = [set(dataset[col]) for col in target_columns]
-#     # Convert the list of sets to a list of lists
-#     result = [[i for i in s] for s in unique_values]
-#     return result
-
-
 class DataLoader:
     def __init__(
         self,
