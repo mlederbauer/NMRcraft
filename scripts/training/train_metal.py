@@ -46,7 +46,7 @@ def main(dataset_size, target, model_name):
         )
 
         # Load and preprocess data
-        X_train, X_test, y_train, y_test = data_loader.load_data()
+        X_train, X_test, y_train, y_test, y_labels = data_loader.load_data()
 
         tuner = HyperparameterTuner(model_name, config, max_evals=1)
         best_params, _ = tuner.tune(X_train, y_train, X_test, y_test)
