@@ -28,7 +28,8 @@ def test_valid_targets():
         data_loader = DataLoader(
             feature_columns=feature_columns,
             target_columns=target_columns,
-            dataset_size=0.01,
+            dataset_size=1,
+            testing=True,
         )
         x, x_t, y, y_t, y_cols = data_loader.load_data()
         ys.append(y_t)
@@ -59,7 +60,8 @@ def test_unsupported_targets():  # Check if unsupported targets get recognized
         data_loader = DataLoader(
             feature_columns=feature_columns,
             target_columns="metal_X1_R-ligand",
-            dataset_size=0.01,
+            dataset_size=1,
+            testing=True,
         )
         del data_loader
 
@@ -77,7 +79,8 @@ def test_unsupported_target_type():
         data_loader = DataLoader(
             feature_columns=feature_columns,
             target_columns="metal_X1_X2_X3_L_E",
-            dataset_size=0.01,
+            dataset_size=1,
+            testing=True,
             target_type="rone-hot-percoding",  # wrong type of target
         )
         a, b, c, d, e = data_loader.load_data()

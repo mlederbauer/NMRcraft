@@ -51,6 +51,11 @@ def filename_to_ligands(dataset: pd.DataFrame):
     return dataset
 
 
+def load_dummy_dataset_locally(datset_path: str = "tests/data.csv"):
+    dataset = pd.read_csv(datset_path)
+    return dataset
+
+
 def load_dataset_from_hf(
     dataset_name: str = "NMRcraft/nmrcraft", data_files: str = "all_no_nan.csv"
 ):
@@ -169,6 +174,7 @@ class DataLoader:
         test_size=0.3,
         random_state=42,
         dataset_size=0.01,
+        testing=False,
     ):
         self.feature_columns = feature_columns
         self.target_columns = get_target_columns(target_columns=target_columns)
@@ -176,7 +182,10 @@ class DataLoader:
         self.random_state = random_state
         self.dataset_size = dataset_size
         self.target_type = target_type
-        self.dataset = load_dataset_from_hf()
+        if not testing:
+            self.dataset = load_dataset_from_hf()
+        elif testing:
+            self.dataset = load_dummy_dataset_locally()
 
     def load_data(self):
         self.dataset = filename_to_ligands(
