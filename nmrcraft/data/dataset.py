@@ -1,6 +1,7 @@
 """Load and preprocess data."""
 
 import itertools
+import os
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,14 @@ from sklearn.preprocessing import (
 from nmrcraft.utils.set_seed import set_seed
 
 set_seed()
+
+
+class DatasetLoadError(FileNotFoundError):
+    """Exeption raised when the Dataloader could not find data/dataset.csv,
+    even after trying to generate it from huggingface"""
+
+    def __init__(self, t):
+        super().__init__(f"Could not load raw Dataset '{t}'")
 
 
 class InvalidTargetError(ValueError):
@@ -71,9 +80,19 @@ def load_dataset_from_hf(
     Returns:
         pandas.DataFrame: The loaded dataset as a pandas DataFrame.
     """
-    dataset = load_dataset(dataset_name, data_files=data_files)[
-        "train"
-    ].to_pandas()
+    # Create data dir if needed
+    if not os.path.isdir("data"):
+        os.mkdir("data")
+    # Check if hf dataset is already downloaded, else download it and then load it
+    if not os.path.isfile("data/dataset.csv"):
+        dataset = load_dataset(dataset_name, data_files=data_files)[
+            "train"
+        ].to_pandas()
+        dataset.to_csv("data/dataset.csv")
+    if os.path.isfile("data/dataset.csv"):
+        dataset = pd.read_csv("data/dataset.csv")
+    elif not os.path.isfile("data/dataset.csv"):
+        raise DatasetLoadError(FileNotFoundError)
     return dataset
 
 
@@ -136,7 +155,7 @@ def get_target_labels(target_columns: str, dataset: pd.DataFrame):
 
 def target_label_readabilitizer(readable_labels):
     """
-    function takes in the classes from the binarzier and turns them into human readable list of same lenght of the target.
+    function takes in the classes from the binarzier and turns them into human readable list of same length of the target.
     """
     # Trun that class_ into list
     human_readable_label_list = list(itertools.chain(*readable_labels))

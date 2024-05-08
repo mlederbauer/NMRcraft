@@ -1,3 +1,4 @@
+import numpy
 import pytest
 
 from nmrcraft.data.dataset import DataLoader
@@ -34,15 +35,22 @@ def test_valid_targets():
         x, x_t, y, y_t, y_cols = data_loader.load_data()
         ys.append(y_t)
         if isinstance(
-            y[0], int
+            y[0], numpy.int64
         ):  # if the y_t array is 1D, check if the dimensions are the same
-            assert True
+            assert isinstance(x, numpy.ndarray)
+            assert isinstance(y, list)
+            assert isinstance(y_cols, numpy.int64)
         elif isinstance(
-            y[0], list
+            y[0], numpy.ndarray
         ):  # if the y_t array isn't 1D int array, check if the dimensions are the same on all and if the contents are correct
+            assert isinstance(x, numpy.ndarray)
+            assert isinstance(y, numpy.ndarray)
+            assert isinstance(y_cols, numpy.ndarray)
             assert len(y_cols) == len(y_t[0]) and len(y[0]) == len(y_t[0])
             assert len(x[0]) == len(x_t[0])
-            assert isinstance(x[0][0], int) and isinstance(y[0][0], int)
+            assert isinstance(x[0][0], numpy.int64) and isinstance(
+                y[0][0], numpy.int64
+            )
     print(ys)
     # Here we need to assert if the dimension, content etc of the y_targets are correct.
 
