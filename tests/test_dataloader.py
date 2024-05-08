@@ -39,16 +39,16 @@ def test_valid_targets():
         ):  # if the y_t array is 1D, check if the dimensions are the same
             assert isinstance(x, numpy.ndarray)
             assert isinstance(y, list)
-            assert isinstance(y_cols, numpy.int64)
+            assert isinstance(y_cols, list)
         elif isinstance(
             y[0], numpy.ndarray
         ):  # if the y_t array isn't 1D int array, check if the dimensions are the same on all and if the contents are correct
             assert isinstance(x, numpy.ndarray)
             assert isinstance(y, numpy.ndarray)
-            assert isinstance(y_cols, numpy.ndarray)
+            assert isinstance(y_cols, list)
             assert len(y_cols) == len(y_t[0]) and len(y[0]) == len(y_t[0])
             assert len(x[0]) == len(x_t[0])
-            assert isinstance(x[0][0], numpy.int64) and isinstance(
+            assert isinstance(x[0][0], numpy.float64) and isinstance(
                 y[0][0], numpy.int64
             )
     print(ys)
