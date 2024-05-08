@@ -1,6 +1,7 @@
 """Load and preprocess data."""
 
 import itertools
+import os
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,14 @@ from sklearn.preprocessing import (
 from nmrcraft.utils.set_seed import set_seed
 
 set_seed()
+
+
+class DatasetLoadError(FileNotFoundError):
+    """Exeption raised when the Dataloader could not find data/dataset.csv,
+    even after trying to generate it from huggingface"""
+
+    def __init__(self, t):
+        super().__init__(f"Could not load raw Dataset '{t}'")
 
 
 class InvalidTargetError(ValueError):
@@ -51,6 +60,11 @@ def filename_to_ligands(dataset: pd.DataFrame):
     return dataset
 
 
+def load_dummy_dataset_locally(datset_path: str = "tests/data.csv"):
+    dataset = pd.read_csv(datset_path)
+    return dataset
+
+
 def load_dataset_from_hf(
     dataset_name: str = "NMRcraft/nmrcraft", data_files: str = "all_no_nan.csv"
 ):
@@ -66,13 +80,27 @@ def load_dataset_from_hf(
     Returns:
         pandas.DataFrame: The loaded dataset as a pandas DataFrame.
     """
-    dataset = load_dataset(dataset_name, data_files=data_files)[
-        "train"
-    ].to_pandas()
+    # Create data dir if needed
+    if not os.path.isdir("data"):
+        os.mkdir("data")
+    # Check if hf dataset is already downloaded, else download it and then load it
+    if not os.path.isfile("data/dataset.csv"):
+        dataset = load_dataset(dataset_name, data_files=data_files)[
+            "train"
+        ].to_pandas()
+        dataset.to_csv("data/dataset.csv")
+    if os.path.isfile("data/dataset.csv"):
+        dataset = pd.read_csv("data/dataset.csv")
+    elif not os.path.isfile("data/dataset.csv"):
+        raise DatasetLoadError(FileNotFoundError)
     return dataset
 
 
 def get_target_columns(target_columns: str):
+    """
+    Function takes target columns in underline format f.e 'metal_X1_X4_X2_L' and
+    transforms into a list of the column names present in the dataset.
+    """
     TARGET_TYPES = ["metal", "X1", "X2", "X3", "X4", "L", "E"]
 
     # Split the target string into individual targets
@@ -99,6 +127,9 @@ def get_target_columns(target_columns: str):
 
 
 def get_structural_feature_columns(target_columns: list):
+    """
+    Function gets the feature columns given the target columns. The feature columns are those that will be in the X set.
+    """
     TARGET_TYPES = [
         "metal",
         "X1_ligand",
@@ -124,7 +155,7 @@ def get_target_labels(target_columns: str, dataset: pd.DataFrame):
 
 def target_label_readabilitizer(readable_labels):
     """
-    function takes in the classes from the binarzier and turns them into something human usable.
+    function takes in the classes from the binarzier and turns them into human readable list of same length of the target.
     """
     # Trun that class_ into list
     human_readable_label_list = list(itertools.chain(*readable_labels))
@@ -149,15 +180,6 @@ def target_label_readabilitizer_categorical(target_labels):
         good_labels.append(list(label_array))
     return good_labels
 
-
-# def get_target_labels(target_columns: str, dataset: pd.DataFrame):
-#     # Get unique values for each column
-#     unique_values = [set(dataset[col]) for col in target_columns]
-#     # Convert the list of sets to a list of lists
-#     result = [[i for i in s] for s in unique_values]
-#     return result
-
-
 class DataLoader:
     def __init__(
         self,
@@ -169,6 +191,7 @@ class DataLoader:
         test_size=0.3,
         random_state=42,
         dataset_size=0.01,
+        testing=False,
     ):
         self.feature_columns = feature_columns
         self.target_columns = get_target_columns(target_columns=target_columns)
@@ -176,7 +199,10 @@ class DataLoader:
         self.random_state = random_state
         self.dataset_size = dataset_size
         self.target_type = target_type
-        self.dataset = load_dataset_from_hf()
+        if not testing:
+            self.dataset = load_dataset_from_hf()
+        elif testing:
+            self.dataset = load_dummy_dataset_locally()
 
     def load_data(self):
         self.dataset = filename_to_ligands(
@@ -204,6 +230,7 @@ class DataLoader:
         """
         Split data into training and test sets, then apply normalization.
         Ensures that the test data does not leak into training data preprocessing.
+        X and y are categorical, so each column has a integer that defines which one of the ligands is in the column.
         """
         # Get NMR and structural Features and combine
         X_NMR = self.dataset[self.feature_columns].to_numpy()
@@ -283,7 +310,7 @@ class DataLoader:
     def split_and_preprocess_one_hot(self):
         """
         Split data into training and test sets, then apply normalization.
-        Ensures that the test data does not leak into training data preprocessing.
+        Ensures that the test data does not leak into training data preprocessing. Returned X is one-hot encoded and y binarized using the sklearn functions.
         """
         target_unique_labels = get_target_labels(
             target_columns=self.target_columns, dataset=self.dataset
