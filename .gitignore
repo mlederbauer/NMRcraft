@@ -1,6 +1,7 @@
 mlruns/
 scratch/
 dataset/
+data/
 
 docs/source
 
