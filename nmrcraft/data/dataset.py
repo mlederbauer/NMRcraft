@@ -190,7 +190,7 @@ class DataLoader:
         ):  # Target is binarized and Features are one hot
             return self.split_and_preprocess_one_hot()
         else:
-            raise InvalidTargetTypeError()
+            raise InvalidTargetTypeError(ValueError)
 
     def preprocess_features(self, X):
         """
