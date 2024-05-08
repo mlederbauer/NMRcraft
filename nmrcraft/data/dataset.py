@@ -78,6 +78,10 @@ def load_dataset_from_hf(
 
 
 def get_target_columns(target_columns: str):
+    """
+    Function takes target columns in underline format f.e 'metal_X1_X4_X2_L' and
+    transforms into a list of the column names present in the dataset.
+    """
     TARGET_TYPES = ["metal", "X1", "X2", "X3", "X4", "L", "E"]
 
     # Split the target string into individual targets
@@ -104,6 +108,9 @@ def get_target_columns(target_columns: str):
 
 
 def get_structural_feature_columns(target_columns: list):
+    """
+    Function gets the feature columns given the target columns. The feature columns are those that will be in the X set.
+    """
     TARGET_TYPES = [
         "metal",
         "X1_ligand",
@@ -129,7 +136,7 @@ def get_target_labels(target_columns: str, dataset: pd.DataFrame):
 
 def target_label_readabilitizer(readable_labels):
     """
-    function takes in the classes from the binarzier and turns them into something human usable.
+    function takes in the classes from the binarzier and turns them into human readable list of same lenght of the target.
     """
     # Trun that class_ into list
     human_readable_label_list = list(itertools.chain(*readable_labels))
@@ -153,14 +160,6 @@ def target_label_readabilitizer_categorical(target_labels):
     for label_array in target_labels:
         good_labels.append(list(label_array))
     return good_labels
-
-
-# def get_target_labels(target_columns: str, dataset: pd.DataFrame):
-#     # Get unique values for each column
-#     unique_values = [set(dataset[col]) for col in target_columns]
-#     # Convert the list of sets to a list of lists
-#     result = [[i for i in s] for s in unique_values]
-#     return result
 
 
 class DataLoader:
@@ -213,6 +212,7 @@ class DataLoader:
         """
         Split data into training and test sets, then apply normalization.
         Ensures that the test data does not leak into training data preprocessing.
+        X and y are categorical, so each column has a integer that defines which one of the ligands is in the column.
         """
         # Get NMR and structural Features and combine
         X_NMR = self.dataset[self.feature_columns].to_numpy()
@@ -292,7 +292,7 @@ class DataLoader:
     def split_and_preprocess_one_hot(self):
         """
         Split data into training and test sets, then apply normalization.
-        Ensures that the test data does not leak into training data preprocessing.
+        Ensures that the test data does not leak into training data preprocessing. Returned X is one-hot encoded and y binarized using the sklearn functions.
         """
         target_unique_labels = get_target_labels(
             target_columns=self.target_columns, dataset=self.dataset
