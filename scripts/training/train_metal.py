@@ -76,7 +76,7 @@ def main(dataset_size, target, model_name):
         title = r"Confusion matrix, TODO add LaTeX symbols"
         plot_confusion_matrix(
             cm,
-            classes=data_loader.target_unique_labels,
+            classes=y_labels,
             title=title,
             path=cm_path,
         )
