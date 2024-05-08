@@ -180,7 +180,6 @@ def target_label_readabilitizer_categorical(target_labels):
         good_labels.append(list(label_array))
     return good_labels
 
-
 class DataLoader:
     def __init__(
         self,
