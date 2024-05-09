@@ -1,11 +1,12 @@
 import argparse
 import logging as log
+import os
 
 import mlflow
 import pandas as pd
 
-from nmrcraft.evaluation.visulizer import Visulizer
-from nmrcraft.model.classifier import Classifier
+from nmrcraft.evaluation.visualizer import Visulizer
+from nmrcraft.models.classifier import Classifier
 
 # Setup MLflow
 mlflow.set_experiment("Test_final_results")
@@ -32,11 +33,21 @@ parser.add_argument(
     default="metal",
     help="The Target for the predictions. Choose from: 'metal', 'X1', 'X2', 'X3', 'X4', 'L', 'E' ",
 )
+parser.add_argument(
+    "--plot_folder",
+    type=str,
+    default="plots/",
+    help="The Folder where the plots are saved",
+)
 
 
 if __name__ == "__main__":
     # Add arguments
     args = parser.parse_args()
+
+    # Check if folder path exists, if not create it
+    if not os.path.exists(args.plot_folder):
+        os.makedirs(args.plot_folder)
 
     # Setup logging
     log.basicConfig(
@@ -59,18 +70,20 @@ if __name__ == "__main__":
                 target=args.target,
                 dataset_size=dataset_size,
             )
-            mlflow.log_metrics("dataset_size", dataset_size, step=i)
-
+            # mlflow.log_metrics("dataset_size", dataset_size, step=i)
+            print(i)
             C.hyperparameter_tune()
             C.train()
             new_data = C.evaluate()
             data[str(dataset_size)] = new_data
 
-        visulizer = Visulizer(model_name=args.model, data=data)
+        visulizer = Visulizer(
+            model_name=args.model, data=data, folder_path=args.plot_folder
+        )
         path_ROC = visulizer.plot_ROC()
-        path_F1 = visulizer.plot_F1()
-        path_AC = visulizer.plot_Accuracy()
+        # path_F1 = visulizer.plot_F1()
+        # path_AC = visulizer.plot_Accuracy()
 
-        mlflow.log_artifact("ROC_Plot", path_ROC)
-        mlflow.log_artifact("F1_Plot", path_F1)
-        mlflow.log_artifact("Accuracy_Plot", path_AC)
+        # mlflow.log_artifact("ROC_Plot", path_ROC)
+        # mlflow.log_artifact("F1_Plot", path_F1)
+        # mlflow.log_artifact("Accuracy_Plot", path_AC)

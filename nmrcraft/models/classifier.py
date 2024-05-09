@@ -11,7 +11,7 @@ from sklearn.metrics import (
 )
 
 from nmrcraft.data.dataset import DataLoader
-from nmrcraft.models.model_config import model_configs
+from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
 
@@ -34,7 +34,7 @@ class Classifier:
                 "E_sigma22_ppm",
                 "E_sigma33_ppm",
             ]
-
+        self.model_name = model_name
         model_config = model_configs[model_name]
 
         self.tuner = HyperparameterTuner(model_name, model_config, max_evals)
@@ -46,9 +46,14 @@ class Classifier:
         ).load_data()
 
     def hyperparameter_tune(self):
-        log.INFO(
+        log.info(
             f"Performing Hyperparameter tuning for the Model ({self.model_name})"
         )
+
+        print("X_train:", self.X_train)
+        print("y_train:", self.y_train)
+        print("X_test:", self.X_test)
+        print("y_test:", self.y_test)
 
         # DATA LEAKAGE!!! MUST be done by CV!!!!
         self.best_params, _ = self.tuner.tune(
