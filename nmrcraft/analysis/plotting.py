@@ -5,17 +5,21 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from scipy.stats import gaussian_kde
 
-colors = ["#C28340", "#854F2B", "#61371F", "#8FCA5C", "#70B237", "#477A1E"]
-cmap = LinearSegmentedColormap.from_list("custom", colors)
 
-plt.style.use("./style.mplstyle")
-plt.rcParams["text.latex.preamble"] = r"\usepackage{sansmathfonts}"
-plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
+def style_setup():
+    """Function to set up matplotlib parameters."""
+    colors = ["#C28340", "#854F2B", "#61371F", "#8FCA5C", "#70B237", "#477A1E"]
+    cmap = LinearSegmentedColormap.from_list("custom", colors)
 
+    plt.style.use("./style.mplstyle")
+    plt.rcParams["text.latex.preamble"] = r"\usepackage{sansmathfonts}"
+    plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
 
-# Use the first color from the custom color cycle
-first_color = plt.rcParams["axes.prop_cycle"].by_key()["color"][0]
-plt.rcParams["text.usetex"] = False
+    # Use the first color from the custom color cycle
+    first_color = plt.rcParams["axes.prop_cycle"].by_key()["color"][0]
+    plt.rcParams["text.usetex"] = False
+
+    return cmap, colors, first_color
 
 
 def plot_predicted_vs_ground_truth(
@@ -29,7 +33,7 @@ def plot_predicted_vs_ground_truth(
     Returns:
     None
     """
-
+    _, _, first_color = style_setup()
     # Creating the plot
     plt.figure(figsize=(10, 8))
     plt.scatter(y_test, y_pred, color=first_color, edgecolor="k", alpha=0.6)
@@ -53,7 +57,7 @@ def plot_predicted_vs_ground_truth_density(
     Returns:
     None
     """
-
+    cmap, _, _ = style_setup()
     # Calculate the point densities
     values = np.vstack([y_test, y_pred])
     kernel = gaussian_kde(values)(values)
@@ -90,6 +94,7 @@ def plot_confusion_matrix(cm, classes, title, path):
     Returns:
     None
     """
+    _, _, _ = style_setup()
     plt.figure(figsize=(10, 8))
     plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
     plt.title(title)
@@ -115,6 +120,7 @@ def plot_roc_curve(fpr, tpr, roc_auc, title, path):
     Returns:
     None
     """
+    _, _, _ = style_setup()
     plt.figure(figsize=(10, 8))
     plt.plot(
         fpr,
