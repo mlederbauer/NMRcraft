@@ -5,7 +5,7 @@ import os
 import mlflow
 import pandas as pd
 
-from nmrcraft.evaluation.visualizer import Visulizer
+from nmrcraft.evaluation.visualizer import Visualizer
 from nmrcraft.models.classifier import Classifier
 
 # Setup MLflow
@@ -77,12 +77,12 @@ if __name__ == "__main__":
             new_data = C.evaluate()
             data[str(dataset_size)] = new_data
 
-        visulizer = Visulizer(
+        visualizer = Visualizer(
             model_name=args.model, data=data, folder_path=args.plot_folder
         )
-        path_ROC = visulizer.plot_ROC()
-        # path_F1 = visulizer.plot_F1()
-        # path_AC = visulizer.plot_Accuracy()
+        path_ROC = visualizer.plot_ROC()
+        # path_F1 = visualizer.plot_F1()
+        # path_AC = visualizer.plot_Accuracy()
 
         # mlflow.log_artifact("ROC_Plot", path_ROC)
         # mlflow.log_artifact("F1_Plot", path_F1)
