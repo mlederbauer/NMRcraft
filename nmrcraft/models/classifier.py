@@ -6,7 +6,6 @@ from sklearn.metrics import (
     auc,
     f1_score,
     # confusion_matrix,
-    multilabel_confusion_matrix,
     roc_curve,
 )
 
@@ -35,11 +34,22 @@ class Classifier:
                 "E_sigma33_ppm",
             ]
         self.model_name = model_name
-        model_config = model_configs[model_name]
+        self.model_config = model_configs[model_name]
+        self.max_evals = max_evals
 
-        self.tuner = HyperparameterTuner(model_name, model_config, max_evals)
+        self.tuner = HyperparameterTuner(
+            model_name=self.model_name,
+            model_config=self.model_config,
+            max_evals=self.max_evals,
+        )  # algo is set to default value, TODO: change this in declaration of Classifier is necessary
 
-        self.X_train, self.X_test, self.y_train, self.y_test = DataLoader(
+        (
+            self.X_train,
+            self.X_test,
+            self.y_train,
+            self.y_test,
+            self.y_labels,
+        ) = DataLoader(
             feature_columns=feature_columns,
             target_columns=target,
             dataset_size=dataset_size,
@@ -61,11 +71,14 @@ class Classifier:
         )
 
     def train(self):
-        model_func = lambda **params: load_model(
-            self.model_name, **{**params, **self.model_config}
-        )
+        """
+        Train the machine learning model using the best hyperparameters.
 
-        self.model = model_func(**self.best_params)
+        Returns:
+            None
+        """
+        all_params = {**self.model_config["model_params"], **self.best_params}
+        self.model = load_model(self.model_name, **all_params)
         self.model.fit(self.X_train, self.y_train)
 
     def evaluate(self) -> pd.DataFrame():
@@ -79,20 +92,41 @@ class Classifier:
                 - The false positive rate.
                 - The true positive rate.
         """
-        results_df = pd.DataFrame(
-            index=["accuracy", "f1_score", "roc_auc", "cm", "fpr", "tpr"]
-        )
+        # results_df = pd.DataFrame(
+        #     index=["accuracy", "f1_score", "roc_auc", "cm", "fpr", "tpr"]
+        # )
+        # y_pred = self.model.predict(self.X_test)
+        # results_df.loc["accuracy"] = accuracy_score(self.y_test, y_pred)
+        # results_df.loc["f1_score"] = f1_score(
+        #     self.y_test, y_pred, average="weighted"
+        # )
+        # results_df.loc["cm"] = multilabel_confusion_matrix(self.y_test, y_pred)
+        # results_df.loc["fpr"], results_df.loc["tpr"], thresholds = roc_curve(
+        #     self.y_test, self.model.predict_proba(self.X_test)[:, 1]
+        # )
+        # results_df.loc["roc_auc"] = auc(
+        #     results_df.loc["fpr"], results_df.loc["tpr"]
+        # )
+
         y_pred = self.model.predict(self.X_test)
-        results_df.loc["accuracy"] = accuracy_score(self.y_test, y_pred)
-        results_df.loc["f1_score"] = f1_score(
-            self.y_test, y_pred, average="weighted"
-        )
-        results_df.loc["cm"] = multilabel_confusion_matrix(self.y_test, y_pred)
-        results_df.loc["fpr"], results_df.loc["tpr"], thresholds = roc_curve(
+        accuracy = accuracy_score(self.y_test, y_pred)
+        f1 = f1_score(self.y_test, y_pred, average="weighted")
+        fpr, tpr, _ = roc_curve(
             self.y_test, self.model.predict_proba(self.X_test)[:, 1]
         )
-        results_df.loc["roc_auc"] = auc(
-            results_df.loc["fpr"], results_df.loc["tpr"]
+        roc_auc = auc(fpr, tpr)
+
+        # Create DataFrame with consistent structure
+        results_df = pd.DataFrame(
+            {
+                "accuracy": [accuracy],
+                "f1_score": [f1],
+                "roc_auc": [roc_auc],
+                "fpr": [
+                    fpr.tolist()
+                ],  # Convert to list for serialization if necessary
+                "tpr": [tpr.tolist()],
+            }
         )
 
         # TODO: Add std for errorbars -> Bootstraping
