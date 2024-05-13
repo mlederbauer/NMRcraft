@@ -30,15 +30,6 @@ def main(dataset_size, target, model_name):
             "E_sigma33_ppm",
         ]
 
-        if target == "metal":
-            # if the target is that, we encode the metals as Mo, W.
-            # this is hard coded in the data loader and needs to be changed next
-            pass
-
-        # TODO: add categorical feature columns
-        # TODO: add target column, here e.g. "metal" with the two possibilities "Mo, W"
-        # Create a DataLoader instance
-
         data_loader = DataLoader(
             feature_columns=feature_columns,
             target_columns=args.target,
