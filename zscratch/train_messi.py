@@ -3,7 +3,6 @@ import os
 
 import mlflow
 
-from nmrcraft.analysis.plotting import plot_confusion_matrix
 from nmrcraft.data.dataset import DataLoader
 from nmrcraft.evaluation.evaluation import model_evaluation
 from nmrcraft.models.model_configs import model_configs
@@ -37,7 +36,6 @@ def main(dataset_size, target, model_name):
 
         # Load and preprocess data
         X_train, X_test, y_train, y_test, y_labels = data_loader.load_data()
-        print(y_labels)
         tuner = HyperparameterTuner(model_name, config, max_evals=1)
         best_params, _ = tuner.tune(X_train, y_train, X_test, y_test)
 
@@ -47,7 +45,8 @@ def main(dataset_size, target, model_name):
         best_model = model_func(**best_params)
         best_model.fit(X_train, y_train)
 
-        data_loader.confusion_matrix_data()
+        print(y_test)
+        print(data_loader.binarized_target_decoder(y_test))
 
         metrics, cm, fpr, tpr = model_evaluation(best_model, X_test, y_test)
         mlflow.log_params(best_params)
@@ -61,8 +60,8 @@ def main(dataset_size, target, model_name):
         fig_path = "scratch/"
         if not os.path.exists(fig_path):
             os.makedirs(fig_path)
-        cm_path = os.path.join(fig_path, "cm.png")
-        title = r"Confusion matrix, TODO add LaTeX symbols"
+        # cm_path = os.path.join(fig_path, "cm.png")
+        # title = r"Confusion matrix, TODO add LaTeX symbols"
         print(
             "==============================================================================="
         )
@@ -70,12 +69,12 @@ def main(dataset_size, target, model_name):
         print(
             "==============================================================================="
         )
-        plot_confusion_matrix(
-            cm,
-            classes=y_labels,
-            title=title,
-            path=cm_path,
-        )
+        # plot_confusion_matrix(
+        #     cm,
+        #     classes=y_labels,
+        #     title=title,
+        #     path=cm_path,
+        # )
 
 
 if __name__ == "__main__":

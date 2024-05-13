@@ -181,6 +181,18 @@ def target_label_readabilitizer_categorical(target_labels):
     return good_labels
 
 
+def column_length_to_indices(column_lengths):
+    indices = []
+    start_index = 0
+    for length in column_lengths:
+        if length == 1:
+            indices.append([start_index])
+        else:
+            indices.append(list(range(start_index, start_index + length)))
+        start_index += length
+    return indices
+
+
 class DataLoader:
     def __init__(
         self,
@@ -227,14 +239,25 @@ class DataLoader:
         X_scaled = scaler.fit_transform(X)
         return X_scaled, scaler
 
-    def confusion_matrix_data(self):
-        (
-            X_train_scaled,
-            X_test_scaled,
-            y_train,
-            y_test,
-            good_target_labels,
-        ) = self.split_and_preprocess_one_hot(self)
+    def binarized_target_decoder(self, y):
+        """
+        function takes in the  target (y) array and transforms it back to decoded form.
+        For this function to be run the one-hot-preprocesser already has to have been run beforehand.
+        """
+        y_column_indices = column_length_to_indices(self.target_column_numbers)
+        ys = []
+        # Split up compressed array into the categories
+        for i in range(len(y_column_indices)):
+            ys.append(y[:, y_column_indices[i]])
+        ys_decoded = []
+        # Decode the binarized categries using the original binarizers
+        for i in range(len(ys)):
+            ys_decoded.append(self.encoders[i].inverse_transform(ys[i]))
+        ys_decoded_properly_rotated = [
+            list(x) if i == 0 else x
+            for i, x in enumerate(map(list, zip(*ys_decoded)))
+        ]
+        return ys_decoded_properly_rotated
 
     def split_and_preprocess_categorical(self):
         """
@@ -335,10 +358,16 @@ class DataLoader:
         self.target_unique_labels = target_unique_labels
         ys = []
         readable_labels = []
+        self.encoders = []
+        self.target_column_numbers = []
         for i in range(len(target_unique_labels)):
             LBiner = LabelBinarizer()
             ys.append(LBiner.fit_transform(y_labels[i]))
             readable_labels.append(LBiner.classes_)
+            self.encoders.append(LBiner)  # save encoder for later decoding
+            self.target_column_numbers.append(
+                len(ys[i][0])
+            )  # save column numbers for later decoding
         y = np.concatenate(list(ys), axis=1)
 
         # Get NMR and structural Features, one-hot-encode and combine
@@ -353,8 +382,6 @@ class DataLoader:
         X_Structural_Features_enc = one_hot.transform(
             X_Structural_Features
         ).toarray()
-        # X = [X_NMR, X_Structural_Features_enc]
-        # print(X)
 
         # Split the datasets
         (
