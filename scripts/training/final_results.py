@@ -75,7 +75,11 @@ if __name__ == "__main__":
             C.hyperparameter_tune()
             C.train()
             new_data = C.evaluate()
-            data[str(dataset_size)] = new_data
+            # data[str(dataset_size)] = new_data
+            data = pd.concat(
+                [data, new_data.assign(dataset_size=dataset_size)],
+                ignore_index=True,
+            )
 
         visualizer = Visualizer(
             model_name=args.model, data=data, folder_path=args.plot_folder
@@ -84,6 +88,6 @@ if __name__ == "__main__":
         # path_F1 = visualizer.plot_F1()
         # path_AC = visualizer.plot_Accuracy()
 
-        # mlflow.log_artifact("ROC_Plot", path_ROC)
+        mlflow.log_artifact(path_ROC, "ROC_Plot")
         # mlflow.log_artifact("F1_Plot", path_F1)
         # mlflow.log_artifact("Accuracy_Plot", path_AC)
