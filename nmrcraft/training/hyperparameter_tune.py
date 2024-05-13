@@ -30,9 +30,7 @@ class HyperparameterTuner:
         self.max_evals = max_evals
         self.algo = algo
 
-    def _objective(
-        self, params: dict, X_train, y_train, X_test, y_test
-    ) -> dict:
+    def _objective(self, params: dict, X_train, y_train) -> dict:
         """
         Objective function for hyperparameter tuning.
 
@@ -68,10 +66,9 @@ class HyperparameterTuner:
         Returns:
             tuple: The best parameters and the tuning trials.
         """
+
         best = fmin(
-            fn=lambda params: self._objective(
-                params, X_train, y_train, X_test, y_test
-            ),
+            fn=lambda params: self._objective(params, X_train, y_train),
             space=self.model_config["hyperparameters"],
             algo=self.algo,
             max_evals=self.max_evals,
