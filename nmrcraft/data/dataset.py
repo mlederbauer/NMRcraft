@@ -259,6 +259,23 @@ class DataLoader:
         ]
         return ys_decoded_properly_rotated
 
+    def confusion_matrix_data_adapter(self, y):
+        """
+        Takes in binary encoded target array and returns decoded flat list.
+        Especially designed to work with confusion matrix.
+        """
+        y_decoded = self.binarized_target_decoder(y)
+        flat_y_decoded = [y for ys in y_decoded for y in ys]
+        return flat_y_decoded
+
+    def confusion_matrix_label_adapter(self, y_labels):
+        y_labels_copy = y_labels[:]
+        for i in range(len(y_labels)):
+            if y_labels_copy[i] == "Mo W":
+                y_labels_copy[i] = "Mo"
+                y_labels_copy.insert(i, "W")
+        return y_labels_copy
+
     def split_and_preprocess_categorical(self):
         """
         Split data into training and test sets, then apply normalization.
