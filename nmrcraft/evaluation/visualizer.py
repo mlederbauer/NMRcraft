@@ -1,5 +1,7 @@
 # Import Libraries
-import plotly.graph_objects as go
+import os
+
+import matplotlib.pyplot as plt
 
 
 class Visualizer:
@@ -8,38 +10,45 @@ class Visualizer:
         self.data = data
         self.folder_path = folder_path
 
-    def plot_ROC(self, title, filename):
-        fig = go.Figure()
-        fig.add_trace(
-            go.Scatter(
-                x=self.data["fpr"],
-                y=self.data["tpr"],
-                mode="lines",
-                name=f'ROC curve (area = {self.data["roc_auc"]:.2f})',
-                # line=dict(color="darkorange", width=2),
-            )
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=[0, 1],
-                y=[0, 1],
-                mode="lines",
-                name="Random",
-                # line=dict(color="navy", width=2, dash="dash"),
-            )
-        )
-        fig.update_layout(
-            xaxis_title="False Positive Rate",
-            yaxis_title="True Positive Rate",
-            title=title,
-            # legend=dict(x=0.01, y=0.99, bgcolor="rgba(255, 255, 255, 0.5)"),
-            # margin=dict(l=20, r=20, t=30, b=20),
-            width=800,
-            height=600,
-        )
-        file_path = self.folder_path + "/ROC_Plot"
-        fig.write_image(file_path)
+    def plot_ROC(
+        self, title="ROC Curves by Dataset Size", filename="ROC_Curves.png"
+    ):
+        plt.figure(figsize=(10, 8))
+        colors = ["blue", "green", "red"]  # Colors for different dataset sizes
+        labels = [
+            "Dataset Size: 0.01",
+            "Dataset Size: 0.1",
+            "Dataset Size: 1.0",
+        ]  # Labels for legend
 
+        for (index, row), color, label in zip(
+            self.data.iterrows(), colors, labels
+        ):
+            index = index + 1
+            plt.plot(
+                row["fpr"],
+                row["tpr"],
+                label=f'{label} (AUC = {row["roc_auc"]:.2f})',
+                color=color,
+            )
+
+        plt.plot(
+            [0, 1],
+            [0, 1],
+            linestyle="--",
+            lw=2,
+            color="gray",
+            label="Chance",
+            alpha=0.8,
+        )
+        plt.title(title)
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        plt.legend(loc="lower right")
+
+        file_path = os.path.join(self.folder_path, filename)
+        plt.savefig(file_path)
+        plt.close()  # Close the plot to free up memory
         return file_path
 
     def plot_F1():
