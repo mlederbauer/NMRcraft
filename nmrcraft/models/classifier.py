@@ -6,6 +6,7 @@ from sklearn.metrics import (
     auc,
     f1_score,
     # confusion_matrix,
+    multilabel_confusion_matrix,
     roc_curve,
 )
 
@@ -59,12 +60,6 @@ class Classifier:
         log.info(
             f"Performing Hyperparameter tuning for the Model ({self.model_name})"
         )
-
-        print("X_train:", self.X_train)
-        print("y_train:", self.y_train)
-        print("X_test:", self.X_test)
-        print("y_test:", self.y_test)
-
         # DATA LEAKAGE!!! MUST be done by CV!!!!
         self.best_params, _ = self.tuner.tune(
             self.X_train, self.y_train, self.X_test, self.y_test
@@ -92,21 +87,6 @@ class Classifier:
                 - The false positive rate.
                 - The true positive rate.
         """
-        # results_df = pd.DataFrame(
-        #     index=["accuracy", "f1_score", "roc_auc", "cm", "fpr", "tpr"]
-        # )
-        # y_pred = self.model.predict(self.X_test)
-        # results_df.loc["accuracy"] = accuracy_score(self.y_test, y_pred)
-        # results_df.loc["f1_score"] = f1_score(
-        #     self.y_test, y_pred, average="weighted"
-        # )
-        # results_df.loc["cm"] = multilabel_confusion_matrix(self.y_test, y_pred)
-        # results_df.loc["fpr"], results_df.loc["tpr"], thresholds = roc_curve(
-        #     self.y_test, self.model.predict_proba(self.X_test)[:, 1]
-        # )
-        # results_df.loc["roc_auc"] = auc(
-        #     results_df.loc["fpr"], results_df.loc["tpr"]
-        # )
 
         y_pred = self.model.predict(self.X_test)
         accuracy = accuracy_score(self.y_test, y_pred)
@@ -114,6 +94,7 @@ class Classifier:
         fpr, tpr, _ = roc_curve(
             self.y_test, self.model.predict_proba(self.X_test)[:, 1]
         )
+        cm = multilabel_confusion_matrix(self.y_test, y_pred)
         roc_auc = auc(fpr, tpr)
 
         # Create DataFrame with consistent structure
@@ -125,6 +106,7 @@ class Classifier:
                 "fpr": [
                     fpr.tolist()
                 ],  # Convert to list for serialization if necessary
+                "cm": [cm.tolist()],
                 "tpr": [tpr.tolist()],
             }
         )

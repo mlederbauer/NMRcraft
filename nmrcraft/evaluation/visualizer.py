@@ -13,12 +13,18 @@ class Visualizer:
     def plot_ROC(
         self, title="ROC Curves by Dataset Size", filename="ROC_Curves.png"
     ):
+        print(self.data.index)
         plt.figure(figsize=(10, 8))
-        colors = ["blue", "green", "red"]  # Colors for different dataset sizes
+        colors = [
+            "blue",
+            "green",
+            "red",
+            "violet",
+            "orange",
+            "cyan",
+        ]  # Colors for different dataset sizes
         labels = [
-            "Dataset Size: 0.01",
-            "Dataset Size: 0.1",
-            "Dataset Size: 1.0",
+            f"Dataset Size: {idx}" for idx in self.data.index
         ]  # Labels for legend
 
         for (index, row), color, label in zip(
@@ -51,8 +57,24 @@ class Visualizer:
         plt.close()  # Close the plot to free up memory
         return file_path
 
-    def plot_F1():
-        pass
-
-    def plot_Accuracy():
-        pass
+    def plot_metric(
+        self,
+        data,
+        types,
+        title="Title",
+        filename="Plot.png",
+    ):
+        for model in data["model"].unique():
+            model_data = data[data["model"] == model]
+            plt.plot(
+                model_data["dataset_size"],
+                model_data[types],
+                marker="o",
+                label=model,
+            )
+        plt.legend()
+        plt.grid(True)
+        file_path = os.path.join(self.folder_path, filename)
+        plt.savefig(file_path)
+        plt.close()
+        return file_path

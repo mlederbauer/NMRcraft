@@ -58,36 +58,62 @@ if __name__ == "__main__":
     )
     log.getLogger().setLevel(log.INFO)
 
-    dataset_sizes = [0.01, 0.1, 1]
+    dataset_sizes = [0.01, 0.1]
+    models = ["random_forest", "logistic_regression"]
 
     with mlflow.start_run():
-        data = pd.DataFrame()
-        for i, dataset_size in enumerate(dataset_sizes):
-            # Create a instance of the Classifier_Class
-            C = Classifier(
-                model_name=args.model,
-                max_evals=args.max_evals,
-                target=args.target,
-                dataset_size=dataset_size,
-            )
-            # mlflow.log_metrics("dataset_size", dataset_size, step=i)
-            print(i)
-            C.hyperparameter_tune()
-            C.train()
-            new_data = C.evaluate()
-            # data[str(dataset_size)] = new_data
-            data = pd.concat(
-                [data, new_data.assign(dataset_size=dataset_size)],
-                ignore_index=True,
-            )
-
-        visualizer = Visualizer(
-            model_name=args.model, data=data, folder_path=args.plot_folder
+        model_data = pd.DataFrame(
+            columns=["accuracy", "f1_score", "dataset_size", "model"]
         )
-        path_ROC = visualizer.plot_ROC()
-        # path_F1 = visualizer.plot_F1()
+        for model in models:
+            data = pd.DataFrame()
+            for i, dataset_size in enumerate(dataset_sizes):
+                # Create a instance of the Classifier_Class
+                C = Classifier(
+                    model_name=args.model,
+                    max_evals=args.max_evals,
+                    target=args.target,
+                    dataset_size=dataset_size,
+                )
+                # mlflow.log_metrics("dataset_size", dataset_size, step=i)
+                print(i)
+                C.hyperparameter_tune()
+                C.train()
+                new_data = C.evaluate()
+                # data[str(dataset_size)] = new_data
+                data = pd.concat(
+                    [data, new_data.assign(dataset_size=dataset_size)],
+                )
+                new_row = {
+                    "accuracy": data["accuracy"].iloc[i],
+                    "f1_score": data["f1_score"].iloc[i],
+                    "dataset_size": dataset_size,
+                    "model": model,
+                }
+                new_row_df = pd.DataFrame([new_row])
+                model_data = pd.concat([model_data, new_row_df])
+            data.index = dataset_sizes
+            visualizer = Visualizer(
+                model_name=args.model, data=data, folder_path=args.plot_folder
+            )
+            path_ROC = visualizer.plot_ROC()
+            mlflow.log_artifact(path_ROC, f"ROC_Plot_{model}")
+
+        print(model_data)
+
+        path_AC = visualizer.plot_metric(
+            data=model_data,
+            types="accuracy",
+            title="Accuracy",
+            filename="accuracy.png",
+        )
+        path_F1 = visualizer.plot_metric(
+            data=model_data,
+            types="f1_score",
+            title="F1 Score",
+            filename="f1_score.png",
+        )
         # path_AC = visualizer.plot_Accuracy()
 
-        mlflow.log_artifact(path_ROC, "ROC_Plot")
         # mlflow.log_artifact("F1_Plot", path_F1)
         # mlflow.log_artifact("Accuracy_Plot", path_AC)
