@@ -258,7 +258,6 @@ class DataLoader:
             )
             # Decode the binarized metal using the original binarizer
         # If multidimensional y
-        print(type(y[0]))
         if not isinstance(y[0], np.int64):
             for i in range(len(y_column_indices)):
                 ys.append(y[:, y_column_indices[i]])
@@ -269,8 +268,6 @@ class DataLoader:
                 list(x) if i == 0 else x
                 for i, x in enumerate(map(list, zip(*ys_decoded)))
             ]
-        print(ys_decoded_properly_rotated)
-
         return ys_decoded_properly_rotated
 
     def confusion_matrix_data_adapter(self, y):

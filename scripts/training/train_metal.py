@@ -48,16 +48,18 @@ def main(dataset_size, target, model_name):
         best_model = model_func(**best_params)
         best_model.fit(X_train, y_train)
 
-        metrics, cm, fpr, tpr = model_evaluation(best_model, X_test, y_test)
-        mlflow.log_params(best_params)
-        mlflow.log_params(
-            {
-                "model_name": model_name,
-                "dataset_size": dataset_size,
-                "target": target,
-            }
+        metrics, cm, fpr, tpr = model_evaluation(
+            best_model, X_test, y_test, y_labels, data_loader
         )
-        mlflow.log_metrics(metrics)
+        # mlflow.log_params(best_params)
+        # mlflow.log_params(
+        #    {
+        #        "model_name": model_name,
+        #        "dataset_size": dataset_size,
+        #        "target": target,
+        #    }
+        # )
+        # mlflow.log_metrics(metrics)
 
         # TODO: refactor this to a function nmrcraft/analysis/ or nmrcraft/evaluation
         fig_path = "scratch/"
@@ -71,6 +73,7 @@ def main(dataset_size, target, model_name):
             title=title,
             path=cm_path,
         )
+        return
         roc_path = os.path.join(fig_path, "roc.png")
         title = r"ROC curve, TODO add LaTeX symbols"
         plot_roc_curve(
