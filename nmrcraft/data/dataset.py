@@ -180,6 +180,7 @@ def target_label_readabilitizer_categorical(target_labels):
         good_labels.append(list(label_array))
     return good_labels
 
+
 class DataLoader:
     def __init__(
         self,
@@ -205,9 +206,7 @@ class DataLoader:
             self.dataset = load_dummy_dataset_locally()
 
     def load_data(self):
-        self.dataset = filename_to_ligands(
-            self.dataset
-        )  # Assuming filename_to_ligands is defined elsewhere
+        self.dataset = filename_to_ligands(self.dataset)
         self.dataset = self.dataset.sample(frac=self.dataset_size)
         if self.target_type == "categorical":
             return self.split_and_preprocess_categorical()
