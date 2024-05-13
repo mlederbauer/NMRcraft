@@ -246,17 +246,31 @@ class DataLoader:
         """
         y_column_indices = column_length_to_indices(self.target_column_numbers)
         ys = []
-        # Split up compressed array into the categories
-        for i in range(len(y_column_indices)):
-            ys.append(y[:, y_column_indices[i]])
         ys_decoded = []
-        # Decode the binarized categries using the original binarizers
-        for i in range(len(ys)):
-            ys_decoded.append(self.encoders[i].inverse_transform(ys[i]))
-        ys_decoded_properly_rotated = [
-            list(x) if i == 0 else x
-            for i, x in enumerate(map(list, zip(*ys_decoded)))
-        ]
+        # Split up compressed array into the categories
+        # If one-dimensional y (f.e only metals)
+        if isinstance(y[0], np.int64):
+            ys = list(y[:])  # copy list
+            ys = np.array(list(map(list, [[x] for x in ys])))
+            ys_decoded = self.encoders[0].inverse_transform(ys)
+            ys_decoded_properly_rotated = np.array(
+                list(map(list, [[x] for x in ys_decoded]))
+            )
+            # Decode the binarized metal using the original binarizer
+        # If multidimensional y
+        print(type(y[0]))
+        if not isinstance(y[0], np.int64):
+            for i in range(len(y_column_indices)):
+                ys.append(y[:, y_column_indices[i]])
+            # Decode the binarized categries using the original binarizers
+            for i in range(len(ys)):
+                ys_decoded.append(self.encoders[i].inverse_transform(ys[i]))
+            ys_decoded_properly_rotated = [
+                list(x) if i == 0 else x
+                for i, x in enumerate(map(list, zip(*ys_decoded)))
+            ]
+        print(ys_decoded_properly_rotated)
+
         return ys_decoded_properly_rotated
 
     def confusion_matrix_data_adapter(self, y):

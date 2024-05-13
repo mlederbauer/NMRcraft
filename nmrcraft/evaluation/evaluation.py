@@ -41,10 +41,6 @@ def model_evaluation(
     y_test_cm = dataloader.confusion_matrix_data_adapter(y_test)
     y_pred_cm = dataloader.confusion_matrix_data_adapter(y_pred)
     y_labels_cm = dataloader.confusion_matrix_label_adapter(y_labels)
-    print(y_labels_cm)
-    print(y_pred_cm)
-    print(y_labels)
-    print(y_pred)
     cm = confusion_matrix(
         y_pred=y_pred_cm, y_true=y_test_cm, labels=y_labels_cm
     )
