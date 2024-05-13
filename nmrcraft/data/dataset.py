@@ -180,6 +180,7 @@ def target_label_readabilitizer_categorical(target_labels):
         good_labels.append(list(label_array))
     return good_labels
 
+
 class DataLoader:
     def __init__(
         self,
@@ -225,6 +226,15 @@ class DataLoader:
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
         return X_scaled, scaler
+
+    def confusion_matrix_data(self):
+        (
+            X_train_scaled,
+            X_test_scaled,
+            y_train,
+            y_test,
+            good_target_labels,
+        ) = self.split_and_preprocess_one_hot(self)
 
     def split_and_preprocess_categorical(self):
         """
