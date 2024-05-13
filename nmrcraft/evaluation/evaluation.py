@@ -3,8 +3,10 @@ from typing import Any, Dict, Tuple
 from sklearn.base import BaseEstimator
 from sklearn.metrics import (
     accuracy_score,
+    auc,
     confusion_matrix,
     f1_score,
+    roc_curve,
 )
 
 from nmrcraft.data import dataset
@@ -38,15 +40,15 @@ def model_evaluation(
 
     score = accuracy_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred, average="weighted")
+    fpr, tpr, thresholds = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
+    roc_auc = auc(fpr, tpr)
+
     y_test_cm = dataloader.confusion_matrix_data_adapter(y_test)
     y_pred_cm = dataloader.confusion_matrix_data_adapter(y_pred)
     y_labels_cm = dataloader.confusion_matrix_label_adapter(y_labels)
     cm = confusion_matrix(
         y_pred=y_pred_cm, y_true=y_test_cm, labels=y_labels_cm
     )
-    # fpr, tpr, thresholds = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
-    fpr = tpr = roc_auc = False
-    # roc_auc = auc(fpr, tpr)
 
     return (
         {
