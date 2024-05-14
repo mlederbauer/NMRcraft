@@ -96,8 +96,8 @@ if __name__ == "__main__":
             visualizer = Visualizer(
                 model_name=args.model, data=data, folder_path=args.plot_folder
             )
-            path_ROC = visualizer.plot_ROC()
-            mlflow.log_artifact(path_ROC, f"ROC_Plot_{model}")
+            path_ROC = visualizer.plot_ROC(filename=f"ROC_Plot_{model}.png")
+            mlflow.log_artifact(path_ROC, f"ROC_Plot_{model}.png")
 
         print(model_data)
 
