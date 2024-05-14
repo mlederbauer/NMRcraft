@@ -1,5 +1,6 @@
 import logging as log
 
+import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
@@ -9,6 +10,7 @@ from sklearn.metrics import (
     multilabel_confusion_matrix,
     roc_curve,
 )
+from sklearn.utils import resample
 
 from nmrcraft.data.dataset import DataLoader
 from nmrcraft.models.model_configs import model_configs
@@ -24,6 +26,7 @@ class Classifier:
         target: str,
         dataset_size: float,
         feature_columns=None,
+        random_state=None,
     ):
         if not feature_columns:
             feature_columns = [
@@ -37,6 +40,8 @@ class Classifier:
         self.model_name = model_name
         self.model_config = model_configs[model_name]
         self.max_evals = max_evals
+        self.random_state = random_state
+        self.dataset_size = dataset_size
 
         self.tuner = HyperparameterTuner(
             model_name=self.model_name,
@@ -74,6 +79,33 @@ class Classifier:
         self.model = load_model(self.model_name, **all_params)
         self.model.fit(self.X_train, self.y_train)
 
+    def train_bootstraped(self, n_times=10):
+        accuracy = []
+        f1_score = []
+        i = 0
+        while i < n_times:
+            self.X_train, self.y_train = resample(
+                self.X_train,
+                self.y_train,
+                replace=True,
+                random_state=self.random_state,
+            )
+            self.hyperparameter_tune()
+            self.train()
+            eval_data = self.evaluate()
+            accuracy.append(eval_data["accuracy"])
+            f1_score.append(eval_data["f1_score"])
+            i += 1
+        new_row = {
+            "accuracy": np.mean(accuracy),
+            "accuracy_std": np.std(accuracy),
+            "f1_score": np.mean(f1_score),
+            "f1_score_std": np.std(f1_score),
+            "dataset_size": self.dataset_size,
+            "model": self.model_name,
+        }
+        return pd.DataFrame([new_row])
+
     def evaluate(self) -> pd.DataFrame():
         """
         Evaluate the performance of the trained machine learning model.
@@ -85,7 +117,6 @@ class Classifier:
                 - The false positive rate.
                 - The true positive rate.
         """
-
         y_pred = self.model.predict(self.X_test)
         accuracy = accuracy_score(self.y_test, y_pred)
         f1 = f1_score(self.y_test, y_pred, average="weighted")
@@ -101,14 +132,10 @@ class Classifier:
                 "accuracy": [accuracy],
                 "f1_score": [f1],
                 "roc_auc": [roc_auc],
-                "fpr": [
-                    fpr.tolist()
-                ],  # Convert to list for serialization if necessary
+                "fpr": [fpr.tolist()],
                 "cm": [cm.tolist()],
                 "tpr": [tpr.tolist()],
             }
         )
-
-        # TODO: Add std for errorbars -> Bootstraping
 
         return results_df

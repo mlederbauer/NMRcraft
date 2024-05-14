@@ -58,8 +58,13 @@ if __name__ == "__main__":
     )
     log.getLogger().setLevel(log.INFO)
 
-    dataset_sizes = [0.01, 0.1]
-    models = ["random_forest", "logistic_regression"]
+    dataset_sizes = [0.01, 0.1, 0.5, 1.0]
+    models = [
+        "random_forest",
+        "logistic_regression",
+        "gradient_boosting",
+        "svc",
+    ]
 
     with mlflow.start_run():
         model_data = pd.DataFrame(
@@ -67,16 +72,16 @@ if __name__ == "__main__":
         )
         for model in models:
             data = pd.DataFrame()
-            for i, dataset_size in enumerate(dataset_sizes):
+            for dataset_size in dataset_sizes:
                 # Create a instance of the Classifier_Class
                 C = Classifier(
-                    model_name=args.model,
+                    model_name=model,
                     max_evals=args.max_evals,
                     target=args.target,
                     dataset_size=dataset_size,
+                    random_state=11,
                 )
                 # mlflow.log_metrics("dataset_size", dataset_size, step=i)
-                print(i)
                 C.hyperparameter_tune()
                 C.train()
                 new_data = C.evaluate()
@@ -84,14 +89,9 @@ if __name__ == "__main__":
                 data = pd.concat(
                     [data, new_data.assign(dataset_size=dataset_size)],
                 )
-                new_row = {
-                    "accuracy": data["accuracy"].iloc[i],
-                    "f1_score": data["f1_score"].iloc[i],
-                    "dataset_size": dataset_size,
-                    "model": model,
-                }
-                new_row_df = pd.DataFrame([new_row])
-                model_data = pd.concat([model_data, new_row_df])
+                data_BS = C.train_bootstraped(10)
+                model_data = pd.concat([model_data, data_BS])
+
             data.index = dataset_sizes
             visualizer = Visualizer(
                 model_name=args.model, data=data, folder_path=args.plot_folder
@@ -103,17 +103,16 @@ if __name__ == "__main__":
 
         path_AC = visualizer.plot_metric(
             data=model_data,
-            types="accuracy",
+            metric="accuracy",
             title="Accuracy",
             filename="accuracy.png",
         )
         path_F1 = visualizer.plot_metric(
             data=model_data,
-            types="f1_score",
+            metric="f1_score",
             title="F1 Score",
             filename="f1_score.png",
         )
-        # path_AC = visualizer.plot_Accuracy()
 
         # mlflow.log_artifact("F1_Plot", path_F1)
         # mlflow.log_artifact("Accuracy_Plot", path_AC)

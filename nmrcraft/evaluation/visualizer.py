@@ -60,20 +60,24 @@ class Visualizer:
     def plot_metric(
         self,
         data,
-        types,
+        metric,
         title="Title",
         filename="Plot.png",
     ):
         for model in data["model"].unique():
             model_data = data[data["model"] == model]
-            plt.plot(
+            std_name = metric + "_std"
+            plt.errorbar(
                 model_data["dataset_size"],
-                model_data[types],
-                marker="o",
+                model_data[metric],
+                yerr=model_data[std_name],
+                fmt="o",
                 label=model,
             )
         plt.legend()
         plt.grid(True)
+        plt.xlabel("Dataset Size")
+        plt.ylabel(metric)
         file_path = os.path.join(self.folder_path, filename)
         plt.savefig(file_path)
         plt.close()
