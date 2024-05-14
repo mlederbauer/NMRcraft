@@ -60,10 +60,8 @@ class Classifier:
         log.info(
             f"Performing Hyperparameter tuning for the Model ({self.model_name})"
         )
-        # DATA LEAKAGE!!! MUST be done by CV!!!!
-        self.best_params, _ = self.tuner.tune(
-            self.X_train, self.y_train, self.X_test, self.y_test
-        )
+
+        self.best_params, _ = self.tuner.tune(self.X_train, self.y_train)
 
     def train(self):
         """

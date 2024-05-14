@@ -53,7 +53,7 @@ class HyperparameterTuner:
         score = cross_val_score(model, X_train, y_train, cv=5).mean()
         return {"loss": -score, "status": STATUS_OK}
 
-    def tune(self, X_train, y_train, X_test, y_test) -> tuple:
+    def tune(self, X_train, y_train) -> tuple:
         """
         Perform hyperparameter tuning with hyperopt.
 
