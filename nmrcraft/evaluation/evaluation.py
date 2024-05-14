@@ -85,9 +85,6 @@ def model_evaluation_nD(
             - The confusion matrix.
     """
     y_pred = model.predict(X_test)
-    import pandas
-
-    pandas.DataFrame(y_pred).to_csv("yeet.csv")
     y_test_cm = dataloader.confusion_matrix_data_adapter(y_test)
     y_pred_cm = dataloader.confusion_matrix_data_adapter(y_pred)
     y_labels_cm = dataloader.confusion_matrix_label_adapter(y_labels)
