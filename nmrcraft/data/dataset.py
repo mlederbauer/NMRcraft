@@ -239,6 +239,12 @@ class DataLoader:
         X_scaled = scaler.fit_transform(X)
         return X_scaled, scaler
 
+    def get_target_columns_separated(self):
+        """Returns the column indicies of the target array nicely sorted.
+        For example: metal_X1: [[0], [1, 2, 3, 4]]"""
+        y_column_indices = column_length_to_indices(self.target_column_numbers)
+        return y_column_indices
+
     def binarized_target_decoder(self, y):
         """
         function takes in the  target (y) array and transforms it back to decoded form.
