@@ -61,7 +61,7 @@ def main(dataset_size, target, model_name):
             }
         )
 
-        if isinstance(y_test, list):  # if target 1D
+        if isinstance(y_test, list):  # if target is 1D
             metrics, cm, fpr, tpr = model_evaluation(
                 best_model, X_test, y_test, y_labels, data_loader
             )
@@ -80,7 +80,10 @@ def main(dataset_size, target, model_name):
             )
             # Logging 1D only data
             mlflow.log_artifact(get_roc_path())
-        else:  # Multidimensional target Array
+
+        elif (
+            data_loader.more_than_one_target()
+        ):  # Multidimensional target Array and Multiple targets
             metrics, cm = model_evaluation_nD(
                 best_model, X_test, y_test, y_labels, data_loader
             )
@@ -91,15 +94,20 @@ def main(dataset_size, target, model_name):
                 classes=data_loader.confusion_matrix_label_adapter(y_labels),
                 title=title,
                 path=get_cm_path(),
+                full=False,
+                columns_set=data_loader.get_target_columns_separated(),
             )
 
+        else:  # Multidimensional target Array and single target
+            metrics, cm = model_evaluation_nD(
+                best_model, X_test, y_test, y_labels, data_loader
+            )
+            title = r"Confusion matrix, TODO add LaTeX symbols"
             plot_confusion_matrix(
                 cm,
                 classes=data_loader.confusion_matrix_label_adapter(y_labels),
                 title=title,
                 path=get_cm_path(),
-                full=False,
-                columns_set=data_loader.get_target_columns_separated(),
             )
 
         # Logging common data

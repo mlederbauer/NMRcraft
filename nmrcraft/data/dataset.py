@@ -246,8 +246,6 @@ class DataLoader:
             "metal" in self.target_columns
         ):  # If targets have metal, do weird stuff
             metal_index = self.target_columns.index("metal")
-            print(self.target_columns)
-            print(metal_index)
             y_column_indices = column_length_to_indices(
                 self.target_column_numbers
             )
@@ -261,8 +259,11 @@ class DataLoader:
             y_column_indices = column_length_to_indices(
                 self.target_column_numbers
             )
-        print(y_column_indices)
         return y_column_indices
+
+    def more_than_one_target(self):
+        """Function returns true if more than one target is specified"""
+        return len(self.target_columns) > 1
 
     def binarized_target_decoder(self, y):
         """

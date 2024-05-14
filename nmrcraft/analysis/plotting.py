@@ -90,6 +90,7 @@ def plot_confusion_matrix(
     - classes (list): List of classes for the axis labels.
     - title (str): Title of the plot.
     - full (bool): If true plots one big, else many smaller.
+    - columns_set (list of lists): contains all relevant indices.
     Returns:
     None
     """
@@ -108,9 +109,30 @@ def plot_confusion_matrix(
         plt.close()
 
     elif not full:  # Plot many small cms of each target
-        for columns in columns_set:
-            del columns
-        # Preparae small cms
+        cms = []
+        for columns in columns_set:  # Make list of confusion matrices
+            cms.append(
+                cm[
+                    slice(columns[0], columns[-1] + 1),
+                    slice(columns[0], columns[-1] + 1),
+                ]
+            )
+        fig, axs = plt.subplots(nrows=len(cms), figsize=(10, 8 * len(cms)))
+        for i, sub_cm in enumerate(cms):
+            sub_classes = classes[
+                slice(columns_set[i][0], columns_set[i][-1] + 1)
+            ]
+            axs[i].imshow(sub_cm, interpolation="nearest", cmap=plt.cm.Blues)
+            axs[i].set_title(f"Confusion Matrix {i+1}")
+            tick_marks = np.arange(len(sub_classes))
+            axs[i].set_xticks(tick_marks)
+            axs[i].set_xticklabels(sub_classes, rotation=45)
+            axs[i].set_yticks(tick_marks)
+            axs[i].set_yticklabels(sub_classes)
+            plt.tight_layout()
+        print(cm)
+        plt.savefig(path)
+        plt.close()
 
 
 def plot_roc_curve(fpr, tpr, roc_auc, title, path):
