@@ -1,11 +1,15 @@
 import argparse
-import os
 
 import mlflow
 
 from nmrcraft.analysis.plotting import plot_confusion_matrix, plot_roc_curve
 from nmrcraft.data.dataset import DataLoader
-from nmrcraft.evaluation.evaluation import model_evaluation
+from nmrcraft.evaluation.evaluation import (
+    get_cm_path,
+    get_roc_path,
+    model_evaluation,
+    model_evaluation_nD,
+)
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
@@ -30,15 +34,6 @@ def main(dataset_size, target, model_name):
             "E_sigma33_ppm",
         ]
 
-        if target == "metal":
-            # if the target is that, we encode the metals as Mo, W.
-            # this is hard coded in the data loader and needs to be changed next
-            pass
-
-        # TODO: add categorical feature columns
-        # TODO: add target column, here e.g. "metal" with the two possibilities "Mo, W"
-        # Create a DataLoader instance
-
         data_loader = DataLoader(
             feature_columns=feature_columns,
             target_columns=args.target,
@@ -57,7 +52,6 @@ def main(dataset_size, target, model_name):
         best_model = model_func(**best_params)
         best_model.fit(X_train, y_train)
 
-        metrics, cm, fpr, tpr = model_evaluation(best_model, X_test, y_test)
         mlflow.log_params(best_params)
         mlflow.log_params(
             {
@@ -66,32 +60,61 @@ def main(dataset_size, target, model_name):
                 "target": target,
             }
         )
+
+        if isinstance(y_test, list):  # if target is 1D
+            metrics, cm, fpr, tpr = model_evaluation(
+                best_model, X_test, y_test, y_labels, data_loader
+            )
+
+            title = r"Confusion matrix, TODO add LaTeX symbols"
+            plot_confusion_matrix(
+                cm,
+                classes=data_loader.confusion_matrix_label_adapter(y_labels),
+                title=title,
+                path=get_cm_path(),
+            )
+            # Plot ROC
+            title = r"ROC curve, TODO add LaTeX symbols"
+            plot_roc_curve(
+                fpr, tpr, metrics["roc_auc"], title=title, path=get_roc_path()
+            )
+            # Logging 1D only data
+            mlflow.log_artifact(get_roc_path())
+
+        elif (
+            data_loader.more_than_one_target()
+        ):  # Multidimensional target Array and Multiple targets
+            metrics, cm = model_evaluation_nD(
+                best_model, X_test, y_test, y_labels, data_loader
+            )
+
+            title = r"Confusion matrix, TODO add LaTeX symbols"
+            plot_confusion_matrix(
+                cm,
+                classes=data_loader.confusion_matrix_label_adapter(y_labels),
+                title=title,
+                path=get_cm_path(),
+                full=False,
+                columns_set=data_loader.get_target_columns_separated(),
+            )
+
+        else:  # Multidimensional target Array and single target
+            metrics, cm = model_evaluation_nD(
+                best_model, X_test, y_test, y_labels, data_loader
+            )
+            title = r"Confusion matrix, TODO add LaTeX symbols"
+            plot_confusion_matrix(
+                cm,
+                classes=data_loader.confusion_matrix_label_adapter(y_labels),
+                title=title,
+                path=get_cm_path(),
+            )
+
+        # Logging common data
         mlflow.log_metrics(metrics)
-
-        # TODO: refactor this to a function nmrcraft/analysis/ or nmrcraft/evaluation
-        fig_path = "scratch/"
-        if not os.path.exists(fig_path):
-            os.makedirs(fig_path)
-        cm_path = os.path.join(fig_path, "cm.png")
-        title = r"Confusion matrix, TODO add LaTeX symbols"
-        plot_confusion_matrix(
-            cm,
-            classes=y_labels,
-            title=title,
-            path=cm_path,
-        )
-        roc_path = os.path.join(fig_path, "roc.png")
-        title = r"ROC curve, TODO add LaTeX symbols"
-        plot_roc_curve(
-            fpr, tpr, metrics["roc_auc"], title=title, path=roc_path
-        )
-
-        mlflow.log_artifact(cm_path)
-        mlflow.log_artifact(roc_path)
-
         mlflow.sklearn.log_model(best_model, "model")
-
         print(f"Accuracy: {metrics['accuracy']}")
+        mlflow.log_artifact(get_cm_path())
 
 
 if __name__ == "__main__":

@@ -84,29 +84,60 @@ def plot_predicted_vs_ground_truth_density(
     plt.show()
 
 
-def plot_confusion_matrix(cm, classes, title, path):
+def plot_confusion_matrix(
+    cm, classes, title, path, full=True, columns_set=False
+):
     """
     Plots the confusion matrix.
     Parameters:
     - cm (array-like): Confusion matrix data.
     - classes (list): List of classes for the axis labels.
     - title (str): Title of the plot.
+    - full (bool): If true plots one big, else many smaller.
+    - columns_set (list of lists): contains all relevant indices.
     Returns:
     None
     """
     _, _, _ = style_setup()
-    plt.figure(figsize=(10, 8))
-    plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
-    plt.title(title)
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
-    plt.yticks(tick_marks, classes)
-    plt.tight_layout()
-    plt.ylabel("True label")
-    plt.xlabel("Predicted label")
-    plt.savefig(path)
-    plt.close()
+    if full:  # Plot one big cm
+        plt.figure(figsize=(10, 8))
+        plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+        plt.title(title)
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, classes, rotation=45)
+        plt.yticks(tick_marks, classes)
+        plt.tight_layout()
+        plt.ylabel("True label")
+        plt.xlabel("Predicted label")
+        plt.savefig(path)
+        plt.close()
+
+    elif not full:  # Plot many small cms of each target
+        cms = []
+        for columns in columns_set:  # Make list of confusion matrices
+            cms.append(
+                cm[
+                    slice(columns[0], columns[-1] + 1),
+                    slice(columns[0], columns[-1] + 1),
+                ]
+            )
+        fig, axs = plt.subplots(nrows=len(cms), figsize=(10, 8 * len(cms)))
+        for i, sub_cm in enumerate(cms):
+            sub_classes = classes[
+                slice(columns_set[i][0], columns_set[i][-1] + 1)
+            ]
+            axs[i].imshow(sub_cm, interpolation="nearest", cmap=plt.cm.Blues)
+            axs[i].set_title(f"Confusion Matrix {i+1}")
+            tick_marks = np.arange(len(sub_classes))
+            axs[i].set_xticks(tick_marks)
+            axs[i].set_xticklabels(sub_classes, rotation=45)
+            axs[i].set_yticks(tick_marks)
+            axs[i].set_yticklabels(sub_classes)
+            plt.tight_layout()
+        print(cm)
+        plt.savefig(path)
+        plt.close()
 
 
 def plot_roc_curve(fpr, tpr, roc_auc, title, path):
