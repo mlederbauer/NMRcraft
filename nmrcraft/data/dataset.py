@@ -241,8 +241,27 @@ class DataLoader:
 
     def get_target_columns_separated(self):
         """Returns the column indicies of the target array nicely sorted.
-        For example: metal_X1: [[0], [1, 2, 3, 4]]"""
-        y_column_indices = column_length_to_indices(self.target_column_numbers)
+        For example: metal_X1: [[0, 1], [1, 2, 3, 4]]"""
+        if (
+            "metal" in self.target_columns
+        ):  # If targets have metal, do weird stuff
+            metal_index = self.target_columns.index("metal")
+            print(self.target_columns)
+            print(metal_index)
+            y_column_indices = column_length_to_indices(
+                self.target_column_numbers
+            )
+            for i in range(len(y_column_indices)):
+                if i == metal_index:
+                    y_column_indices[i].append(y_column_indices[i][0] + 1)
+                if i > metal_index:
+                    y_column_indices[i] = [x + 1 for x in y_column_indices[i]]
+
+        elif "metal" not in self.target_columns:
+            y_column_indices = column_length_to_indices(
+                self.target_column_numbers
+            )
+        print(y_column_indices)
         return y_column_indices
 
     def binarized_target_decoder(self, y):
