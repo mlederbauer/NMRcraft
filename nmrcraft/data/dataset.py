@@ -159,7 +159,7 @@ def target_label_readabilitizer(readable_labels):
     """
     # Trun that class_ into list
     human_readable_label_list = list(itertools.chain(*readable_labels))
-    # Handle Binarized metal stuff and make the two columns become a single one
+    # Handle Binarized metal stuff and make the two columns become a single one because the metals get turned into a single column by the binarizer
     for i in enumerate(human_readable_label_list):
         if (
             human_readable_label_list[i[0]] == "Mo"
@@ -213,7 +213,7 @@ class DataLoader:
         self.random_state = random_state
         self.dataset_size = dataset_size
         self.target_type = target_type
-        self.complex_geometry = (complex_geometry,)
+        self.complex_geometry = complex_geometry
 
         if not testing:
             self.dataset = load_dataset_from_hf()
