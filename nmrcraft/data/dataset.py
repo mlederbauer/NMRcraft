@@ -159,7 +159,7 @@ def target_label_readabilitizer(readable_labels):
     """
     # Trun that class_ into list
     human_readable_label_list = list(itertools.chain(*readable_labels))
-    # Handle Binarized metal stuff and make the two columns become a single one
+    # Handle Binarized metal stuff and make the two columns become a single one because the metals get turned into a single column by the binarizer
     for i in enumerate(human_readable_label_list):
         if (
             human_readable_label_list[i[0]] == "Mo"
@@ -200,7 +200,8 @@ class DataLoader:
         data_files="all_no_nan.csv",
         feature_columns=None,
         target_columns="metal",
-        target_type="one-hot",  # can be "categorical" or "one-hot"
+        target_type="one-hot",  # can be "categorical" or "one-hot",
+        complex_geometry="all",
         test_size=0.3,
         random_state=42,
         dataset_size=0.01,
@@ -212,6 +213,8 @@ class DataLoader:
         self.random_state = random_state
         self.dataset_size = dataset_size
         self.target_type = target_type
+        self.complex_geometry = complex_geometry
+
         if not testing:
             self.dataset = load_dataset_from_hf()
         elif testing:
@@ -220,6 +223,18 @@ class DataLoader:
     def load_data(self):
         self.dataset = filename_to_ligands(self.dataset)
         self.dataset = self.dataset.sample(frac=self.dataset_size)
+        if self.complex_geometry == "oct":
+            self.dataset = self.dataset[
+                self.dataset["geometry"] == "oct"
+            ]  # only load octahedral complexes
+        elif self.complex_geometry == "spy":
+            self.dataset = self.dataset[
+                self.dataset["geometry"] == "spy"
+            ]  # only load square pyramidal complexes
+        elif self.complex_geometry == "tbp":
+            self.dataset = self.dataset[
+                self.dataset["geometry"] == "tbp"
+            ]  # only load trigonal bipyramidal complexes
         if self.target_type == "categorical":
             return self.split_and_preprocess_categorical()
         elif (
