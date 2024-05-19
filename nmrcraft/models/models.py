@@ -66,5 +66,11 @@ def load_model(model_name: str, **kwargs: Any):
     if model_name == "random_forest":
         kwargs.setdefault("n_jobs", -1)  # Set max number of jobs
 
+    if model_name == "svc":
+        kwargs["probability"] = True
+
+    # Forth, validate all provided kwargs before creating the model instance
+    validate_kwargs(kwargs, model_class, model_name)
+
     # Instantiate and return the model
     return model_class(**kwargs)
