@@ -15,12 +15,7 @@ mlflow.set_experiment("Test_final_results")
 parser = argparse.ArgumentParser(
     description="Train a model with MLflow tracking."
 )
-parser.add_argument(
-    "--model",
-    type=str,
-    default="random_forest",
-    help="The Classifier used for the predictions. Choose from: 'random_forest', 'gradient_boosting', 'logistic_regression', 'svc' ",
-)
+
 parser.add_argument(
     "--max_evals",
     type=int,
@@ -58,7 +53,12 @@ if __name__ == "__main__":
     )
     log.getLogger().setLevel(log.INFO)
 
-    dataset_sizes = [0.01, 0.1, 0.5, 1.0]
+    dataset_sizes = [
+        0.01,
+        0.1,
+        # 0.5,
+        1.0,
+    ]
     models = [
         "random_forest",
         "logistic_regression",
@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
             data.index = dataset_sizes
             visualizer = Visualizer(
-                model_name=args.model, data=data, folder_path=args.plot_folder
+                model_name=model, data=data, folder_path=args.plot_folder
             )
             path_ROC = visualizer.plot_ROC(filename=f"ROC_Plot_{model}.png")
             mlflow.log_artifact(path_ROC, f"ROC_Plot_{model}.png")
