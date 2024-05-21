@@ -323,26 +323,18 @@ class DataLoader:
         ys = []
         ys_decoded = []
         # Split up compressed array into the categories
-        # If one-dimensional y (f.e only metals)
-        if isinstance(y[0], np.int64):
-            ys = list(y[:])  # copy list
-            ys = np.array(list(map(list, [[x] for x in ys])))
-            ys_decoded = self.encoders[0].inverse_transform(ys)
-            ys_decoded_properly_rotated = np.array(
-                list(map(list, [[x] for x in ys_decoded]))
-            )
-            # Decode the binarized metal using the original binarizer
-        # If multidimensional y
-        if not isinstance(y[0], np.int64):
-            for i in range(len(y_column_indices)):
-                ys.append(y[:, y_column_indices[i]])
-            # Decode the binarized categries using the original binarizers
-            for i in range(len(ys)):
-                ys_decoded.append(self.encoders[i].inverse_transform(ys[i]))
-            ys_decoded_properly_rotated = [
-                list(x) if i == 0 else x
-                for i, x in enumerate(map(list, zip(*ys_decoded)))
-            ]
+        for i in range(len(y_column_indices)):
+            ys.append(y[:, y_column_indices[i]])
+
+        # Decode the binarized categries using the original binarizers
+        for i in range(len(ys)):
+            ys_decoded.append(self.encoders[i].inverse_transform(ys[i]))
+
+        # Rotate the array
+        ys_decoded_properly_rotated = [
+            list(x) if i == 0 else x
+            for i, x in enumerate(map(list, zip(*ys_decoded)))
+        ]
         return ys_decoded_properly_rotated
 
     def confusion_matrix_data_adapter_categorical(self, y):
@@ -371,13 +363,8 @@ class DataLoader:
                 y_labels_copy.insert(i, "W")
         return y_labels_copy
 
-    def split_and_preprocess_categorical(self):
-        """
-        Split data into training and test sets, then apply normalization.
-        Ensures that the test data does not leak into training data preprocessing.
-        X and y are categorical, so each column has a integer that defines which one of the ligands is in the column.
-        """
-        # Get NMR and structural Features and combine
+    def categorical_endocode_X(self):
+        # Get NMR Featrues (passed ones) and structural Features
         X_NMR = self.dataset[self.feature_columns].to_numpy()
         X_Structural_Features_Columns = get_structural_feature_columns(
             target_columns=self.target_columns
@@ -385,40 +372,57 @@ class DataLoader:
         X_Structural_Features = self.dataset[
             X_Structural_Features_Columns
         ].to_numpy()
+
+        # Rotate the array so instead of a row corresponding to a complex a row is a target
         X_Structural_Features = [
             list(x) if i == 0 else x
             for i, x in enumerate(map(list, zip(*X_Structural_Features)))
         ]
-        self.feature_unique_labels = get_target_labels(
-            dataset=self.dataset, target_columns=X_Structural_Features_Columns
-        )
+
         xs = []
-        for i in range(len(self.feature_unique_labels)):
+        for i in range(len(X_Structural_Features)):
             tmp_encoder = LabelEncoder()
-            tmp_encoder.fit(self.feature_unique_labels[i])
+            tmp_encoder.fit(X_Structural_Features[i])
             xs.append(tmp_encoder.transform(X_Structural_Features[i]))
         X_Structural_Features = list(zip(*xs))
 
-        # Get the targets, rotate, apply encoding, rotate back
-        target_unique_labels = get_target_labels(
-            target_columns=self.target_columns, dataset=self.dataset
-        )
+        return X_NMR, X_Structural_Features
+
+    def categorical_endocode_y(self):
+        # Get the targets
         y_labels_rotated = self.dataset[self.target_columns].to_numpy()
+
+        # rotate the list of list (array-like)
         y_labels = [
             list(x) if i == 0 else x
             for i, x in enumerate(map(list, zip(*y_labels_rotated)))
         ]
-        self.target_unique_labels = target_unique_labels
+
+        # Do targetwise encoding using the label encoder and save the label encoders for later decoding
         ys = []
         self.target_label_encoders = []
         readable_labels = []
-        for i in range(len(target_unique_labels)):
+        for i in range(len(y_labels)):
             tmp_encoder = LabelEncoder()
-            tmp_encoder.fit(target_unique_labels[i])
+            tmp_encoder.fit(y_labels[i])
             ys.append(tmp_encoder.transform(y_labels[i]))
             self.target_label_encoders.append(tmp_encoder)
             readable_labels.append(tmp_encoder.classes_)
-        y = np.array(list(zip(*ys)))
+
+        return np.array(list(zip(*ys))), readable_labels
+
+    def split_and_preprocess_categorical(self):
+        """
+        Split data into training and test sets, then apply normalization.
+        Ensures that the test data does not leak into training data preprocessing.
+        X and y are categorical, so each column has a integer that defines which one of the ligands is in the column.
+        """
+
+        # Encode X in a categorical fashion with the label encoder columnwise
+        X_NMR, X_Structural_Features = self.categorical_endocode_X()
+
+        # Encode y in a categorical fashion with the label encoder columnwise
+        y, readable_labels = self.categorical_endocode_y()
 
         (
             X_NMR_train,
