@@ -207,6 +207,7 @@ class DataLoader:
         test_size=0.3,
         random_state=42,
         dataset_size=0.01,
+        include_structural_features=True,
         testing=False,
     ):
         self.feature_columns = feature_columns
@@ -216,6 +217,7 @@ class DataLoader:
         self.dataset_size = dataset_size
         self.target_type = target_type
         self.complex_geometry = complex_geometry
+        self.include_structural_features = include_structural_features
 
         if not testing:
             self.dataset = load_dataset_from_hf()
@@ -492,12 +494,18 @@ class DataLoader:
         X_train_NMR_scaled = self.scale(X_train_NMR)
         X_test_NMR_scaled = self.scale(X_test_NMR)
 
-        X_train_scaled = np.concatenate(
-            [X_train_NMR_scaled, X_train_structural], axis=1
-        )
-        X_test_scaled = np.concatenate(
-            [X_test_NMR_scaled, X_test_structural], axis=1
-        )
+        if self.include_structural_features:
+            # Combine scaled NMR features with structural features to get final X
+            X_train_scaled = np.concatenate(
+                [X_train_NMR_scaled, X_train_structural], axis=1
+            )
+            X_test_scaled = np.concatenate(
+                [X_test_NMR_scaled, X_test_structural], axis=1
+            )
+        else:
+            # Just have the NMR features as X
+            X_train_scaled = X_train_NMR_scaled
+            X_test_scaled = X_test_NMR_scaled
 
         # Get the target labels going
         y_label = target_label_readabilitizer_categorical(readable_labels)
@@ -538,13 +546,18 @@ class DataLoader:
         X_train_NMR_scaled = self.scale(X_train_NMR)
         X_test_NMR_scaled = self.scale(X_test_NMR)
 
-        # Combine scaled NMR features with structural features to get final X
-        X_train_scaled = np.concatenate(
-            [X_train_NMR_scaled, X_train_structural], axis=1
-        )
-        X_test_scaled = np.concatenate(
-            [X_test_NMR_scaled, X_test_structural], axis=1
-        )
+        if self.include_structural_features:
+            # Combine scaled NMR features with structural features to get final X
+            X_train_scaled = np.concatenate(
+                [X_train_NMR_scaled, X_train_structural], axis=1
+            )
+            X_test_scaled = np.concatenate(
+                [X_test_NMR_scaled, X_test_structural], axis=1
+            )
+        else:
+            # Just have the NMR features as X
+            X_train_scaled = X_train_NMR_scaled
+            X_test_scaled = X_test_NMR_scaled
 
         # Creates the labels that can be used to identify the targets in the binaized y-array
         # (basicall handle special metal behaviour)
