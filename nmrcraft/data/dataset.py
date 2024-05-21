@@ -305,7 +305,7 @@ class DataLoader:
             for i, x in enumerate(map(list, zip(*ys_decoded)))
         ]
 
-        return ys_decoded_properly_rotated
+        return np.array(ys_decoded_properly_rotated)
 
     def binarized_target_decoder(self, y):
         """
