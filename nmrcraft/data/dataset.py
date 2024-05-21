@@ -338,7 +338,16 @@ class DataLoader:
             ]
         return ys_decoded_properly_rotated
 
-    def confusion_matrix_data_adapter(self, y):
+    def confusion_matrix_data_adapter_categorical(self, y):
+        """
+        Takes in binary encoded target array and returns decoded flat list.
+        Especially designed to work with confusion matrix.
+        """
+        y_decoded = self.categorical_target_decoder(y)
+        flat_y_decoded = [y for ys in y_decoded for y in ys]
+        return flat_y_decoded
+
+    def confusion_matrix_data_adapter_one_hot(self, y):
         """
         Takes in binary encoded target array and returns decoded flat list.
         Especially designed to work with confusion matrix.
