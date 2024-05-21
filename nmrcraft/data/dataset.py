@@ -96,6 +96,15 @@ def load_dataset_from_hf(
     return dataset
 
 
+def transpose(array: any):
+    """rotate/transpose array to the right"""
+    ar = array[:]  # make copy just to be sure
+    ar = [  # rotate the array to the right
+        list(x) if i == 0 else x for i, x in enumerate(map(list, zip(*ar)))
+    ]
+    return ar
+
+
 def get_target_columns(target_columns: str):
     """
     Function takes target columns in underline format f.e 'metal_X1_X4_X2_L' and
@@ -251,13 +260,13 @@ class DataLoader:
                 self.dataset["geometry"] == "tbp"
             ]  # only load trigonal bipyramidal complexes
 
-    def preprocess_features(self, X):
+    def scale(self, X):
         """
         Apply standard normalization to the feature set.
         """
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
-        return X_scaled, scaler
+        return X_scaled
 
     def get_target_columns_separated(self):
         """Returns the column indicies of the target array nicely sorted.
@@ -293,12 +302,7 @@ class DataLoader:
         ys = y[:]  # copy y so it's not modified
         target_encoders = self.target_label_encoders
         ys_decoded = []
-        ys = [  # rotate the y array to each column be a target
-            list(x) if i == 0 else x
-            for i, x in enumerate(
-                map(list, zip(*ys))
-            )  # y[:] should leave original y in peace?
-        ]
+        ys = transpose(ys)
 
         # Decode columnwise
         for i, target_column in enumerate(ys):
@@ -373,18 +377,16 @@ class DataLoader:
             X_Structural_Features_Columns
         ].to_numpy()
 
-        # Rotate the array so instead of a row corresponding to a complex a row is a target
-        X_Structural_Features = [
-            list(x) if i == 0 else x
-            for i, x in enumerate(map(list, zip(*X_Structural_Features)))
-        ]
+        # Transpose the array
+        X_Structural_Features = transpose(X_Structural_Features)
 
+        # Target-wise encoding with Label encoder and save encoders for later decoding
         xs = []
         for i in range(len(X_Structural_Features)):
             tmp_encoder = LabelEncoder()
             tmp_encoder.fit(X_Structural_Features[i])
             xs.append(tmp_encoder.transform(X_Structural_Features[i]))
-        X_Structural_Features = list(zip(*xs))
+        X_Structural_Features = list(zip(*xs))  # Kind of backtransposing
 
         return X_NMR, X_Structural_Features
 
@@ -393,10 +395,7 @@ class DataLoader:
         y_labels_rotated = self.dataset[self.target_columns].to_numpy()
 
         # rotate the list of list (array-like)
-        y_labels = [
-            list(x) if i == 0 else x
-            for i, x in enumerate(map(list, zip(*y_labels_rotated)))
-        ]
+        y_labels = transpose(y_labels_rotated)
 
         # Do targetwise encoding using the label encoder and save the label encoders for later decoding
         ys = []
@@ -424,9 +423,10 @@ class DataLoader:
         # Encode y in a categorical fashion with the label encoder columnwise
         y, readable_labels = self.categorical_endocode_y()
 
+        # Train Test splitting
         (
-            X_NMR_train,
-            X_NMR_test,
+            X_train_NMR,
+            X_test_NMR,
             X_train_structural,
             X_test_structural,
             y_train,
@@ -440,10 +440,9 @@ class DataLoader:
         )
 
         # Normalize features with no leakage from test set
-        X_train_NMR_scaled, scaler = self.preprocess_features(X_NMR_train)
-        X_test_NMR_scaled = scaler.transform(
-            X_NMR_test
-        )  # Apply the same transformation to test set
+        X_train_NMR_scaled = self.scale(X_train_NMR)
+        X_test_NMR_scaled = self.scale(X_test_NMR)
+
         X_train_scaled = np.concatenate(
             [X_train_NMR_scaled, X_train_structural], axis=1
         )
@@ -467,10 +466,7 @@ class DataLoader:
 
         # Get the Targets, rotate, apply binarization, funze into a single array
         y_labels_rotated = self.dataset[self.target_columns].to_numpy()
-        y_labels = [
-            list(x) if i == 0 else x
-            for i, x in enumerate(map(list, zip(*y_labels_rotated)))
-        ]
+        y_labels = transpose(y_labels_rotated)
         self.target_unique_labels = target_unique_labels
         ys = []
         readable_labels = []
@@ -516,11 +512,10 @@ class DataLoader:
         )
 
         # Normalize features with no leakage from test set
-        X_train_NMR_scaled, scaler = self.preprocess_features(X_train_NMR)
-        X_test_NMR_scaled = scaler.transform(
-            X_test_NMR
-        )  # Apply the same transformation to test set
-        # Combine scaled NMR features with structural features
+        X_train_NMR_scaled = self.scale(X_train_NMR)
+        X_test_NMR_scaled = self.scale(X_test_NMR)
+
+        # Combine scaled NMR features with structural features to get final X
         X_train_scaled = np.concatenate(
             [X_train_NMR_scaled, X_train_structural], axis=1
         )
