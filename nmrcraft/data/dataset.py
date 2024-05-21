@@ -278,6 +278,35 @@ class DataLoader:
         """Function returns true if more than one target is specified"""
         return len(self.target_columns) > 1
 
+    def categorical_target_decoder(self, y):
+        """
+        function takes in the  target (y) array and transforms it back to decoded form.
+        For this function to be run the split_and_preprocess_categorical already has to have been run beforehand.
+        """
+        ys = y[:]  # copy y so it's not modified
+        target_encoders = self.target_label_encoders
+        ys_decoded = []
+        ys = [  # rotate the y array to each column be a target
+            list(x) if i == 0 else x
+            for i, x in enumerate(
+                map(list, zip(*ys))
+            )  # y[:] should leave original y in peace?
+        ]
+
+        # Decode columnwise
+        for i, target_column in enumerate(ys):
+            ys_decoded.append(
+                target_encoders[i].inverse_transform(target_column)
+            )
+
+        # Rotate back so each row corresponds to a complex and not the target like metal or X4
+        ys_decoded_properly_rotated = [
+            list(x) if i == 0 else x
+            for i, x in enumerate(map(list, zip(*ys_decoded)))
+        ]
+
+        return ys_decoded_properly_rotated
+
     def binarized_target_decoder(self, y):
         """
         function takes in the  target (y) array and transforms it back to decoded form.
@@ -365,13 +394,16 @@ class DataLoader:
         ]
         self.target_unique_labels = target_unique_labels
         ys = []
+        self.target_label_encoders = []
         readable_labels = []
         for i in range(len(target_unique_labels)):
             tmp_encoder = LabelEncoder()
             tmp_encoder.fit(target_unique_labels[i])
             ys.append(tmp_encoder.transform(y_labels[i]))
+            self.target_label_encoders.append(tmp_encoder)
             readable_labels.append(tmp_encoder.classes_)
-        y = list(zip(*ys))
+        y = np.array(list(zip(*ys)))
+
         (
             X_NMR_train,
             X_NMR_test,
@@ -386,10 +418,6 @@ class DataLoader:
             test_size=self.test_size,
             random_state=self.random_state,
         )
-        # Make targets 1D if only one is targeted
-        if len(y[0]) == 1:
-            y_train = list(itertools.chain(*y_train))
-            y_test = list(itertools.chain(*y_test))
 
         # Normalize features with no leakage from test set
         X_train_NMR_scaled, scaler = self.preprocess_features(X_NMR_train)
@@ -405,6 +433,7 @@ class DataLoader:
 
         # Get the target labels going
         y_label = target_label_readabilitizer_categorical(readable_labels)
+
         return X_train_scaled, X_test_scaled, y_train, y_test, y_label
 
     def split_and_preprocess_one_hot(self):
@@ -465,10 +494,6 @@ class DataLoader:
             test_size=self.test_size,
             random_state=self.random_state,
         )
-        # Make targets 1D if only one is targeted
-        if len(y[0]) == 1:
-            y_train = list(itertools.chain(*y_train))
-            y_test = list(itertools.chain(*y_test))
 
         # Normalize features with no leakage from test set
         X_train_NMR_scaled, scaler = self.preprocess_features(X_train_NMR)
