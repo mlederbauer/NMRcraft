@@ -223,6 +223,21 @@ class DataLoader:
     def load_data(self):
         self.dataset = filename_to_ligands(self.dataset)
         self.dataset = self.dataset.sample(frac=self.dataset_size)
+        self.choose_geometry()
+        if self.target_type == "categorical":
+            return self.split_and_preprocess_categorical()
+        elif (
+            self.target_type == "one-hot"
+        ):  # Target is binarized and Features are one hot
+            return self.split_and_preprocess_one_hot()
+        else:
+            raise InvalidTargetTypeError(ValueError)
+
+    def choose_geometry(self):
+        """
+        Reduce the dataset down to a certain geometry if a valid
+        one was passed, else just leave it as is.
+        """
         if self.complex_geometry == "oct":
             self.dataset = self.dataset[
                 self.dataset["geometry"] == "oct"
@@ -235,14 +250,6 @@ class DataLoader:
             self.dataset = self.dataset[
                 self.dataset["geometry"] == "tbp"
             ]  # only load trigonal bipyramidal complexes
-        if self.target_type == "categorical":
-            return self.split_and_preprocess_categorical()
-        elif (
-            self.target_type == "one-hot"
-        ):  # Target is binarized and Features are one hot
-            return self.split_and_preprocess_one_hot()
-        else:
-            raise InvalidTargetTypeError(ValueError)
 
     def preprocess_features(self, X):
         """
