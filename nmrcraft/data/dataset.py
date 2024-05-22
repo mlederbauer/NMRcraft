@@ -96,6 +96,15 @@ def load_dataset_from_hf(
     return dataset
 
 
+def transpose(array: any):
+    """rotate/transpose array to the right"""
+    ar = array[:]  # make copy just to be sure
+    ar = [  # rotate the array to the right
+        list(x) if i == 0 else x for i, x in enumerate(map(list, zip(*ar)))
+    ]
+    return ar
+
+
 def get_target_columns(target_columns: str):
     """
     Function takes target columns in underline format f.e 'metal_X1_X4_X2_L' and
@@ -144,13 +153,6 @@ def get_structural_feature_columns(target_columns: list):
     features = [x for x in TARGET_TYPES if x not in target_columns]
 
     return features
-
-
-def get_target_labels(target_columns: str, dataset: pd.DataFrame):
-    # Get unique values for each column
-    unique_values = [list(set(dataset[col])) for col in target_columns]
-    # Convert the list of sets to a list of lists
-    return unique_values
 
 
 def target_label_readabilitizer(readable_labels):
@@ -205,6 +207,7 @@ class DataLoader:
         test_size=0.3,
         random_state=42,
         dataset_size=0.01,
+        include_structural_features=True,
         testing=False,
     ):
         self.feature_columns = feature_columns
@@ -214,6 +217,7 @@ class DataLoader:
         self.dataset_size = dataset_size
         self.target_type = target_type
         self.complex_geometry = complex_geometry
+        self.include_structural_features = include_structural_features
 
         if not testing:
             self.dataset = load_dataset_from_hf()
@@ -223,6 +227,21 @@ class DataLoader:
     def load_data(self):
         self.dataset = filename_to_ligands(self.dataset)
         self.dataset = self.dataset.sample(frac=self.dataset_size)
+        self.choose_geometry()
+        if self.target_type == "categorical":
+            return self.split_and_preprocess_categorical()
+        elif (
+            self.target_type == "one-hot"
+        ):  # Target is binarized and Features are one hot
+            return self.split_and_preprocess_one_hot()
+        else:
+            raise InvalidTargetTypeError(ValueError)
+
+    def choose_geometry(self):
+        """
+        Reduce the dataset down to a certain geometry if a valid
+        one was passed, else just leave it as is.
+        """
         if self.complex_geometry == "oct":
             self.dataset = self.dataset[
                 self.dataset["geometry"] == "oct"
@@ -235,22 +254,14 @@ class DataLoader:
             self.dataset = self.dataset[
                 self.dataset["geometry"] == "tbp"
             ]  # only load trigonal bipyramidal complexes
-        if self.target_type == "categorical":
-            return self.split_and_preprocess_categorical()
-        elif (
-            self.target_type == "one-hot"
-        ):  # Target is binarized and Features are one hot
-            return self.split_and_preprocess_one_hot()
-        else:
-            raise InvalidTargetTypeError(ValueError)
 
-    def preprocess_features(self, X):
+    def scale(self, X):
         """
         Apply standard normalization to the feature set.
         """
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
-        return X_scaled, scaler
+        return X_scaled
 
     def get_target_columns_separated(self):
         """Returns the column indicies of the target array nicely sorted.
@@ -278,6 +289,30 @@ class DataLoader:
         """Function returns true if more than one target is specified"""
         return len(self.target_columns) > 1
 
+    def categorical_target_decoder(self, y):
+        """
+        function takes in the  target (y) array and transforms it back to decoded form.
+        For this function to be run the split_and_preprocess_categorical already has to have been run beforehand.
+        """
+        ys = y[:]  # copy y so it's not modified
+        target_encoders = self.target_label_encoders
+        ys_decoded = []
+        ys = transpose(ys)
+
+        # Decode columnwise
+        for i, target_column in enumerate(ys):
+            ys_decoded.append(
+                target_encoders[i].inverse_transform(target_column)
+            )
+
+        # Rotate back so each row corresponds to a complex and not the target like metal or X4
+        ys_decoded_properly_rotated = [
+            list(x) if i == 0 else x
+            for i, x in enumerate(map(list, zip(*ys_decoded)))
+        ]
+
+        return np.array(ys_decoded_properly_rotated)
+
     def binarized_target_decoder(self, y):
         """
         function takes in the  target (y) array and transforms it back to decoded form.
@@ -287,29 +322,30 @@ class DataLoader:
         ys = []
         ys_decoded = []
         # Split up compressed array into the categories
-        # If one-dimensional y (f.e only metals)
-        if isinstance(y[0], np.int64):
-            ys = list(y[:])  # copy list
-            ys = np.array(list(map(list, [[x] for x in ys])))
-            ys_decoded = self.encoders[0].inverse_transform(ys)
-            ys_decoded_properly_rotated = np.array(
-                list(map(list, [[x] for x in ys_decoded]))
-            )
-            # Decode the binarized metal using the original binarizer
-        # If multidimensional y
-        if not isinstance(y[0], np.int64):
-            for i in range(len(y_column_indices)):
-                ys.append(y[:, y_column_indices[i]])
-            # Decode the binarized categries using the original binarizers
-            for i in range(len(ys)):
-                ys_decoded.append(self.encoders[i].inverse_transform(ys[i]))
-            ys_decoded_properly_rotated = [
-                list(x) if i == 0 else x
-                for i, x in enumerate(map(list, zip(*ys_decoded)))
-            ]
+        for i in range(len(y_column_indices)):
+            ys.append(y[:, y_column_indices[i]])
+
+        # Decode the binarized categries using the original binarizers
+        for i in range(len(ys)):
+            ys_decoded.append(self.encoders[i].inverse_transform(ys[i]))
+
+        # Rotate the array
+        ys_decoded_properly_rotated = [
+            list(x) if i == 0 else x
+            for i, x in enumerate(map(list, zip(*ys_decoded)))
+        ]
         return ys_decoded_properly_rotated
 
-    def confusion_matrix_data_adapter(self, y):
+    def confusion_matrix_data_adapter_categorical(self, y):
+        """
+        Takes in binary encoded target array and returns decoded flat list.
+        Especially designed to work with confusion matrix.
+        """
+        y_decoded = self.categorical_target_decoder(y)
+        flat_y_decoded = [y for ys in y_decoded for y in ys]
+        return flat_y_decoded
+
+    def confusion_matrix_data_adapter_one_hot(self, y):
         """
         Takes in binary encoded target array and returns decoded flat list.
         Especially designed to work with confusion matrix.
@@ -326,55 +362,122 @@ class DataLoader:
                 y_labels_copy.insert(i, "W")
         return y_labels_copy
 
-    def split_and_preprocess_categorical(self):
-        """
-        Split data into training and test sets, then apply normalization.
-        Ensures that the test data does not leak into training data preprocessing.
-        X and y are categorical, so each column has a integer that defines which one of the ligands is in the column.
-        """
-        # Get NMR and structural Features and combine
-        X_NMR = self.dataset[self.feature_columns].to_numpy()
+    def categorical_endocode_X(self):
+        # Get NMR Featrues (passed ones) and structural Features
         X_Structural_Features_Columns = get_structural_feature_columns(
             target_columns=self.target_columns
         )
         X_Structural_Features = self.dataset[
             X_Structural_Features_Columns
         ].to_numpy()
-        X_Structural_Features = [
-            list(x) if i == 0 else x
-            for i, x in enumerate(map(list, zip(*X_Structural_Features)))
-        ]
-        self.feature_unique_labels = get_target_labels(
-            dataset=self.dataset, target_columns=X_Structural_Features_Columns
-        )
-        xs = []
-        for i in range(len(self.feature_unique_labels)):
-            tmp_encoder = LabelEncoder()
-            tmp_encoder.fit(self.feature_unique_labels[i])
-            xs.append(tmp_encoder.transform(X_Structural_Features[i]))
-        X_Structural_Features = list(zip(*xs))
 
-        # Get the targets, rotate, apply encoding, rotate back
-        target_unique_labels = get_target_labels(
-            target_columns=self.target_columns, dataset=self.dataset
-        )
+        # Transpose the array
+        X_Structural_Features = transpose(X_Structural_Features)
+
+        # Target-wise encoding with Label encoder and save encoders for later decoding
+        xs = []
+        for i in range(len(X_Structural_Features)):
+            tmp_encoder = LabelEncoder()
+            tmp_encoder.fit(X_Structural_Features[i])
+            xs.append(tmp_encoder.transform(X_Structural_Features[i]))
+        X_Structural_Features = list(zip(*xs))  # Kind of backtransposing
+
+        return X_Structural_Features
+
+    def categorical_endocode_y(self):
+        # Get the targets
         y_labels_rotated = self.dataset[self.target_columns].to_numpy()
-        y_labels = [
-            list(x) if i == 0 else x
-            for i, x in enumerate(map(list, zip(*y_labels_rotated)))
-        ]
-        self.target_unique_labels = target_unique_labels
+
+        # rotate the list of list (array-like)
+        y_labels = transpose(y_labels_rotated)
+
+        # Do targetwise encoding using the label encoder and save the label encoders for later decoding
+        ys = []
+        self.target_label_encoders = []
+        readable_labels = []
+        for i in range(len(y_labels)):
+            tmp_encoder = LabelEncoder()
+            tmp_encoder.fit(y_labels[i])
+            ys.append(tmp_encoder.transform(y_labels[i]))
+            self.target_label_encoders.append(tmp_encoder)
+            readable_labels.append(tmp_encoder.classes_)
+        # Combine y
+        y = np.array(list(zip(*ys)))
+        # Return y fuzed into a single array and y_labels
+        return y, readable_labels
+
+    def one_hot_endocode_X(self):
+        """
+        Method that does the one-hot encoding of the DataLoader's features
+        based on the selected targets
+        """
+        # Get Columns corresponding to the features that are selected
+        X_Structural_Features_Columns = get_structural_feature_columns(
+            self.target_columns
+        )
+
+        # Get the features based on the selected columns
+        X_Structural_Features = self.dataset[
+            X_Structural_Features_Columns
+        ].to_numpy()
+
+        # One hot encode X structural
+        X_Structural_Features_enc = (
+            OneHotEncoder().fit_transform(X_Structural_Features).toarray()
+        )
+
+        return X_Structural_Features_enc
+
+    def label_binarize_endocode_y(self):
+
+        # Get the Targets and transpose
+        y_labels_rotated = self.dataset[self.target_columns].to_numpy()
+        y_labels = transpose(y_labels_rotated)
+
         ys = []
         readable_labels = []
-        for i in range(len(target_unique_labels)):
-            tmp_encoder = LabelEncoder()
-            tmp_encoder.fit(target_unique_labels[i])
-            ys.append(tmp_encoder.transform(y_labels[i]))
-            readable_labels.append(tmp_encoder.classes_)
-        y = list(zip(*ys))
+        self.encoders = []
+        self.target_column_numbers = []
+
+        # Binarize targetwise and save encoders and labels
+        for i in range(len(y_labels)):
+            # Encode
+            label_binerizer = LabelBinarizer()
+            ys.append(label_binerizer.fit_transform(y_labels[i]))
+
+            # Save stuff for later decoding
+            readable_labels.append(label_binerizer.classes_)
+            self.encoders.append(
+                label_binerizer
+            )  # save encoder for later decoding
+            self.target_column_numbers.append(
+                len(ys[i][0])
+            )  # save column numbers for later decoding
+
+        # Return y fuzed into a single array and labels
+        y = np.concatenate(list(ys), axis=1)
+        return y, readable_labels
+
+    def split_and_preprocess_categorical(self):
+        """
+        Split data into training and test sets, then apply normalization.
+        Ensures that the test data does not leak into training data preprocessing.
+        X and y are categorical, so each column has a integer that defines which one of the ligands is in the column.
+        """
+
+        # Get NMR features
+        X_NMR = self.dataset[self.feature_columns].to_numpy()
+
+        # Encode X in a categorical fashion with the label encoder columnwise
+        X_Structural_Features = self.categorical_endocode_X()
+
+        # Encode y in a categorical fashion with the label encoder columnwise
+        y, readable_labels = self.categorical_endocode_y()
+
+        # Train Test splitting
         (
-            X_NMR_train,
-            X_NMR_test,
+            X_train_NMR,
+            X_test_NMR,
             X_train_structural,
             X_test_structural,
             y_train,
@@ -386,25 +489,27 @@ class DataLoader:
             test_size=self.test_size,
             random_state=self.random_state,
         )
-        # Make targets 1D if only one is targeted
-        if len(y[0]) == 1:
-            y_train = list(itertools.chain(*y_train))
-            y_test = list(itertools.chain(*y_test))
 
         # Normalize features with no leakage from test set
-        X_train_NMR_scaled, scaler = self.preprocess_features(X_NMR_train)
-        X_test_NMR_scaled = scaler.transform(
-            X_NMR_test
-        )  # Apply the same transformation to test set
-        X_train_scaled = np.concatenate(
-            [X_train_NMR_scaled, X_train_structural], axis=1
-        )
-        X_test_scaled = np.concatenate(
-            [X_test_NMR_scaled, X_test_structural], axis=1
-        )
+        X_train_NMR_scaled = self.scale(X_train_NMR)
+        X_test_NMR_scaled = self.scale(X_test_NMR)
+
+        if self.include_structural_features:
+            # Combine scaled NMR features with structural features to get final X
+            X_train_scaled = np.concatenate(
+                [X_train_NMR_scaled, X_train_structural], axis=1
+            )
+            X_test_scaled = np.concatenate(
+                [X_test_NMR_scaled, X_test_structural], axis=1
+            )
+        else:
+            # Just have the NMR features as X
+            X_train_scaled = X_train_NMR_scaled
+            X_test_scaled = X_test_NMR_scaled
 
         # Get the target labels going
         y_label = target_label_readabilitizer_categorical(readable_labels)
+
         return X_train_scaled, X_test_scaled, y_train, y_test, y_label
 
     def split_and_preprocess_one_hot(self):
@@ -412,43 +517,14 @@ class DataLoader:
         Split data into training and test sets, then apply normalization.
         Ensures that the test data does not leak into training data preprocessing. Returned X is one-hot encoded and y binarized using the sklearn functions.
         """
-        target_unique_labels = get_target_labels(
-            target_columns=self.target_columns, dataset=self.dataset
-        )
-
-        # Get the Targets, rotate, apply binarization, funze into a single array
-        y_labels_rotated = self.dataset[self.target_columns].to_numpy()
-        y_labels = [
-            list(x) if i == 0 else x
-            for i, x in enumerate(map(list, zip(*y_labels_rotated)))
-        ]
-        self.target_unique_labels = target_unique_labels
-        ys = []
-        readable_labels = []
-        self.encoders = []
-        self.target_column_numbers = []
-        for i in range(len(target_unique_labels)):
-            LBiner = LabelBinarizer()
-            ys.append(LBiner.fit_transform(y_labels[i]))
-            readable_labels.append(LBiner.classes_)
-            self.encoders.append(LBiner)  # save encoder for later decoding
-            self.target_column_numbers.append(
-                len(ys[i][0])
-            )  # save column numbers for later decoding
-        y = np.concatenate(list(ys), axis=1)
-
-        # Get NMR and structural Features, one-hot-encode and combine
+        # Get NMR features
         X_NMR = self.dataset[self.feature_columns].to_numpy()
-        X_Structural_Features_Columns = get_structural_feature_columns(
-            self.target_columns
-        )
-        X_Structural_Features = self.dataset[
-            X_Structural_Features_Columns
-        ].to_numpy()
-        one_hot = OneHotEncoder().fit(X_Structural_Features)
-        X_Structural_Features_enc = one_hot.transform(
-            X_Structural_Features
-        ).toarray()
+
+        # Get structural features one-hot encoded
+        X_Structural_Features_enc = self.one_hot_endocode_X()
+
+        # Get structural targets, binarized
+        y, readable_labels = self.label_binarize_endocode_y()
 
         # Split the datasets
         (
@@ -465,25 +541,26 @@ class DataLoader:
             test_size=self.test_size,
             random_state=self.random_state,
         )
-        # Make targets 1D if only one is targeted
-        if len(y[0]) == 1:
-            y_train = list(itertools.chain(*y_train))
-            y_test = list(itertools.chain(*y_test))
 
         # Normalize features with no leakage from test set
-        X_train_NMR_scaled, scaler = self.preprocess_features(X_train_NMR)
-        X_test_NMR_scaled = scaler.transform(
-            X_test_NMR
-        )  # Apply the same transformation to test set
-        # Combine scaled NMR features with structural features
-        X_train_scaled = np.concatenate(
-            [X_train_NMR_scaled, X_train_structural], axis=1
-        )
-        X_test_scaled = np.concatenate(
-            [X_test_NMR_scaled, X_test_structural], axis=1
-        )
+        X_train_NMR_scaled = self.scale(X_train_NMR)
+        X_test_NMR_scaled = self.scale(X_test_NMR)
+
+        if self.include_structural_features:
+            # Combine scaled NMR features with structural features to get final X
+            X_train_scaled = np.concatenate(
+                [X_train_NMR_scaled, X_train_structural], axis=1
+            )
+            X_test_scaled = np.concatenate(
+                [X_test_NMR_scaled, X_test_structural], axis=1
+            )
+        else:
+            # Just have the NMR features as X
+            X_train_scaled = X_train_NMR_scaled
+            X_test_scaled = X_test_NMR_scaled
 
         # Creates the labels that can be used to identify the targets in the binaized y-array
+        # (basicall handle special metal behaviour)
         good_target_labels = target_label_readabilitizer(readable_labels)
 
         return (
