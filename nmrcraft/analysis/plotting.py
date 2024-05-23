@@ -1,3 +1,4 @@
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 from cycler import cycler
@@ -15,11 +16,13 @@ def style_setup():
     plt.rcParams["text.latex.preamble"] = r"\usepackage{sansmathfonts}"
     plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
 
-    # Use the first color from the custom color cycle
-    first_color = plt.rcParams["axes.prop_cycle"].by_key()["color"][0]
+    all_colors = [
+        plt.rcParams["axes.prop_cycle"].by_key()["color"][i]
+        for i in range(len(colors))
+    ]
     plt.rcParams["text.usetex"] = False
 
-    return cmap, colors, first_color
+    return cmap, colors, all_colors
 
 
 def plot_predicted_vs_ground_truth(
@@ -33,7 +36,8 @@ def plot_predicted_vs_ground_truth(
     Returns:
     None
     """
-    _, _, first_color = style_setup()
+    _, _, colors = style_setup()
+    first_color = colors[0]
     # Creating the plot
     plt.figure(figsize=(10, 8))
     plt.scatter(y_test, y_pred, color=first_color, edgecolor="k", alpha=0.6)
@@ -167,3 +171,67 @@ def plot_roc_curve(fpr, tpr, roc_auc, title, path):
     plt.legend(loc="lower right")
     plt.savefig(path)
     plt.close()
+
+
+def plot_bar(df):
+    categories = df["target"].unique()
+    _, _, colors = style_setup()
+    first_color = colors[0]
+    second_color = colors[1]
+
+    # Extract data
+
+    x_pos = np.arange(len(categories))
+    bar_width = 0.35
+
+    # Initialize plot
+    fig, ax = plt.subplots()
+
+    # Loop through each category and plot bars
+    for i, category in enumerate(categories):
+        subset = df[df["target"] == category]
+
+        # Means and error bars
+        means = subset["accuracy_mean"].values
+        errors = [
+            subset["accuracy_mean"].values
+            - subset["accuracy_lower_bd"].values,
+            subset["accuracy_upper_bd"].values
+            - subset["accuracy_mean"].values,
+        ]
+
+        # Bar locations for the group
+        bar_positions = x_pos[i] + np.array([-bar_width / 2, bar_width / 2])
+
+        # Determine bar colors based on 'nmr_tensor_input_only' field
+        bar_colors = [
+            first_color if x else second_color
+            for x in subset["nmr_tensor_input_only"]
+        ]
+
+        # Plotting the bars
+        ax.bar(
+            bar_positions,
+            means,
+            yerr=np.array(errors),
+            color=bar_colors,
+            align="center",
+            ecolor="black",
+            capsize=5,
+            width=bar_width,
+        )
+
+    # Labeling and aesthetics
+    ax.set_ylabel("Accuracy / %")
+    ax.set_xlabel("Target(s)")
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(categories)
+    ax.set_title("Accuracy Measurements with Error Bars")
+
+    handles = [
+        mpatches.Patch(color=first_color, label="With Ligand Info"),
+        mpatches.Patch(color=second_color, label="Without Ligand Info"),
+    ]
+    ax.legend(handles=handles, loc="best", fontsize=20)
+    plt.tight_layout()
+    plt.savefig("plots/accuracy_measurements.png")
