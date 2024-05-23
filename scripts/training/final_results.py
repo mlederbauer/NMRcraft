@@ -25,7 +25,7 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default="X3",
+    default="E",
     help="The Target for the predictions. Choose from: 'metal', 'X1', 'X2', 'X3', 'X4', 'L', 'E' ",
 )
 parser.add_argument(
@@ -82,7 +82,7 @@ if __name__ == "__main__":
                     max_evals=args.max_evals,
                     target=args.target,
                     dataset_size=dataset_size,
-                    random_state=11,
+                    random_state=42,
                 )
                 # mlflow.log_metrics("dataset_size", dataset_size, step=i)
                 C.hyperparameter_tune()
@@ -103,7 +103,7 @@ if __name__ == "__main__":
                     rates=rates_df,
                     metrics=metrics,
                     folder_path=args.plot_folder,
-                    classes=C.classes,
+                    classes=C.y_labels,
                     dataset_size=str(dataset_size),
                 )
                 path_CM = visualizer.plot_confusion_matrix()

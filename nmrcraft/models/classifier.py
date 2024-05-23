@@ -52,7 +52,6 @@ class Classifier:
             feature_columns=feature_columns,
             target_columns=target,
             dataset_size=dataset_size,
-            target_type="categorical",
         )
         (
             self.X_train,
@@ -61,9 +60,6 @@ class Classifier:
             self.y_test,
             self.y_labels,
         ) = data_loader.load_data()
-        self.classes = data_loader.confusion_matrix_label_adapter(
-            self.y_labels
-        )
 
     def hyperparameter_tune(self):
         log.info(
