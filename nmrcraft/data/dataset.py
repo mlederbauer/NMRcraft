@@ -10,13 +10,22 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import (
     LabelBinarizer,
     LabelEncoder,
-    OneHotEncoder,
     StandardScaler,
 )
 
 from nmrcraft.utils.set_seed import set_seed
 
 set_seed()
+
+TARGET_TYPES = [
+    "metal",
+    "X1_ligand",
+    "X2_ligand",
+    "X3_ligand",
+    "X4_ligand",
+    "L_ligand",
+    "E_ligand",
+]
 
 
 class DatasetLoadError(FileNotFoundError):
@@ -135,26 +144,6 @@ def get_target_columns(target_columns: str):
     return targets_transformed
 
 
-def get_structural_feature_columns(target_columns: list):
-    """
-    Function gets the feature columns given the target columns. The feature columns are those that will be in the X set.
-    """
-    TARGET_TYPES = [
-        "metal",
-        "X1_ligand",
-        "X2_ligand",
-        "X3_ligand",
-        "X4_ligand",
-        "L_ligand",
-        "E_ligand",
-    ]
-
-    # Get the features as the not targets
-    features = [x for x in TARGET_TYPES if x not in target_columns]
-
-    return features
-
-
 def target_label_readabilitizer(readable_labels):
     """
     function takes in the classes from the binarzier and turns them into human readable list of same length of the target.
@@ -254,14 +243,6 @@ class DataLoader:
             self.dataset = self.dataset[
                 self.dataset["geometry"] == "tbp"
             ]  # only load trigonal bipyramidal complexes
-
-    def scale(self, X):
-        """
-        Apply standard normalization to the feature set.
-        """
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
-        return X_scaled
 
     def get_target_columns_separated(self):
         """Returns the column indicies of the target array nicely sorted.
@@ -364,25 +345,46 @@ class DataLoader:
 
     def categorical_endocode_X(self):
         # Get NMR Featrues (passed ones) and structural Features
-        X_Structural_Features_Columns = get_structural_feature_columns(
-            target_columns=self.target_columns
-        )
-        X_Structural_Features = self.dataset[
-            X_Structural_Features_Columns
-        ].to_numpy()
+        #     X_Structural_Features = self.dataset[
+        #         [x for x in TARGET_TYPES if x not in self.target_columns]
+        #     ].to_numpy()
 
-        # Transpose the array
-        X_Structural_Features = transpose(X_Structural_Features)
+        #     # Transpose the array
+        #     X_Structural_Features = transpose(X_Structural_Features)
 
-        # Target-wise encoding with Label encoder and save encoders for later decoding
-        xs = []
-        for i in range(len(X_Structural_Features)):
-            tmp_encoder = LabelEncoder()
-            tmp_encoder.fit(X_Structural_Features[i])
-            xs.append(tmp_encoder.transform(X_Structural_Features[i]))
-        X_Structural_Features = list(zip(*xs))  # Kind of backtransposing
+        #     # Target-wise encoding with Label encoder and save encoders for later decoding
+        #     xs = []
+        #     for i in range(len(X_Structural_Features)):
+        #         tmp_encoder = LabelEncoder()
+        #         tmp_encoder.fit(X_Structural_Features[i])
+        #         xs.append(tmp_encoder.transform(X_Structural_Features[i]))
+        #     X_Structural_Features = list(zip(*xs))  # Kind of backtransposing
 
-        return X_Structural_Features
+        #     return X_Structural_Features
+
+        # def encode_categorical_features(self):
+        # Select and extract the structural features from the dataset
+        structural_features = (
+            self.dataset[
+                [col for col in TARGET_TYPES if col not in self.target_columns]
+            ]
+            .to_numpy()
+            .T
+        )  # Transpose immediately after conversion to numpy
+
+        # Encode features using LabelEncoder and store encoders for potential inverse transform
+        encoded_features = []
+        self.encoders = []  # To store encoders for each feature
+        for features in structural_features:
+            encoder = LabelEncoder()
+            encoder.fit(features)
+            encoded_features.append(encoder.transform(features))
+            self.encoders.append(encoder)
+
+        # Convert the list of encoded features back to the original data structure
+        return np.array(
+            encoded_features
+        ).T  # Transpose back to original orientation
 
     def categorical_endocode_y(self):
         # Get the targets
@@ -405,28 +407,6 @@ class DataLoader:
         y = np.array(list(zip(*ys)))
         # Return y fuzed into a single array and y_labels
         return y, readable_labels
-
-    def one_hot_endocode_X(self):
-        """
-        Method that does the one-hot encoding of the DataLoader's features
-        based on the selected targets
-        """
-        # Get Columns corresponding to the features that are selected
-        X_Structural_Features_Columns = get_structural_feature_columns(
-            self.target_columns
-        )
-
-        # Get the features based on the selected columns
-        X_Structural_Features = self.dataset[
-            X_Structural_Features_Columns
-        ].to_numpy()
-
-        # One hot encode X structural
-        X_Structural_Features_enc = (
-            OneHotEncoder().fit_transform(X_Structural_Features).toarray()
-        )
-
-        return X_Structural_Features_enc
 
     def label_binarize_endocode_y(self):
 
@@ -490,13 +470,13 @@ class DataLoader:
             random_state=self.random_state,
         )
 
-        # Normalize features with no leakage from test set
-        X_train_NMR_scaled = self.scale(X_train_NMR)
-        X_test_NMR_scaled = self.scale(X_test_NMR)
+        scaler = StandardScaler()
+        X_train_NMR_scaled = scaler.fit_transform(X_train_NMR)
+        X_test_NMR_scaled = scaler.transform(X_test_NMR)
 
         if self.include_structural_features:
             # Combine scaled NMR features with structural features to get final X
-            X_train_scaled = np.concatenate(
+            X_train_scaled = X_train_scaled = np.concatenate(
                 [X_train_NMR_scaled, X_train_structural], axis=1
             )
             X_test_scaled = np.concatenate(
@@ -510,63 +490,64 @@ class DataLoader:
         # Get the target labels going
         y_label = target_label_readabilitizer_categorical(readable_labels)
 
+        y_train = np.squeeze(y_train)
+        y_test = np.squeeze(y_test)
+
         return X_train_scaled, X_test_scaled, y_train, y_test, y_label
 
-    def split_and_preprocess_one_hot(self):
-        """
-        Split data into training and test sets, then apply normalization.
-        Ensures that the test data does not leak into training data preprocessing. Returned X is one-hot encoded and y binarized using the sklearn functions.
-        """
-        # Get NMR features
+    def split_and_preprocess(self):
+        # Extract and encode categorical features
         X_NMR = self.dataset[self.feature_columns].to_numpy()
+        X_Structural = self.encode_categorical_features()
 
-        # Get structural features one-hot encoded
-        X_Structural_Features_enc = self.one_hot_endocode_X()
+        # Encode target variables and store readable labels
+        (
+            y_encoded,
+            readable_labels,
+        ) = self.encode_targets()  # Assuming this method exists and is similar
 
-        # Get structural targets, binarized
-        y, readable_labels = self.label_binarize_endocode_y()
-
-        # Split the datasets
+        # Split data into training and testing sets
         (
             X_train_NMR,
             X_test_NMR,
-            X_train_structural,
-            X_test_structural,
+            X_train_Structural,
+            X_test_Structural,
             y_train,
             y_test,
         ) = train_test_split(
             X_NMR,
-            X_Structural_Features_enc,
-            y,
+            X_Structural,
+            y_encoded,
             test_size=self.test_size,
             random_state=self.random_state,
         )
 
-        # Normalize features with no leakage from test set
-        X_train_NMR_scaled = self.scale(X_train_NMR)
-        X_test_NMR_scaled = self.scale(X_test_NMR)
+        # Scale NMR features
+        scaler = StandardScaler()
+        X_train_NMR_scaled = scaler.fit_transform(X_train_NMR)
+        X_test_NMR_scaled = scaler.transform(X_test_NMR)
 
+        # Combine features if structural features are included
         if self.include_structural_features:
-            # Combine scaled NMR features with structural features to get final X
-            X_train_scaled = np.concatenate(
-                [X_train_NMR_scaled, X_train_structural], axis=1
+            X_train = np.concatenate(
+                [X_train_NMR_scaled, X_train_Structural], axis=1
             )
-            X_test_scaled = np.concatenate(
-                [X_test_NMR_scaled, X_test_structural], axis=1
+            X_test = np.concatenate(
+                [X_test_NMR_scaled, X_test_Structural], axis=1
             )
         else:
-            # Just have the NMR features as X
-            X_train_scaled = X_train_NMR_scaled
-            X_test_scaled = X_test_NMR_scaled
+            X_train = X_train_NMR_scaled
+            X_test = X_test_NMR_scaled
 
-        # Creates the labels that can be used to identify the targets in the binaized y-array
-        # (basicall handle special metal behaviour)
-        good_target_labels = target_label_readabilitizer(readable_labels)
+        # Format the target labels for readability
+        y_labels = self.format_target_labels(
+            readable_labels
+        )  # Assuming this formatting function exists
 
         return (
-            X_train_scaled,
-            X_test_scaled,
-            y_train,
-            y_test,
-            good_target_labels,
+            X_train,
+            X_test,
+            np.squeeze(y_train),
+            np.squeeze(y_test),
+            y_labels,
         )

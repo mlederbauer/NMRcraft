@@ -20,7 +20,7 @@ parser.add_argument(
     "--max_evals",
     type=int,
     default=3,
-    help="The max evaluatins for the hyperparameter tuning with hyperopt",
+    help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
     "--target",
@@ -56,15 +56,15 @@ if __name__ == "__main__":
     dataset_sizes = [
         # 0.01,
         0.1,
-        0.15
+        # 0.15
         # 0.5,
         # 1.0,
     ]
     models = [
-        "random_forest",
-        "logistic_regression",
+        "random_forest"
+        # "logistic_regression",
         # "gradient_boosting",
-        "svc",
+        # "svc",
         # "gpc"
     ]
 
