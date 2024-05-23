@@ -3,7 +3,7 @@ import argparse
 import mlflow
 
 from nmrcraft.analysis.plotting import plot_confusion_matrix, plot_roc_curve
-from nmrcraft.data.dataset import DataLoader
+from nmrcraft.data.dataloader import DataLoader
 from nmrcraft.evaluation.evaluation import (
     get_cm_path,
     get_roc_path,

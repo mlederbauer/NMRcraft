@@ -1,7 +1,7 @@
 import numpy
 import pytest
 
-from nmrcraft.data.dataset import DataLoader
+from nmrcraft.data.dataloader import DataLoader
 
 
 def test_valid_targets():
