@@ -234,4 +234,4 @@ def plot_bar(df):
     ]
     ax.legend(handles=handles, loc="best", fontsize=20)
     plt.tight_layout()
-    plt.savefig("plots/accuracy_measurements.png")
+    plt.savefig("plots/exp3_incorporate_ligand_info.png")
