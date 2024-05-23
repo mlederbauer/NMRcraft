@@ -19,13 +19,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=10,
+    default=3,
     help="The max evaluatins for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
     "--target",
     type=str,
-    default="metal",
+    default="X3",
     help="The Target for the predictions. Choose from: 'metal', 'X1', 'X2', 'X3', 'X4', 'L', 'E' ",
 )
 parser.add_argument(
@@ -54,22 +54,25 @@ if __name__ == "__main__":
     log.getLogger().setLevel(log.INFO)
 
     dataset_sizes = [
-        0.01,
+        # 0.01,
         0.1,
+        0.15
         # 0.5,
-        1.0,
+        # 1.0,
     ]
     models = [
         "random_forest",
         "logistic_regression",
-        "gradient_boosting",
+        # "gradient_boosting",
         "svc",
+        # "gpc"
     ]
 
     with mlflow.start_run():
         model_data = pd.DataFrame(
             columns=["accuracy", "f1_score", "dataset_size", "model"]
         )
+        model_metrics = []
         for model in models:
             data = pd.DataFrame()
             for dataset_size in dataset_sizes:
@@ -84,22 +87,33 @@ if __name__ == "__main__":
                 # mlflow.log_metrics("dataset_size", dataset_size, step=i)
                 C.hyperparameter_tune()
                 C.train()
-                new_data = C.evaluate()
+                rates_df, metrics, cm = C.evaluate()
+                print(rates_df)
+                print(metrics)
+                print(cm)
+
                 # data[str(dataset_size)] = new_data
-                data = pd.concat(
-                    [data, new_data.assign(dataset_size=dataset_size)],
-                )
+                data = pd.concat([data, metrics])
                 data_BS = C.train_bootstraped(10)
                 model_data = pd.concat([model_data, data_BS])
 
+                visualizer = Visualizer(
+                    model_name=model,
+                    cm=cm,
+                    rates=rates_df,
+                    metrics=metrics,
+                    folder_path=args.plot_folder,
+                    classes=C.classes,
+                    dataset_size=str(dataset_size),
+                )
+                path_CM = visualizer.plot_confusion_matrix()
+            # print(data)
             data.index = dataset_sizes
-            visualizer = Visualizer(
-                model_name=model, data=data, folder_path=args.plot_folder
-            )
-            path_ROC = visualizer.plot_ROC(filename=f"ROC_Plot_{model}.png")
-            mlflow.log_artifact(path_ROC, f"ROC_Plot_{model}.png")
+            model_metrics.append(data)
+            data.index = dataset_sizes
 
-        print(model_data)
+            # path_ROC = visualizer.plot_ROC(filename=f"ROC_Plot_{model}.png")
+            # mlflow.log_artifact(path_ROC, f"ROC_Plot_{model}.png")
 
         path_AC = visualizer.plot_metric(
             data=model_data,
@@ -113,6 +127,10 @@ if __name__ == "__main__":
             title="F1 Score",
             filename="f1_score.png",
         )
+
+        for df, model in zip(model_metrics, models):
+            print(model)
+            print(df)
 
         # mlflow.log_artifact("F1_Plot", path_F1)
         # mlflow.log_artifact("Accuracy_Plot", path_AC)

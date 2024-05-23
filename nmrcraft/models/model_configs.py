@@ -55,8 +55,15 @@ model_configs = {
             "gamma": hp.choice("gamma", ["scale", "auto"]),
             "coef0": hp.uniform("coef0", 0.0, 1.0),
             "shrinking": hp.choice("shrinking", [True, False]),
-            "probability": hp.choice("probability", [True, False]),
             # "max_iter": hp.choice("max_iter", range(100, 1000, 100)),
+        },
+    },
+    "gpc": {
+        "model_params": {"random_state": 42},
+        "hyperparameters": {
+            "n_restarts_optimizer": hp.choice(
+                "n_restarts_optimizer", range(0, 20)
+            ),
         },
     },
 }

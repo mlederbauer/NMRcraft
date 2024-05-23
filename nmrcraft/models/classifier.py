@@ -4,11 +4,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import (
     accuracy_score,
-    auc,
+    confusion_matrix,
     f1_score,
-    # confusion_matrix,
-    multilabel_confusion_matrix,
-    roc_curve,
+    precision_score,
+    recall_score,
 )
 from sklearn.utils import resample
 
@@ -49,17 +48,22 @@ class Classifier:
             max_evals=self.max_evals,
         )  # algo is set to default value, TODO: change this in declaration of Classifier is necessary
 
+        data_loader = DataLoader(
+            feature_columns=feature_columns,
+            target_columns=target,
+            dataset_size=dataset_size,
+            target_type="categorical",
+        )
         (
             self.X_train,
             self.X_test,
             self.y_train,
             self.y_test,
             self.y_labels,
-        ) = DataLoader(
-            feature_columns=feature_columns,
-            target_columns=target,
-            dataset_size=dataset_size,
-        ).load_data()
+        ) = data_loader.load_data()
+        self.classes = data_loader.confusion_matrix_label_adapter(
+            self.y_labels
+        )
 
     def hyperparameter_tune(self):
         log.info(
@@ -90,11 +94,11 @@ class Classifier:
                 replace=True,
                 random_state=self.random_state,
             )
-            self.hyperparameter_tune()
+            # self.hyperparameter_tune()
             self.train()
-            eval_data = self.evaluate()
-            accuracy.append(eval_data["accuracy"])
-            f1_score.append(eval_data["f1_score"])
+            rates_df, metrics, cm = self.evaluate()
+            accuracy.append(metrics["Accuracy"])
+            f1_score.append(metrics["F1"])
             i += 1
         new_row = {
             "accuracy": np.mean(accuracy),
@@ -106,36 +110,99 @@ class Classifier:
         }
         return pd.DataFrame([new_row])
 
-    def evaluate(self) -> pd.DataFrame():
+    # def evaluate(self) -> pd.DataFrame():
+    #     """
+    #     Evaluate the performance of the trained machine learning model.
+
+    #     Returns:
+    #         Tuple[Dict[str, float], Any, Any, Any]: A tuple containing:
+    #             - A dictionary with evaluation metrics (accuracy, f1_score, roc_auc).
+    #             - The confusion matrix.
+    #             - The false positive rate.
+    #             - The true positive rate.
+    #     """
+    #     y_pred = self.model.predict(self.X_test)
+    #     accuracy = accuracy_score(self.y_test, y_pred)
+    #     f1 = f1_score(self.y_test, y_pred, average="weighted")
+    #     fpr, tpr, _ = roc_curve(
+    #         self.y_test, self.model.predict_proba(self.X_test)[:, 1]
+    #     )
+    #     cm = multilabel_confusion_matrix(self.y_test, y_pred)
+    #     roc_auc = auc(fpr, tpr)
+
+    #     # Create DataFrame with consistent structure
+    #     results_df = pd.DataFrame(
+    #         {
+    #             "accuracy": [accuracy],
+    #             "f1_score": [f1],
+    #             "roc_auc": [roc_auc],
+    #             "fpr": [fpr.tolist()],
+    #             "cm": [cm.tolist()],
+    #             "tpr": [tpr.tolist()],
+    #         }
+    #     )
+
+    #     return results_df
+
+    def evaluate(self) -> pd.DataFrame:
         """
         Evaluate the performance of the trained machine learning model.
 
         Returns:
-            Tuple[Dict[str, float], Any, Any, Any]: A tuple containing:
-                - A dictionary with evaluation metrics (accuracy, f1_score, roc_auc).
-                - The confusion matrix.
-                - The false positive rate.
-                - The true positive rate.
+            pd.DataFrame: A DataFrame containing evaluation metrics (accuracy, f1_score, roc_auc),
+                        the confusion matrix, false positive rates, and true positive rates for each class.
         """
         y_pred = self.model.predict(self.X_test)
-        accuracy = accuracy_score(self.y_test, y_pred)
-        f1 = f1_score(self.y_test, y_pred, average="weighted")
-        fpr, tpr, _ = roc_curve(
-            self.y_test, self.model.predict_proba(self.X_test)[:, 1]
-        )
-        cm = multilabel_confusion_matrix(self.y_test, y_pred)
-        roc_auc = auc(fpr, tpr)
+        # print(y_pred)
+        # accuracy = accuracy_score(self.y_test, y_pred)
+        # f1 = f1_score(self.y_test, y_pred, average="weighted")
 
-        # Create DataFrame with consistent structure
-        results_df = pd.DataFrame(
-            {
-                "accuracy": [accuracy],
-                "f1_score": [f1],
-                "roc_auc": [roc_auc],
-                "fpr": [fpr.tolist()],
-                "cm": [cm.tolist()],
-                "tpr": [tpr.tolist()],
-            }
-        )
+        # Binarize the output
+        # y_test_bin = label_binarize(
+        #     self.y_test, classes=np.unique(self.y_test)
+        # )
 
-        return results_df
+        # Number of classes
+        # n_classes = y_test_bin.shape[1]
+        cm = confusion_matrix(self.y_test, y_pred)
+
+        def calculate_fpr_fnr(cm):
+            FPR = []
+            FNR = []
+            num_classes = cm.shape[0]
+            for i in range(num_classes):
+                FP = cm[:, i].sum() - cm[i, i]
+                TN = cm.sum() - (cm[i, :].sum() + cm[:, i].sum() - cm[i, i])
+                FN = cm[i, :].sum() - cm[i, i]
+                TP = cm[i, i]
+
+                FPR.append(FP / (FP + TN))
+                FNR.append(FN / (FN + TP))
+            return np.array(FPR), np.array(FNR)
+
+        # Calculate FPR and FNR for each class
+        FPR, FNR = calculate_fpr_fnr(cm)
+        rates_df = pd.DataFrame()
+        rates_df["FPR"] = FPR
+        rates_df["FNR"] = FNR
+        rates_df.index = self.y_labels
+
+        # Calculating macro-averaged F1 Score, Precision, Recall
+        Precision = precision_score(self.y_test, y_pred, average="macro")
+        Recall = recall_score(self.y_test, y_pred, average="macro")
+        F1 = f1_score(self.y_test, y_pred, average="macro")
+
+        # Calculating Accuracy
+        Accuracy = accuracy_score(self.y_test, y_pred)
+
+        metrics = pd.DataFrame()
+        metrics["Accuracy"] = [Accuracy]
+        metrics["Recall"] = [Recall]
+        metrics["F1"] = [F1]
+        metrics["Precision"] = [Precision]
+
+        cm = pd.DataFrame(cm)
+        cm.columns = self.y_labels
+        cm.index = self.y_labels
+
+        return rates_df, metrics, cm

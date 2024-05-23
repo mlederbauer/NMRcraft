@@ -2,6 +2,7 @@ import inspect
 from typing import Any
 
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 
@@ -52,6 +53,7 @@ def load_model(model_name: str, **kwargs: Any):
         "gradient_boosting": GradientBoostingClassifier,
         "logistic_regression": LogisticRegression,
         "svc": SVC,
+        "gpc": GaussianProcessClassifier,
     }
     # TODO: put model config here
 
@@ -68,6 +70,9 @@ def load_model(model_name: str, **kwargs: Any):
 
     if model_name == "svc":
         kwargs["probability"] = True
+
+    if model_name == "gpc":
+        kwargs["multi_class"] = "one_vs_one"
 
     # Forth, validate all provided kwargs before creating the model instance
     validate_kwargs(kwargs, model_class, model_name)
