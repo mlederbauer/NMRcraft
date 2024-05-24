@@ -25,7 +25,11 @@ class Classifier:
         target: str,
         dataset_size: float,
         feature_columns=None,
-        random_state=None,
+        random_state=42,
+        include_structural_features=True,
+        complex_geometry="oct",
+        test_size=0.2,
+        testing=False,
     ):
         if not feature_columns:
             feature_columns = [
@@ -52,6 +56,11 @@ class Classifier:
             feature_columns=feature_columns,
             target_columns=target,
             dataset_size=dataset_size,
+            include_structural_features=include_structural_features,
+            complex_geometry=complex_geometry,
+            test_size=test_size,
+            random_state=random_state,
+            testing=testing,
         )
         (
             self.X_train,
@@ -105,40 +114,6 @@ class Classifier:
             "model": self.model_name,
         }
         return pd.DataFrame([new_row])
-
-    # def evaluate(self) -> pd.DataFrame():
-    #     """
-    #     Evaluate the performance of the trained machine learning model.
-
-    #     Returns:
-    #         Tuple[Dict[str, float], Any, Any, Any]: A tuple containing:
-    #             - A dictionary with evaluation metrics (accuracy, f1_score, roc_auc).
-    #             - The confusion matrix.
-    #             - The false positive rate.
-    #             - The true positive rate.
-    #     """
-    #     y_pred = self.model.predict(self.X_test)
-    #     accuracy = accuracy_score(self.y_test, y_pred)
-    #     f1 = f1_score(self.y_test, y_pred, average="weighted")
-    #     fpr, tpr, _ = roc_curve(
-    #         self.y_test, self.model.predict_proba(self.X_test)[:, 1]
-    #     )
-    #     cm = multilabel_confusion_matrix(self.y_test, y_pred)
-    #     roc_auc = auc(fpr, tpr)
-
-    #     # Create DataFrame with consistent structure
-    #     results_df = pd.DataFrame(
-    #         {
-    #             "accuracy": [accuracy],
-    #             "f1_score": [f1],
-    #             "roc_auc": [roc_auc],
-    #             "fpr": [fpr.tolist()],
-    #             "cm": [cm.tolist()],
-    #             "tpr": [tpr.tolist()],
-    #         }
-    #     )
-
-    #     return results_df
 
     def evaluate(self) -> pd.DataFrame:
         """
