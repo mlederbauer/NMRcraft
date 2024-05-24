@@ -25,7 +25,7 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default="E",
+    default="metal_E",
     help="The Target for the predictions. Choose from: 'metal', 'X1', 'X2', 'X3', 'X4', 'L', 'E' ",
 )
 parser.add_argument(
