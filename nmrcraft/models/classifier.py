@@ -11,7 +11,7 @@ from sklearn.metrics import (
 )
 from sklearn.utils import resample
 
-from nmrcraft.data.dataset import DataLoader
+from nmrcraft.data.dataloader import DataLoader
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
