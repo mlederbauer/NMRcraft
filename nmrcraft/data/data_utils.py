@@ -74,33 +74,3 @@ def load_dataset_from_hf(
     elif not os.path.isfile("dataset/dataset.csv"):
         raise DatasetLoadError(FileNotFoundError)
     return dataset
-
-
-def get_target_columns(target_columns: str):
-    """
-    Function takes target columns in underline format f.e 'metal_X1_X4_X2_L' and
-    transforms into a list of the column names present in the dataset.
-    """
-    TARGET_TYPES = ["metal", "X1", "X2", "X3", "X4", "L", "E"]
-
-    # Split the target string into individual targets
-    targets = [t.strip() for t in target_columns.split("_")]
-
-    # Check if the targets are valid
-    for t in targets:
-        if t not in TARGET_TYPES:
-            raise InvalidTargetError(t)
-
-    # Translate them into Dataframe Column names
-    target_map = {
-        "metal": "metal",
-        "X1": "X1_ligand",
-        "X2": "X2_ligand",
-        "X3": "X3_ligand",
-        "X4": "X4_ligand",
-        "L": "L_ligand",
-        "E": "E_ligand",
-    }
-    targets_transformed = [target_map[t] for t in targets]
-
-    return targets_transformed

@@ -12,7 +12,6 @@ from sklearn.preprocessing import (
 
 from nmrcraft.data.data_utils import (
     filename_to_ligands,
-    get_target_columns,
     load_dataset_from_hf,
     load_dummy_dataset_locally,
 )
@@ -44,10 +43,10 @@ class DataLoader:
         testing: bool,
     ):
         self.feature_columns = feature_columns
-        self.target_columns = get_target_columns(target_columns=target_columns)
         self.test_size = test_size
         self.random_state = random_state
         self.dataset_size = dataset_size
+        self.target_columns = target_columns
         self.complex_geometry = complex_geometry
         self.include_structural_features = include_structural_features
 
@@ -118,51 +117,35 @@ class DataLoader:
             encoded_features
         ).T  # Transpose back to original orientation
 
-    def encode_targets(self) -> Tuple[np.ndarray, List[List[str]]]:
+    def encode_targets(self) -> Tuple[np.ndarray, dict]:
         """
         Encodes the target variables in the dataset using LabelEncoder.
 
         Returns:
-            Tuple[np.ndarray, List[List[str]]]: The encoded targets and the corresponding readable labels.
-
-        Example: targets are metal & X3 ligand
-        > y_encoded
-        array([[ 0, 10],
-                [1,0],
-                ...
-                [1, 15]])
-        > readable_labels
-        [['Mo', 'W'], ['imido1', 'imido2', ... ]]
-
+            Tuple[np.ndarray, dict]: The encoded targets and a dictionary mapping target names to labels.
         """
-        # Extract targets from the dataset and transpose the array for column-wise processing
-        y_labels = self.dataset[self.target_columns].to_numpy().T
-
-        # Initialize lists to store encoded targets and the corresponding encoders
+        # Initialize lists to store encoded targets and corresponding encoders
         encoded_targets = []
-        self.target_encoders = (
-            []
-        )  # Store encoders to allow inverse transformations later
-        readable_labels = (
-            []
-        )  # Store class labels for each target for readability
+        self.target_encoders = []
+        y_labels_dict = {}
 
         # Encode each target column using LabelEncoder
-        for target in y_labels:
+        for target_name in self.target_columns:
+            target = self.dataset[target_name].to_numpy()
             encoder = LabelEncoder()
             encoder.fit(target)
             encoded_targets.append(encoder.transform(target))
             self.target_encoders.append(encoder)
-            readable_labels.append(
+            y_labels_dict[
+                target_name
+            ] = (
                 encoder.classes_.tolist()
-            )  # Store the classes (unique labels) of each encoder as a list
+            )  # Dictionary of labels for each target
 
-        # Convert the list of encoded targets back to the original data structure
         y_encoded = np.array(
             encoded_targets
-        ).T  # Transpose back to match the original data structure
-
-        return y_encoded, readable_labels
+        ).T  # Transpose to match original data structure
+        return y_encoded, y_labels_dict
 
     def split_and_preprocess(
         self,
