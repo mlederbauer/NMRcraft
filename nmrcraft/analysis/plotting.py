@@ -173,7 +173,7 @@ def plot_roc_curve(fpr, tpr, roc_auc, title, path):
     plt.close()
 
 
-def plot_bar(df):
+def plot_with_without_ligands_bar(df):
     categories = df["target"].unique()
     _, _, colors = style_setup()
     first_color = colors[0]
@@ -235,3 +235,11 @@ def plot_bar(df):
     ax.legend(handles=handles, loc="best", fontsize=20)
     plt.tight_layout()
     plt.savefig("plots/exp3_incorporate_ligand_info.png")
+    print("Saved to plots/exp3_incorporate_ligand_info.png")
+
+
+if __name__ == "main":
+    import pandas as pd
+
+    df = pd.read_csv("dataset/path_to_results.csv")
+    plot_with_without_ligands_bar(df)
