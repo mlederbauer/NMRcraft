@@ -11,54 +11,43 @@ from sklearn.metrics import (
     recall_score,
 )
 
-# Import your data loading and model configuration utilities
+# Import your data loading utilities
 from nmrcraft.data.dataloader import DataLoader
 
 
-def load_data(target, dataset_size):
-    feature_columns = [
-        "M_sigma11_ppm",
-        "M_sigma22_ppm",
-        "M_sigma33_ppm",
-        "E_sigma11_ppm",
-        "E_sigma22_ppm",
-        "E_sigma33_ppm",
-    ]
-    target_columns = target
-    complex_geometry = "oct"
-    test_size = 0.3
-    random_state = 42
-    dataset_size = 0.1
-    include_structural_features = False
-    testing = False
-    dataloader = DataLoader(
-        feature_columns=feature_columns,
-        target_columns=target_columns,
-        complex_geometry=complex_geometry,
-        test_size=test_size,
-        random_state=random_state,
-        dataset_size=dataset_size,
-        include_structural_features=include_structural_features,
-        testing=testing,
-    )
-    return dataloader.load_data()
-
-
 def evaluate_model(y_test, y_pred, y_labels):
-    cm = confusion_matrix(y_test, y_pred)
-    accuracy = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred, average="macro")
-    precision = precision_score(y_test, y_pred, average="macro")
-    recall = recall_score(y_test, y_pred, average="macro")
-
-    metrics = {
-        "Accuracy": accuracy,
-        "F1": f1,
-        "Precision": precision,
-        "Recall": recall,
-    }
-
-    return metrics, cm
+    metrics = {}
+    cm_list = []
+    target_index = 0
+    for target_name, labels in y_labels.items():
+        cm = confusion_matrix(y_test[:, target_index], y_pred[:, target_index])
+        accuracy = accuracy_score(
+            y_test[:, target_index], y_pred[:, target_index]
+        )
+        f1 = f1_score(
+            y_test[:, target_index], y_pred[:, target_index], average="macro"
+        )
+        precision = precision_score(
+            y_test[:, target_index],
+            y_pred[:, target_index],
+            average="macro",
+            zero_division=0,
+        )
+        recall = recall_score(
+            y_test[:, target_index], y_pred[:, target_index], average="macro"
+        )
+        # roc_auc = roc_auc_score(y_test[:, target_index], y_pred[:, target_index])
+        metrics[target_name] = {
+            "Accuracy": accuracy,
+            "F1": f1,
+            "Precision": precision,
+            "Recall": recall,
+            # "ROC-AUC": roc_auc
+        }
+        labels = labels
+        cm_list.append((target_name, cm))
+        target_index += 1
+    return metrics, cm_list
 
 
 def main():
@@ -66,9 +55,9 @@ def main():
         description="Simplified model training script."
     )
     parser.add_argument(
-        "--target",
+        "--targets",
         type=str,
-        default="metal_E",
+        default=["metal", "E_ligand"],
         help="The Target for the predictions.",
     )
     parser.add_argument(
@@ -79,7 +68,8 @@ def main():
     )
     parser.add_argument(
         "--random_baseline",
-        action="store_true",
+        type=bool,
+        default=False,
         help="Use a random baseline model.",
     )
     args = parser.parse_args()
@@ -90,23 +80,42 @@ def main():
     )
 
     # Load data
-    X_train, X_test, y_train, y_test, y_labels = load_data(
-        target=args.target, dataset_size=args.dataset_size
+    dataloader = DataLoader(
+        target_columns=args.targets,
+        dataset_size=args.dataset_size,
+        feature_columns=[
+            "M_sigma11_ppm",
+            "M_sigma22_ppm",
+            "M_sigma33_ppm",
+            "E_sigma11_ppm",
+            "E_sigma22_ppm",
+            "E_sigma33_ppm",
+        ],
+        complex_geometry="oct",
+        test_size=0.3,
+        random_state=42,
+        include_structural_features=False,
+        testing=False,
     )
+    # Load data
+    X_train, X_test, y_train, y_test, y_labels = dataloader.load_data()
 
-    if args.random_baseline:
-        # Implement random choice baseline
-        predictions = np.random.choice(np.unique(y_train), size=len(y_test))
-    else:
-        # Implement most common choice baseline
-        most_common = pd.Series(y_train).mode()[0]
-        predictions = np.full(shape=y_test.shape, fill_value=most_common)
+    # Predictions for each target
+    predictions = np.zeros_like(y_test)
+    for i, target_name in enumerate(y_labels.keys()):
+        if args.random_baseline:
+            unique_vals = np.unique(y_train[:, i])
+            predictions[:, i] = np.random.choice(unique_vals, size=len(y_test))
+        else:
+            most_common = pd.Series(y_train[:, i]).mode()[0]
+            predictions[:, i] = np.full(
+                shape=y_test[:, i].shape, fill_value=most_common
+            )
+        target_name = target_name
 
     # Evaluate the model
-    metrics, confusion_mtx = evaluate_model(y_test, predictions, y_labels)
+    metrics, confusion_matrices = evaluate_model(y_test, predictions, y_labels)
     log.info("Evaluation Metrics: %s", metrics)
-
-    # Optionally save the results and any plots
 
 
 if __name__ == "__main__":
