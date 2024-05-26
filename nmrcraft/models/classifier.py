@@ -88,7 +88,7 @@ class Classifier:
         self.model = load_model(self.model_name, **all_params)
         self.model.fit(self.X_train, self.y_train)
 
-    def train_bootstraped(self, n_times=10):
+    def train_bootstrapped(self, n_times=10):
         accuracy = []
         f1_score = []
         i = 0

@@ -3,10 +3,15 @@ import logging as log
 import os
 
 import mlflow
+import numpy as np
 import pandas as pd
 
-from nmrcraft.evaluation.visualizer import Visualizer
-from nmrcraft.models.classifier import Classifier
+from nmrcraft.analysis import plotting
+from nmrcraft.data.dataloader import DataLoader
+from nmrcraft.evaluation import evaluation
+from nmrcraft.models.model_configs import model_configs
+from nmrcraft.models.models import load_model
+from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
 
 # Setup MLflow
 mlflow.set_experiment("Test_final_results")
@@ -19,7 +24,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=2,
+    default=1,
     help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
@@ -62,92 +67,87 @@ if __name__ == "__main__":
     ]
     models = [
         # "random_forest",
-        "logistic_regression",
+        # "logistic_regression",
         # "gradient_boosting",
-        # "svc",
+        "svc",
     ]
 
     with mlflow.start_run():
         model_metrics = []
-        for model in models:
+
+        for model_name in models:
             data = pd.DataFrame()
+            config = model_configs[model_name]
+            tuner = HyperparameterTuner(
+                model_name, config, max_evals=args.max_evals
+            )
+
             for dataset_size in dataset_sizes:
-                # Create a instance of the Classifier_Class
-                C = Classifier(
-                    model_name=model,
-                    max_evals=args.max_evals,
-                    target=args.target,
+                data_loader = DataLoader(
+                    target_columns=args.target,
                     dataset_size=dataset_size,
-                    random_state=42,
                 )
-                # mlflow.log_metrics("dataset_size", dataset_size, step=i)
-                C.hyperparameter_tune()
-                C.train()
-                rates_df, metrics, cm = C.evaluate()
-                print(rates_df)
-                print(metrics)
-                print(cm)
+                (
+                    X_train,
+                    X_test,
+                    y_train,
+                    y_test,
+                    y_labels,
+                ) = data_loader.load_data()
 
-                # data[str(dataset_size)] = new_data
-                # Convert args.target and dataset_size into DataFrames by wrapping them in lists
-                target_df = pd.DataFrame([args.target], columns=["Target"])
-                dataset_size_df = pd.DataFrame(
-                    [dataset_size], columns=["Dataset Size"]
+                best_params, _ = tuner.tune(X_train, np.squeeze(y_train))
+                model_func = lambda model_name=model_name, config=config, **params: load_model(
+                    model_name, **{**params, **config["model_params"]}
                 )
+                best_model = model_func(**best_params)
+                best_model.fit(X_train, y_train)
+                y_pred = np.atleast_2d(best_model.predict(X_test)).T
 
-                model_data = pd.DataFrame(
-                    columns=[
-                        "target",
-                        "dataset_size",
-                        "model",
-                        "accuracy",
-                        "accuracy_std",
-                        "f1_score",
-                        "f1_score_std",
-                    ]
-                )
-                # Concatenate the new DataFrames with data and metrics
-                data = pd.concat(
-                    [target_df, dataset_size_df, data, metrics], axis=1
+                metrics, cm_list = evaluation.evaluate_model(
+                    y_test, y_pred, args.target
                 )
 
-                data_BS = C.train_bootstraped(n_times=10)
-                model_data = pd.concat([model_data, data_BS])
-
-                visualizer = Visualizer(
-                    model_name=model,
-                    cm=cm,
-                    rates=rates_df,
-                    metrics=metrics,
-                    folder_path=args.plot_folder,
-                    classes=C.y_labels,
-                    dataset_size=str(dataset_size),
+                plotting.plot_confusion_matrix(
+                    cm_list,
+                    y_labels,
+                    model_name,
+                    dataset_size,
+                    args.plot_folder,
                 )
-                path_CM = visualizer.plot_confusion_matrix()
-            # print(data)
-            data.index = dataset_sizes
-            model_metrics.append(data)
-            data.index = dataset_sizes
 
-            # path_ROC = visualizer.plot_ROC(filename=f"ROC_Plot_{model}.png")
-            # mlflow.log_artifact(path_ROC, f"ROC_Plot_{model}.png")
+                bootstrap_metrics = evaluation.evaluate_bootstrap(
+                    X_test, y_test, best_model, args.target
+                )
 
-        path_AC = visualizer.plot_metric(
-            data=model_data,
-            metric="accuracy",
-            title="Accuracy",
-            filename="accuracy.png",
-        )
-        path_F1 = visualizer.plot_metric(
-            data=model_data,
-            metric="f1_score",
-            title="F1 Score",
-            filename="f1_score.png",
-        )
+    # TODO: Adapt this code to the new structure
+    #         visualizer = Visualizer(
+    #             model_name=model_name,
+    #             cm=cm,
+    #             rates=rates_df,
+    #             metrics=metrics,
+    #             folder_path=args.plot_folder,
+    #             classes=C.y_labels,
+    #             dataset_size=str(dataset_size),
+    #         )
+    #         path_CM = visualizer.plot_confusion_matrix()
 
-        for df, model in zip(model_metrics, models):
-            print(model)
-            print(df)
+    #     data.index = dataset_sizes
+    #     model_metrics.append(data)
+    #     data.index = dataset_sizes
 
-        # mlflow.log_artifact("F1_Plot", path_F1)
-        # mlflow.log_artifact("Accuracy_Plot", path_AC)
+    # path_AC = visualizer.plot_metric(
+    #     data=model_data,
+    #     metric="accuracy",
+    #     title="Accuracy",
+    #     filename="accuracy.png",
+    # )
+    # path_F1 = visualizer.plot_metric(
+    #     data=model_data,
+    #     metric="f1_score",
+    #     title="F1 Score",
+    #     filename="f1_score.png",
+    # )
+
+    # for df, model in zip(model_metrics, models):
+    #     print(model)
+    #     print(df)

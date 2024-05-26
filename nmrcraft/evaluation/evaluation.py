@@ -8,6 +8,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
+from sklearn.utils import resample
 
 
 def evaluate_model(
@@ -60,3 +61,24 @@ def evaluate_model(
         cm_list[target_name] = cm
         target_index += 1
     return metrics, cm_list
+
+
+def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
+    bootstrap_metrics: Dict = {}
+    for _ in range(n_times):
+        X_test, y_test = resample(
+            X_test, y_test, replace=True, random_state=42
+        )
+        y_pred = np.atleast_2d(model.predict(X_test)).T
+        metrics, _ = evaluate_model(y_test, y_pred, targets)
+        for target in targets:
+            if target not in bootstrap_metrics:
+                bootstrap_metrics[target] = {
+                    "Accuracy": [],
+                    "F1": [],
+                }
+            bootstrap_metrics[target]["Accuracy"].append(
+                metrics[target]["Accuracy"]
+            )
+            bootstrap_metrics[target]["F1"].append(metrics[target]["F1"])
+    return bootstrap_metrics
