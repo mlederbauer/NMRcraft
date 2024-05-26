@@ -25,7 +25,7 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default="metal_E",
+    default="X3",
     help="The Target for the predictions. Choose from: 'metal', 'X1', 'X2', 'X3', 'X4', 'L', 'E' ",
 )
 parser.add_argument(
@@ -61,11 +61,10 @@ if __name__ == "__main__":
         # 1.0,
     ]
     models = [
-        "random_forest"
-        # "logistic_regression",
+        # "random_forest",
+        "logistic_regression",
         # "gradient_boosting",
         # "svc",
-        # "gpc"
     ]
 
     with mlflow.start_run():

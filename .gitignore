@@ -2,6 +2,7 @@ mlruns/
 scratch/
 dataset/
 plots/
+data/
 
 docs/source
 
