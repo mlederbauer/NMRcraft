@@ -2,7 +2,6 @@ import inspect
 from typing import Any
 
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
-from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 
@@ -53,7 +52,6 @@ def load_model(model_name: str, **kwargs: Any):
         "gradient_boosting": GradientBoostingClassifier,
         "logistic_regression": LogisticRegression,
         "svc": SVC,
-        "gpc": GaussianProcessClassifier,
     }
     # TODO: put model config here
 

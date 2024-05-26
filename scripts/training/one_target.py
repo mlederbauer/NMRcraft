@@ -56,16 +56,15 @@ if __name__ == "__main__":
     dataset_sizes = [
         # 0.01,
         0.1,
-        0.15
+        0.15,
         # 0.5,
         # 1.0,
     ]
     models = [
-        "random_forest",
+        # "random_forest",
         "logistic_regression",
         # "gradient_boosting",
-        "svc",
-        # "gpc"
+        # "svc",
     ]
 
     with mlflow.start_run():
