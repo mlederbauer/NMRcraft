@@ -61,17 +61,17 @@ def load_dataset_from_hf(
         pandas.DataFrame: The loaded dataset as a pandas DataFrame.
     """
     # Create data dir if needed
-    if not os.path.isdir("data"):
-        os.mkdir("data")
+    if not os.path.isdir("dataset"):
+        os.mkdir("dataset")
     # Check if hf dataset is already downloaded, else download it and then load it
-    if not os.path.isfile("data/dataset.csv"):
+    if not os.path.isfile("dataset/dataset.csv"):
         dataset = load_dataset(dataset_name, data_files=data_files)[
             "train"
         ].to_pandas()
-        dataset.to_csv("data/dataset.csv")
-    if os.path.isfile("data/dataset.csv"):
-        dataset = pd.read_csv("data/dataset.csv")
-    elif not os.path.isfile("data/dataset.csv"):
+        dataset.to_csv("dataset/dataset.csv")
+    if os.path.isfile("dataset/dataset.csv"):
+        dataset = pd.read_csv("dataset/dataset.csv")
+    elif not os.path.isfile("dataset/dataset.csv"):
         raise DatasetLoadError(FileNotFoundError)
     return dataset
 
