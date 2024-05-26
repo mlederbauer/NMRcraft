@@ -70,7 +70,9 @@ def main():
             )
 
     # Evaluate the model
-    metrics, confusion_matrices = evaluate_model(y_test, predictions, y_labels)
+    metrics, confusion_matrices = evaluate_model(
+        y_test, predictions, args.targets
+    )
     log.info("Evaluation Metrics: %s", metrics)
 
 

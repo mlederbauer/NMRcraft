@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from sklearn.metrics import (
@@ -11,7 +11,7 @@ from sklearn.metrics import (
 
 
 def evaluate_model(
-    y_test: np.ndarray, y_pred: np.ndarray, y_labels: Dict[str, Any]
+    y_test: np.ndarray, y_pred: np.ndarray, targets: List[str]
 ) -> Tuple[Dict[str, Dict[str, float]], Dict[str, np.ndarray]]:
     """
     Evaluate the performance of a machine learning model by calculating various metrics.
@@ -29,7 +29,7 @@ def evaluate_model(
     metrics: Dict[str, Dict[str, float]] = {}
     cm_list: Dict[str, np.ndarray] = {}
     target_index = 0
-    for target_name, labels in y_labels.items():
+    for target_name in targets:
         cm = confusion_matrix(y_test[:, target_index], y_pred[:, target_index])
         accuracy = accuracy_score(
             y_test[:, target_index], y_pred[:, target_index]
@@ -57,7 +57,6 @@ def evaluate_model(
             "Recall": recall,
             # "ROC-AUC": roc_auc
         }
-        labels = labels
         cm_list[target_name] = cm
         target_index += 1
     return metrics, cm_list
