@@ -204,7 +204,7 @@ class DataLoader:
         return (
             X_train,
             X_test,
-            np.squeeze(y_train),
-            np.squeeze(y_test),
+            y_train,
+            y_test,
             y_labels,
         )

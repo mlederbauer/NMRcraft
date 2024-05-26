@@ -1,116 +1,63 @@
-import os
 from typing import Any, Dict, Tuple
 
-from sklearn.base import BaseEstimator
+import numpy as np
 from sklearn.metrics import (
     accuracy_score,
-    auc,
     confusion_matrix,
     f1_score,
-    roc_curve,
+    precision_score,
+    recall_score,
 )
 
-from nmrcraft.data import dataloader
 
-
-def model_evaluation(
-    model: BaseEstimator,
-    X_test: Any,
-    y_test: Any,
-    y_labels: Any,
-    dataloader: dataloader.DataLoader,
-) -> Tuple[Dict[str, float], Any, Any, Any]:
+def evaluate_model(
+    y_test: np.ndarray, y_pred: np.ndarray, y_labels: Dict[str, Any]
+) -> Tuple[Dict[str, Dict[str, float]], Dict[str, np.ndarray]]:
     """
-    Evaluate the performance of the trained machine learning model for 1D targets.
+    Evaluate the performance of a machine learning model by calculating various metrics.
 
     Args:
-        model (BaseEstimator): The trained machine learning model.
-        X_test (Any): The input features for testing.
-        y_test (Any): The true labels for testing.
-        y_labels (Any): Label for the columns of the target.
-        dataloader (DataLoader): Dataloader to decode the target arrays.
+        y_test (numpy.ndarray): The true labels of the test data.
+        y_pred (numpy.ndarray): The predicted labels of the test data.
+        y_labels (dict): A dictionary mapping target names to their corresponding labels.
 
     Returns:
-        Tuple[Dict[str, float], Any, Any, Any]: A tuple containing:
-            - A dictionary with evaluation metrics (accuracy, f1_score, roc_auc).
-            - The confusion matrix.
-            - The false positive rate.
-            - The true positive rate.
+        tuple: A tuple containing two dictionaries. The first dictionary contains the evaluation metrics
+               for each target, including accuracy, F1 score, precision, and recall. The second dictionary
+               contains the confusion matrices for each target.
     """
-    y_pred = model.predict(X_test)
+    metrics: Dict[str, Dict[str, float]] = {}
+    cm_list: Dict[str, np.ndarray] = {}
+    target_index = 0
+    for target_name, labels in y_labels.items():
+        cm = confusion_matrix(y_test[:, target_index], y_pred[:, target_index])
+        accuracy = accuracy_score(
+            y_test[:, target_index], y_pred[:, target_index]
+        )
+        f1 = f1_score(
+            y_test[:, target_index],
+            y_pred[:, target_index],
+            average="weighted",
+        )
+        precision = precision_score(
+            y_test[:, target_index],
+            y_pred[:, target_index],
+            average="macro",
+            zero_division=0,
+        )
+        recall = recall_score(
+            y_test[:, target_index], y_pred[:, target_index], average="macro"
+        )
 
-    score = accuracy_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred, average="weighted")
-    fpr, tpr, thresholds = roc_curve(y_test, model.predict_proba(X_test)[:, 1])
-    roc_auc = auc(fpr, tpr)
-
-    y_test_cm = dataloader.confusion_matrix_data_adapter(y_test)
-    y_pred_cm = dataloader.confusion_matrix_data_adapter(y_pred)
-    y_labels_cm = dataloader.confusion_matrix_label_adapter(y_labels)
-    cm = confusion_matrix(
-        y_pred=y_pred_cm, y_true=y_test_cm, labels=y_labels_cm
-    )
-    return (
-        {
-            "accuracy": score,
-            "f1_score": f1,
-            "roc_auc": roc_auc,
-        },
-        cm,
-        fpr,
-        tpr,
-    )
-
-
-def model_evaluation_nD(
-    model: BaseEstimator,
-    X_test: Any,
-    y_test: Any,
-    y_labels: Any,
-    dataloader: dataloader.DataLoader,
-) -> Tuple[Dict[str, float], Any, Any, Any]:
-    """
-    Evaluate the performance of the trained machine learning model for 2D+ Targets.
-
-    Args:
-        model (BaseEstimator): The trained machine learning model.
-        X_test (Any): The input features for testing.
-        y_test (Any): The true labels for testing.
-        y_labels (Any): Label for the columns of the target.
-        dataloader (DataLoader): Dataloader to decode the target arrays.
-
-    Returns:
-        Tuple[Dict[str, float], Any]: A tuple containing:
-            - A dictionary with evaluation metrics (accuracy, f1_score).
-            - The confusion matrix.
-    """
-    y_pred = model.predict(X_test)
-    y_test_cm = dataloader.confusion_matrix_data_adapter(y_test)
-    y_pred_cm = dataloader.confusion_matrix_data_adapter(y_pred)
-    y_labels_cm = dataloader.confusion_matrix_label_adapter(y_labels)
-    score = accuracy_score(y_test_cm, y_pred_cm)
-    f1 = f1_score(y_test_cm, y_pred_cm, average="weighted")
-    cm = confusion_matrix(
-        y_pred=y_pred_cm, y_true=y_test_cm, labels=y_labels_cm
-    )
-    return (
-        {
-            "accuracy": score,
-            "f1_score": f1,
-        },
-        cm,
-    )
-
-
-def get_cm_path():
-    fig_path = "scratch/"
-    if not os.path.exists(fig_path):
-        os.makedirs(fig_path)
-    return os.path.join(fig_path, "cm.png")
-
-
-def get_roc_path():
-    fig_path = "scratch/"
-    if not os.path.exists(fig_path):
-        os.makedirs(fig_path)
-    return os.path.join(fig_path, "roc.png")
+        # roc_auc = roc_auc_score(y_test[:, target_index], y_pred[:, target_index])
+        metrics[target_name] = {
+            "Accuracy": accuracy,
+            "F1": f1,
+            "Precision": precision,
+            "Recall": recall,
+            # "ROC-AUC": roc_auc
+        }
+        labels = labels
+        cm_list[target_name] = cm
+        target_index += 1
+    return metrics, cm_list
