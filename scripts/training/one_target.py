@@ -19,8 +19,8 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=3,
-    help="The max evaluatins for the hyperparameter tuning with hyperopt",
+    default=2,
+    help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
     "--target",
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     dataset_sizes = [
         # 0.01,
         0.1,
-        0.15,
+        # 0.15
         # 0.5,
         # 1.0,
     ]
@@ -68,9 +68,6 @@ if __name__ == "__main__":
     ]
 
     with mlflow.start_run():
-        model_data = pd.DataFrame(
-            columns=["accuracy", "f1_score", "dataset_size", "model"]
-        )
         model_metrics = []
         for model in models:
             data = pd.DataFrame()
@@ -81,7 +78,7 @@ if __name__ == "__main__":
                     max_evals=args.max_evals,
                     target=args.target,
                     dataset_size=dataset_size,
-                    random_state=11,
+                    random_state=42,
                 )
                 # mlflow.log_metrics("dataset_size", dataset_size, step=i)
                 C.hyperparameter_tune()
@@ -92,8 +89,29 @@ if __name__ == "__main__":
                 print(cm)
 
                 # data[str(dataset_size)] = new_data
-                data = pd.concat([data, metrics])
-                data_BS = C.train_bootstraped(10)
+                # Convert args.target and dataset_size into DataFrames by wrapping them in lists
+                target_df = pd.DataFrame([args.target], columns=["Target"])
+                dataset_size_df = pd.DataFrame(
+                    [dataset_size], columns=["Dataset Size"]
+                )
+
+                model_data = pd.DataFrame(
+                    columns=[
+                        "target",
+                        "dataset_size",
+                        "model",
+                        "accuracy",
+                        "accuracy_std",
+                        "f1_score",
+                        "f1_score_std",
+                    ]
+                )
+                # Concatenate the new DataFrames with data and metrics
+                data = pd.concat(
+                    [target_df, dataset_size_df, data, metrics], axis=1
+                )
+
+                data_BS = C.train_bootstraped(n_times=10)
                 model_data = pd.concat([model_data, data_BS])
 
                 visualizer = Visualizer(
@@ -102,7 +120,7 @@ if __name__ == "__main__":
                     rates=rates_df,
                     metrics=metrics,
                     folder_path=args.plot_folder,
-                    classes=C.classes,
+                    classes=C.y_labels,
                     dataset_size=str(dataset_size),
                 )
                 path_CM = visualizer.plot_confusion_matrix()

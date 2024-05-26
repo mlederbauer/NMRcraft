@@ -7,7 +7,7 @@ from sklearn.metrics import (
     f1_score,
 )
 
-from nmrcraft.data.dataset import DataLoader
+from nmrcraft.data.dataloader import DataLoader
 
 # precision_score,
 # recall_score,

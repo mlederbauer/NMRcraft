@@ -1,4 +1,5 @@
 # Import Libraries
+import itertools
 import os
 
 import matplotlib.pyplot as plt
@@ -24,6 +25,7 @@ class Visualizer:
         self.metrics = metrics
         self.folder_path = folder_path
         self.classes = classes
+        self.flat_classes = list(itertools.chain(*classes))
         self.dataset_size = dataset_size
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -50,14 +52,11 @@ class Visualizer:
 
         return cmap, colors, first_color
 
-    def plot_confusion_matrix(self, full=True, columns_set=False):
+    def plot_confusion_matrix(self):
         """
         Plots the confusion matrix.
         Parameters:
-        - classes (list): List of classes for the axis labels.
-        - title (str): Title of the plot.
-        - full (bool): If true plots one big, else many smaller.
-        - columns_set (list of lists): contains all relevant indices.
+        - self.classes (list of lists): List lists of classes for the axis labels.
         Returns:
         None
         """
@@ -70,51 +69,71 @@ class Visualizer:
             f"ConfusionMatrix_{self.model_name}_{self.dataset_size}.png",
         )
         # _, _, _ = self.style_setup()
-        if full:  # Plot one big cm
-            plt.figure(figsize=(10, 8))
-            plt.imshow(
-                self.cm.apply(normalize_row_0_1, axis=1),
-                interpolation="nearest",
-                cmap=plt.cm.Blues,
-            )
-            plt.title("The Confusion Matrix")
-            plt.colorbar()
-            tick_marks = np.arange(len(self.classes))
-            plt.xticks(tick_marks, self.classes, rotation=45)
-            plt.yticks(tick_marks, self.classes)
-            plt.tight_layout()
-            plt.ylabel("True label")
-            plt.xlabel("Predicted label")
-            plt.savefig(file_path)
-            plt.close()
+        plt.figure(figsize=(10, 8))
+        plt.imshow(
+            self.cm.apply(normalize_row_0_1, axis=1),
+            interpolation="nearest",
+            cmap=plt.cm.Blues,
+        )
+        plt.title("The Confusion Matrix")
+        plt.colorbar()
+        tick_marks = np.arange(len(self.flat_classes))
+        plt.xticks(tick_marks, self.flat_classes, rotation=45)
+        plt.yticks(tick_marks, self.flat_classes)
+        plt.tight_layout()
+        plt.ylabel("True label")
+        plt.xlabel("Predicted label")
+        plt.savefig(file_path)
+        plt.close()
 
-        elif not full:  # Plot many small cms of each target
-            cms = []
-            for columns in columns_set:  # Make list of confusion matrices
-                cms.append(
-                    self.cm[
-                        slice(columns[0], columns[-1] + 1),
-                        slice(columns[0], columns[-1] + 1),
-                    ]
-                )
-            fig, axs = plt.subplots(nrows=len(cms), figsize=(10, 8 * len(cms)))
-            for i, sub_cm in enumerate(cms):
-                sub_classes = self.classes[
-                    slice(columns_set[i][0], columns_set[i][-1] + 1)
-                ]
-                axs[i].imshow(
-                    sub_cm, interpolation="nearest", cmap=plt.cm.Blues
-                )
-                axs[i].set_title(f"Confusion Matrix {i+1}")
-                tick_marks = np.arange(len(sub_classes))
-                axs[i].set_xticks(tick_marks)
-                axs[i].set_xticklabels(sub_classes, rotation=45)
-                axs[i].set_yticks(tick_marks)
-                axs[i].set_yticklabels(sub_classes)
-                plt.tight_layout()
-            # plt.savefig(path)
-            plt.close()
-            return file_path
+    def plot_confusion_matrices(self):
+        """
+        Plots the confusion matrices of each target separately.
+        Parameters:
+        - classes (list of lists): List of classes for the axis labels.
+        - title (str): Title of the plot.
+        - columns_set (list of lists): contains all relevant indices.
+        Returns:
+        None
+        """
+
+    # #############Currently written for One Hot encoded data. Needs to be adapted to categorical data.#############
+
+    # def normalize_row_0_1(row):
+    #    return (row - np.min(row)) / (np.max(row) - np.min(row))
+
+    #
+    # file_path = os.path.join(
+    #    self.folder_path,
+    #    f"ConfusionMatrix_{self.model_name}_{self.dataset_size}.png",
+    # )
+    # _, _, _ = self.style_setup()
+    # cms = []
+    # for columns in columns_set:  # Make list of confusion matrices
+    #     cms.append(
+    #         self.cm[
+    #             slice(columns[0], columns[-1] + 1),
+    #             slice(columns[0], columns[-1] + 1),
+    #         ]
+    #     )
+    # fig, axs = plt.subplots(nrows=len(cms), figsize=(10, 8 * len(cms)))
+    # for i, sub_cm in enumerate(cms):
+    #     sub_classes = self.classes[
+    #         slice(columns_set[i][0], columns_set[i][-1] + 1)
+    #     ]
+    #     axs[i].imshow(
+    #         sub_cm, interpolation="nearest", cmap=plt.cm.Blues
+    #     )
+    #     axs[i].set_title(f"Confusion Matrix {i+1}")
+    #     tick_marks = np.arange(len(sub_classes))
+    #     axs[i].set_xticks(tick_marks)
+    #     axs[i].set_xticklabels(sub_classes, rotation=45)
+    #     axs[i].set_yticks(tick_marks)
+    #     axs[i].set_yticklabels(sub_classes)
+    #     plt.tight_layout()
+    # # plt.savefig(path)
+    # plt.close()
+    # return file_path
 
     def plot_metric(
         self,
