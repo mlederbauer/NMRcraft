@@ -3,51 +3,9 @@ import logging as log
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (
-    accuracy_score,
-    confusion_matrix,
-    f1_score,
-    precision_score,
-    recall_score,
-)
 
-# Import your data loading utilities
 from nmrcraft.data.dataloader import DataLoader
-
-
-def evaluate_model(y_test, y_pred, y_labels):
-    metrics = {}
-    cm_list = []
-    target_index = 0
-    for target_name, labels in y_labels.items():
-        cm = confusion_matrix(y_test[:, target_index], y_pred[:, target_index])
-        accuracy = accuracy_score(
-            y_test[:, target_index], y_pred[:, target_index]
-        )
-        f1 = f1_score(
-            y_test[:, target_index], y_pred[:, target_index], average="macro"
-        )
-        precision = precision_score(
-            y_test[:, target_index],
-            y_pred[:, target_index],
-            average="macro",
-            zero_division=0,
-        )
-        recall = recall_score(
-            y_test[:, target_index], y_pred[:, target_index], average="macro"
-        )
-        # roc_auc = roc_auc_score(y_test[:, target_index], y_pred[:, target_index])
-        metrics[target_name] = {
-            "Accuracy": accuracy,
-            "F1": f1,
-            "Precision": precision,
-            "Recall": recall,
-            # "ROC-AUC": roc_auc
-        }
-        labels = labels
-        cm_list.append((target_name, cm))
-        target_index += 1
-    return metrics, cm_list
+from nmrcraft.evaluation.evaluation import evaluate_model
 
 
 def main():
@@ -57,7 +15,7 @@ def main():
     parser.add_argument(
         "--targets",
         type=str,
-        default=["metal"],
+        default=["metal", "E_ligand"],
         help="The Target for the predictions.",
     )
     parser.add_argument(
@@ -112,7 +70,9 @@ def main():
             )
 
     # Evaluate the model
-    metrics, confusion_matrices = evaluate_model(y_test, predictions, y_labels)
+    metrics, confusion_matrices = evaluate_model(
+        y_test, predictions, args.targets
+    )
     log.info("Evaluation Metrics: %s", metrics)
 
 
