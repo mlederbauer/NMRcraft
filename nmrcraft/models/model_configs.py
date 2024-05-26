@@ -15,7 +15,7 @@ model_configs = {
     "gradient_boosting": {
         "model_params": {"random_state": 42},
         "hyperparameters": {
-            "loss": hp.choice("loss", ["log_loss", "exponential"]),
+            "loss": hp.choice("loss", ["log_loss"]),
             "learning_rate": hp.uniform("learning_rate", 0.01, 0.5),
             "n_estimators": hp.choice("n_estimators", range(10, 1000, 10)),
             # "subsample": hp.uniform("subsample", 0.01, 1.0),
@@ -31,17 +31,9 @@ model_configs = {
     "logistic_regression": {
         "model_params": {"random_state": 42},
         "hyperparameters": {
-            "penalty": hp.choice("penalty", ["l1", "l2", "elasticnet", None]),
             "C": hp.uniform("C", 0.01, 10.0),
-            "solver": hp.choice("solver", ["saga"]),
-            # lbfgs --> l2, None
-            # liblinear --> l1, l2
-            # newton-cg --> l2, None
-            # newton-cholesky --> l2, None
-            # sag --> l2, None
-            # saga --> l1, l2, elasticnet, None
-            "max_iter": hp.choice("max_iter", range(100, 1000, 100)),
-            "l1_ratio": hp.uniform("l1_ratio", 0.01, 1.0),
+            "solver": hp.choice("solver", ["newton-cg", "sag", "saga"]),
+            # "max_iter": hp.choice("max_iter", range(100, 1000, 100)),
         },
     },
     "svc": {
@@ -55,7 +47,6 @@ model_configs = {
             "gamma": hp.choice("gamma", ["scale", "auto"]),
             "coef0": hp.uniform("coef0", 0.0, 1.0),
             "shrinking": hp.choice("shrinking", [True, False]),
-            "probability": hp.choice("probability", [True, False]),
             # "max_iter": hp.choice("max_iter", range(100, 1000, 100)),
         },
     },

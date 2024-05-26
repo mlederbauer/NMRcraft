@@ -7,7 +7,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from nmrcraft.analysis.plotting import style_setup
-from nmrcraft.data.dataset import filename_to_ligands, load_dataset_from_hf
+from nmrcraft.data.dataloader import filename_to_ligands, load_dataset_from_hf
 
 
 def perform_pca(df, features):

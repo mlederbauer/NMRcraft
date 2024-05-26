@@ -1,8 +1,8 @@
 mlruns/
 scratch/
 dataset/
-data/
 plots/
+data/
 
 docs/source
 

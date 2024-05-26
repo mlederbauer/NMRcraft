@@ -10,7 +10,7 @@ from sklearn.metrics import (
     roc_curve,
 )
 
-from nmrcraft.data import dataset
+from nmrcraft.data import dataloader
 
 
 def model_evaluation(
@@ -18,7 +18,7 @@ def model_evaluation(
     X_test: Any,
     y_test: Any,
     y_labels: Any,
-    dataloader: dataset.DataLoader,
+    dataloader: dataloader.DataLoader,
 ) -> Tuple[Dict[str, float], Any, Any, Any]:
     """
     Evaluate the performance of the trained machine learning model for 1D targets.
@@ -67,7 +67,7 @@ def model_evaluation_nD(
     X_test: Any,
     y_test: Any,
     y_labels: Any,
-    dataloader: dataset.DataLoader,
+    dataloader: dataloader.DataLoader,
 ) -> Tuple[Dict[str, float], Any, Any, Any]:
     """
     Evaluate the performance of the trained machine learning model for 2D+ Targets.

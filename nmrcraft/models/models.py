@@ -69,6 +69,9 @@ def load_model(model_name: str, **kwargs: Any):
     if model_name == "svc":
         kwargs["probability"] = True
 
+    if model_name == "gpc":
+        kwargs["multi_class"] = "one_vs_one"
+
     # Forth, validate all provided kwargs before creating the model instance
     validate_kwargs(kwargs, model_class, model_name)
 
