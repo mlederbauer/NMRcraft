@@ -34,6 +34,12 @@ parser.add_argument(
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
+    "--include_structural",
+    type=bool,
+    default=False,
+    help="Handles if structural features will be included or only nmr tensors are used.",
+)
+parser.add_argument(
     "--plot_folder",
     type=str,
     default="plots/",
@@ -73,9 +79,21 @@ if __name__ == "__main__":
         "extra_trees",
     ]
 
-    with mlflow.start_run():
-        model_metrics = []
+    # Initialize df to store all the info for later plotting
+    unified_metrics_columns = [
+        "target",
+        "nmr_tensor_input_only",
+        "dataset_fraction",
+        "accuracy_mean",
+        "accuracy_lower_bd",
+        "accuracy_upper_bd",
+        "f1_mean",
+        "f1_lower_bd",
+        "f1_upper_bd",
+    ]
+    unified_metrics = pd.DataFrame(columns=unified_metrics_columns)
 
+    with mlflow.start_run():
         for model_name in models:
             data = pd.DataFrame()
             config = model_configs[model_name]
@@ -87,6 +105,7 @@ if __name__ == "__main__":
                 data_loader = DataLoader(
                     target_columns=args.target,
                     dataset_size=dataset_size,
+                    include_structural_features=args.include_structural,
                 )
                 (
                     X_train,
@@ -123,7 +142,20 @@ if __name__ == "__main__":
                 bootsrap_stat_metrics = evaluation.metrics_statistics(
                     bootstrap_metrics
                 )
-                print(bootsrap_stat_metrics)
+
+                # Add all the newly generated metrics to the unified dataframe
+                new_row = [
+                    args.target,
+                    not args.include_structural,
+                    dataset_size,
+                    bootsrap_stat_metrics["Accuracy_mean"],
+                    bootsrap_stat_metrics["Accuracy_ci"][0],
+                    bootsrap_stat_metrics["Accuracy_ci"][1],
+                    bootsrap_stat_metrics["F1_mean"],
+                    bootsrap_stat_metrics["F1_ci"][0],
+                    bootsrap_stat_metrics["F1_ci"][1],
+                ]
+                unified_metrics.loc[len(unified_metrics)] = new_row
 
     # TODO: Adapt this code to the new structure
     #         visualizer = Visualizer(

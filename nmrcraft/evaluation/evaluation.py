@@ -89,7 +89,9 @@ def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
     return bootstrap_metrics
 
 
-def metrics_statistics(bootstrapped_metrics):
+def metrics_statistics(
+    bootstrapped_metrics,
+):  # TODO: Handle what to do when there are more than one target -> unify scores or return splitted
     """
     Do statistics with the bootsrapped metrics
 
@@ -99,21 +101,17 @@ def metrics_statistics(bootstrapped_metrics):
     Returns:
         dict: Mean and 95% ci for the bootstrapped values for each target
     """
-    metrics_stats = {}
+    metrics_stats = {
+        "Accuracy_mean": None,
+        "Accuracy_ci": None,
+        "F1_mean": None,
+        "F1_ci": None,
+    }
     for key, value in bootstrapped_metrics.items():
-        metrics_stats[key] = {
-            "Accuracy_mean": None,
-            "Accuracy_ci": None,
-            "F1_mean": None,
-            "F1_ci": None,
-        }
-
-        print(key)
-        print(value["Accuracy"])
-
+        del key
         # calc mean and 95% confidence interval for Accuracy
-        metrics_stats[key]["Accuracy_mean"] = np.mean(value["Accuracy"])
-        metrics_stats[key]["Accuracy_ci"] = st.t.interval(
+        metrics_stats["Accuracy_mean"] = np.mean(value["Accuracy"])
+        metrics_stats["Accuracy_ci"] = st.t.interval(
             confidence=0.95,
             df=len(value["Accuracy"]) - 1,
             loc=np.mean(value["Accuracy"]),
@@ -121,8 +119,8 @@ def metrics_statistics(bootstrapped_metrics):
         )
 
         # calc mean and 95% confidence interval for F1 score
-        metrics_stats[key]["F1_mean"] = np.mean(value["F1"])
-        metrics_stats[key]["F1_ci"] = st.t.interval(
+        metrics_stats["F1_mean"] = np.mean(value["F1"])
+        metrics_stats["F1_ci"] = st.t.interval(
             confidence=0.95,
             df=len(value["F1"]) - 1,
             loc=np.mean(value["F1"]),
