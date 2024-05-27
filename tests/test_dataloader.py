@@ -65,7 +65,7 @@
 #         ]
 #         data_loader = DataLoader(
 #             feature_columns=feature_columns,
-#             target_columns="metal_X1_R-ligand",
+#             target_columns=["metal", "X1_ligand", "R"],
 #             dataset_size=1,
 #             testing=True,
 #             complex_geometry="oct",
