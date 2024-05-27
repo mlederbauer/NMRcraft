@@ -84,12 +84,7 @@ if __name__ == "__main__":
         "target",
         "nmr_tensor_input_only",
         "dataset_fraction",
-        "accuracy_mean",
-        "accuracy_lower_bd",
-        "accuracy_upper_bd",
-        "f1_mean",
-        "f1_lower_bd",
-        "f1_upper_bd",
+        "metrics_statistics",
     ]
     unified_metrics = pd.DataFrame(columns=unified_metrics_columns)
 
@@ -148,12 +143,7 @@ if __name__ == "__main__":
                     args.target,
                     not args.include_structural,
                     dataset_size,
-                    bootsrap_stat_metrics["Accuracy_mean"],
-                    bootsrap_stat_metrics["Accuracy_ci"][0],
-                    bootsrap_stat_metrics["Accuracy_ci"][1],
-                    bootsrap_stat_metrics["F1_mean"],
-                    bootsrap_stat_metrics["F1_ci"][0],
-                    bootsrap_stat_metrics["F1_ci"][1],
+                    bootsrap_stat_metrics,
                 ]
                 unified_metrics.loc[len(unified_metrics)] = new_row
 

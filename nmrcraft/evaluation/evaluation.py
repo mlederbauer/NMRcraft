@@ -101,17 +101,17 @@ def metrics_statistics(
     Returns:
         dict: Mean and 95% ci for the bootstrapped values for each target
     """
-    metrics_stats = {
-        "Accuracy_mean": None,
-        "Accuracy_ci": None,
-        "F1_mean": None,
-        "F1_ci": None,
-    }
+    metrics_stats = {}
     for key, value in bootstrapped_metrics.items():
-        del key
+        metrics_stats[key] = {
+            "Accuracy_mean": None,
+            "Accuracy_ci": None,
+            "F1_mean": None,
+            "F1_ci": None,
+        }
         # calc mean and 95% confidence interval for Accuracy
-        metrics_stats["Accuracy_mean"] = np.mean(value["Accuracy"])
-        metrics_stats["Accuracy_ci"] = st.t.interval(
+        metrics_stats[key]["Accuracy_mean"] = np.mean(value["Accuracy"])
+        metrics_stats[key]["Accuracy_ci"] = st.t.interval(
             confidence=0.95,
             df=len(value["Accuracy"]) - 1,
             loc=np.mean(value["Accuracy"]),
@@ -119,8 +119,8 @@ def metrics_statistics(
         )
 
         # calc mean and 95% confidence interval for F1 score
-        metrics_stats["F1_mean"] = np.mean(value["F1"])
-        metrics_stats["F1_ci"] = st.t.interval(
+        metrics_stats[key]["F1_mean"] = np.mean(value["F1"])
+        metrics_stats[key]["F1_ci"] = st.t.interval(
             confidence=0.95,
             df=len(value["F1"]) - 1,
             loc=np.mean(value["F1"]),
