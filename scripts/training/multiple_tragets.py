@@ -3,8 +3,8 @@ import logging as log
 import os
 
 import mlflow
-import numpy as np
 import pandas as pd
+from sklearn.multioutput import MultiOutputClassifier
 
 from nmrcraft.analysis import plotting
 from nmrcraft.data.dataloader import DataLoader
@@ -24,13 +24,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=1,
+    default=3,
     help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
     "--target",
     type=str,
-    default=["X3_ligand"],
+    default=["metal", "X3_ligand"],
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
@@ -67,9 +67,6 @@ if __name__ == "__main__":
     ]
     models = [
         # "random_forest",
-        # "logistic_regression",
-        # "gradient_boosting",
-        # "svc",
         "extra_trees",
     ]
 
@@ -96,13 +93,16 @@ if __name__ == "__main__":
                     y_labels,
                 ) = data_loader.load_data()
 
-                best_params, _ = tuner.tune(X_train, np.squeeze(y_train))
+                best_params, _ = tuner.tune(X_train, y_train[:, 1])
                 model_func = lambda model_name=model_name, config=config, **params: load_model(
                     model_name, **{**params, **config["model_params"]}
                 )
                 best_model = model_func(**best_params)
-                best_model.fit(X_train, np.squeeze(y_train))
-                y_pred = np.atleast_2d(best_model.predict(X_test)).T
+                multioutput_model = MultiOutputClassifier(
+                    best_model, n_jobs=-1
+                )
+                multioutput_model.fit(X_train, y_train)
+                y_pred = multioutput_model.predict(X_test)
 
                 metrics, cm_list = evaluation.evaluate_model(
                     y_test, y_pred, args.target
@@ -117,38 +117,5 @@ if __name__ == "__main__":
                 )
 
                 bootstrap_metrics = evaluation.evaluate_bootstrap(
-                    X_test, y_test, best_model, args.target
+                    X_test, y_test, multioutput_model, args.target
                 )
-
-    # TODO: Adapt this code to the new structure
-    #         visualizer = Visualizer(
-    #             model_name=model_name,
-    #             cm=cm,
-    #             rates=rates_df,
-    #             metrics=metrics,
-    #             folder_path=args.plot_folder,
-    #             classes=C.y_labels,
-    #             dataset_size=str(dataset_size),
-    #         )
-    #         path_CM = visualizer.plot_confusion_matrix()
-
-    #     data.index = dataset_sizes
-    #     model_metrics.append(data)
-    #     data.index = dataset_sizes
-
-    # path_AC = visualizer.plot_metric(
-    #     data=model_data,
-    #     metric="accuracy",
-    #     title="Accuracy",
-    #     filename="accuracy.png",
-    # )
-    # path_F1 = visualizer.plot_metric(
-    #     data=model_data,
-    #     metric="f1_score",
-    #     title="F1 Score",
-    #     filename="f1_score.png",
-    # )
-
-    # for df, model in zip(model_metrics, models):
-    #     print(model)
-    #     print(df)

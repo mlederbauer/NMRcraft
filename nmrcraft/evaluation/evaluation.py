@@ -69,7 +69,11 @@ def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
         X_test, y_test = resample(
             X_test, y_test, replace=True, random_state=42
         )
-        y_pred = np.atleast_2d(model.predict(X_test)).T
+        y_pred = (
+            np.atleast_2d(model.predict(X_test)).T
+            if len(targets) == 1
+            else model.predict(X_test)
+        )
         metrics, _ = evaluate_model(y_test, y_pred, targets)
         for target in targets:
             if target not in bootstrap_metrics:
