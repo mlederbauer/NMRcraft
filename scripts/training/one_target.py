@@ -120,6 +120,11 @@ if __name__ == "__main__":
                     X_test, y_test, best_model, args.target
                 )
 
+                bootsrap_stat_metrics = evaluation.metrics_statistics(
+                    bootstrap_metrics
+                )
+                print(bootsrap_stat_metrics)
+
     # TODO: Adapt this code to the new structure
     #         visualizer = Visualizer(
     #             model_name=model_name,
