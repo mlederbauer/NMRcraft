@@ -1,7 +1,11 @@
 import inspect
 from typing import Any
 
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import (
+    ExtraTreesClassifier,
+    GradientBoostingClassifier,
+    RandomForestClassifier,
+)
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 
@@ -52,6 +56,7 @@ def load_model(model_name: str, **kwargs: Any):
         "gradient_boosting": GradientBoostingClassifier,
         "logistic_regression": LogisticRegression,
         "svc": SVC,
+        "extra_trees": ExtraTreesClassifier,
     }
     # TODO: put model config here
 

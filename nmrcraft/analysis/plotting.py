@@ -1,4 +1,7 @@
+"""Functions to plot."""
+
 import matplotlib.patches as mpatches
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from cycler import cycler
@@ -89,7 +92,7 @@ def plot_predicted_vs_ground_truth_density(
 
 
 def plot_confusion_matrix(
-    cm, classes, title, path, full=True, columns_set=False
+    cm_list, y_labels, model_name, dataset_size, folder_path: str = "plots/"
 ):
     """
     Plots the confusion matrix.
@@ -102,45 +105,27 @@ def plot_confusion_matrix(
     Returns:
     None
     """
-    _, _, _ = style_setup()
-    if full:  # Plot one big cm
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    # _, _, _ = style_setup()
+    for target in y_labels:
+        file_path = os.path.join(
+            folder_path,
+            f"ConfusionMatrix_{model_name}_{dataset_size}_{target}.png",
+        )
+        cm = cm_list[target]
+        classes = y_labels[target]
         plt.figure(figsize=(10, 8))
         plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
-        plt.title(title)
+        plt.title(f"{target} Confusion Matrix")
         plt.colorbar()
         tick_marks = np.arange(len(classes))
-        plt.xticks(tick_marks, classes, rotation=45)
+        plt.xticks(tick_marks, classes, rotation=90)
         plt.yticks(tick_marks, classes)
         plt.tight_layout()
         plt.ylabel("True label")
         plt.xlabel("Predicted label")
-        plt.savefig(path)
-        plt.close()
-
-    elif not full:  # Plot many small cms of each target
-        cms = []
-        for columns in columns_set:  # Make list of confusion matrices
-            cms.append(
-                cm[
-                    slice(columns[0], columns[-1] + 1),
-                    slice(columns[0], columns[-1] + 1),
-                ]
-            )
-        fig, axs = plt.subplots(nrows=len(cms), figsize=(10, 8 * len(cms)))
-        for i, sub_cm in enumerate(cms):
-            sub_classes = classes[
-                slice(columns_set[i][0], columns_set[i][-1] + 1)
-            ]
-            axs[i].imshow(sub_cm, interpolation="nearest", cmap=plt.cm.Blues)
-            axs[i].set_title(f"Confusion Matrix {i+1}")
-            tick_marks = np.arange(len(sub_classes))
-            axs[i].set_xticks(tick_marks)
-            axs[i].set_xticklabels(sub_classes, rotation=45)
-            axs[i].set_yticks(tick_marks)
-            axs[i].set_yticklabels(sub_classes)
-            plt.tight_layout()
-        print(cm)
-        plt.savefig(path)
+        plt.savefig(file_path)
         plt.close()
 
 
