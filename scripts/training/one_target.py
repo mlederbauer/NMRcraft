@@ -25,8 +25,8 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default="X3",
-    help="The Target for the predictions. Choose from: 'metal', 'X1', 'X2', 'X3', 'X4', 'L', 'E' ",
+    default=["X3_ligand"],
+    help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
     "--plot_folder",

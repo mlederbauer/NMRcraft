@@ -1,6 +1,6 @@
 """Load and preprocess data."""
 
-from typing import Any, List, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -33,15 +33,24 @@ TARGET_TYPES = [
 class DataLoader:
     def __init__(
         self,
-        feature_columns: Any,
         target_columns: str,
-        complex_geometry: str,
-        test_size: float,
-        random_state: int,
         dataset_size: float,
-        include_structural_features: bool,
-        testing: bool,
+        include_structural_features: bool = False,
+        complex_geometry: str = "oct",
+        test_size: float = 0.2,
+        random_state: int = 42,
+        testing: bool = False,
+        feature_columns=None,
     ):
+        if feature_columns is None:
+            feature_columns = [
+                "M_sigma11_ppm",
+                "M_sigma22_ppm",
+                "M_sigma33_ppm",
+                "E_sigma11_ppm",
+                "E_sigma22_ppm",
+                "E_sigma33_ppm",
+            ]
         self.feature_columns = feature_columns
         self.test_size = test_size
         self.random_state = random_state
@@ -204,7 +213,7 @@ class DataLoader:
         return (
             X_train,
             X_test,
-            np.squeeze(y_train),
-            np.squeeze(y_test),
+            y_train,
+            y_test,
             y_labels,
         )
