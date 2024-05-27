@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=1,
+    default=10,
     help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
@@ -32,6 +32,12 @@ parser.add_argument(
     type=str,
     default=["X3_ligand"],
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
+)
+parser.add_argument(
+    "--structural_features",
+    type=bool,
+    default=False,
+    help="Whether to include ligands or not",
 )
 parser.add_argument(
     "--plot_folder",
@@ -65,13 +71,7 @@ if __name__ == "__main__":
         # 0.5,
         # 1.0,
     ]
-    models = [
-        # "random_forest",
-        # "logistic_regression",
-        # "gradient_boosting",
-        # "svc",
-        "extra_trees",
-    ]
+    models = ["random_forest"]
 
     with mlflow.start_run():
         model_metrics = []
@@ -87,6 +87,7 @@ if __name__ == "__main__":
                 data_loader = DataLoader(
                     target_columns=args.target,
                     dataset_size=dataset_size,
+                    include_structural_features=args.structural_features,
                 )
                 (
                     X_train,

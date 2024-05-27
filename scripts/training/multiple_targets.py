@@ -34,6 +34,12 @@ parser.add_argument(
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
+    "--structural_features",
+    type=bool,
+    default=False,
+    help="Whether to include ligands or not",
+)
+parser.add_argument(
     "--plot_folder",
     type=str,
     default="plots/",
@@ -84,6 +90,7 @@ if __name__ == "__main__":
                 data_loader = DataLoader(
                     target_columns=args.target,
                     dataset_size=dataset_size,
+                    include_structural_features=args.structural_features,
                 )
                 (
                     X_train,
