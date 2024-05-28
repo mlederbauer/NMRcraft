@@ -10,17 +10,16 @@
   NMRcraft
 </h1>
 <h2 align="center">
-  NMR Chemical Reactivity Analysis with Feature Tracking
+  Crafting Catalysts from NMR Features
 </h2>
 <p align="center">
-NMRcraft will help you to mine into your NMR data and craft awesome predictions!
+NMRcraft is a project that predicts ligands of complexes from their chemical shift tensors.
 </p>
 
-- **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
-- **Documentation** <https://mlederbauer.github.io/nmrcraft/>
+# 🐳 Installation 
 
-# 🔥 Usage
-
+<details>
+  <summary>See installation instructions</summary>
 ## Docker Desktop 🐳
 
 First you need to install [Docker](https://www.docker.com/products/docker-desktop/).
@@ -37,13 +36,13 @@ To run the image you need to go to the 'Images' tab and click the "play" button 
 
 ### Download Docker Image
 
-To use the docker image just pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch) and make sure [Docker](https://www.docker.com/products/docker-desktop/) is installed. To pull it you can execute this command:
+To use the docker image, pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch) and make sure that [Docker](https://www.docker.com/products/docker-desktop/) is installed. To pull it you can execute this command:
 
 ```bash
 docker pull tiaguinho/nmrcraft_arch
 ```
 
-(If you're o windows you might need to call docker.exe instead of just docker)
+(If running on windows, you might need to call docker.exe instead of just docker)
 
 ### Running the Image
 
@@ -53,11 +52,9 @@ docker run -it nmrcraft_arch
 
 ## Visual Studio Code 🪟
 
-To download the image follow the same steps as either console or docker desktop.
+To download the image, follow the same steps as either console or docker desktop.
 
 ### Running the Docker Image
-
-To run follow the following tutorial on how to get Docker to work nicely with VS Code.
 
 <details>
 <summary>Using Docker in VS Code</summary>
@@ -81,20 +78,35 @@ For the script to be able to access the dataset, you must login via to huggingfa
 huggingface-cli login
 ```
 
-# 👩‍💻 App
+We include the link to be authenticated in the report appendix. If you run into issues accessing the dataset, contact [mlederbauer@ethz.ch](mlederbauer@ethz.ch).
+</details>
 
-Run the app demo locally with
+# 🔥 Usage
+
+To reproduce all results shown in the report, run the following commands:
 
 ```bash
-python nmrcraft/app.py
+poetry shell
+python scripts/reproduce_results.py
 ```
+
+This script will interatively
+* plot dataset statistics
+* train and evaluate all single-output models (stored in `./metrics`)
+* traom and evaluate all multi-output models (stored in `./metrics`)
+* train and evaluate all baseline models (stored in `./metrics`)
+* create the plots (stored in `./plots`).
+
+When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines.
 
 # 🖼️Poster
 
-WIP #TODO
+If you were not able to visit our beautiful poster at ETH Zurich on May 30th 2024, you can access our poster [here](TODO)!
 
 # 🧑‍💻 Developing
 
+<details>
+  <summary>See developer instructions</summary>
 ### Activate the Poetry venv
 
 To use the packages installed via poetry you need to execute the following command:
@@ -130,16 +142,17 @@ To download the dataset on the Hub in Python, you need to log in to your Hugging
 ```bash
 huggingface-cli login
 ```
+</details>
 
-Access the dataset:
+# Citation
 
-```python
-from nmrcraft.data.data_utils import load_dataset_from_hf
-load_dataset_from_hf()
 ```
-
-The raw dataset can then be found in 'dataset/dataset.csv'
-
-### References
+@software{nmrcraft2024,
+  author       = {Magdalena Lederbauer and Karolina Biniek and Tiago Würthner and Samuel Stricker and Yingnan Wang},
+  title        = {{mlederbauer/NMRcraft: Crafting Catalysts from NMR Features}},
+  month        = may,
+  year         = 2024
+}
+```
 
 Repository initiated with [fpgmaas/cookiecutter-poetry](https://github.com/fpgmaas/cookiecutter-poetry).
