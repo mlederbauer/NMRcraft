@@ -1,7 +1,8 @@
 """Functions to plot."""
 
-import matplotlib.patches as mpatches
 import os
+
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 from cycler import cycler
