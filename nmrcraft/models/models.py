@@ -76,6 +76,13 @@ def load_model(model_name: str, **kwargs: Any):
 
     if model_name == "gpc":
         kwargs["multi_class"] = "one_vs_one"
+        kwargs.setdefault("n_jobs", -1)  # Set max number of jobs
+
+    if model_name == "extra_trees":
+        kwargs.setdefault("n_jobs", -1)  # Set max number of jobs
+
+    if model_name == "logistic_regression":
+        kwargs.setdefault("n_jobs", -1)  # Set max number of jobs
 
     # Forth, validate all provided kwargs before creating the model instance
     validate_kwargs(kwargs, model_class, model_name)

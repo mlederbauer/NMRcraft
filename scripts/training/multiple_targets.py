@@ -16,6 +16,7 @@ from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
 mlflow.set_experiment("Final_results")
+mlflow.set_experiment("Final_results")
 
 # Setup parser
 parser = argparse.ArgumentParser(
@@ -65,7 +66,10 @@ def main(args) -> pd.DataFrame:
 
     dataset_sizes = [
         0.01,
+        0.01,
         0.1,
+        0.5,
+        1.0,
         0.5,
         1.0,
     ]
