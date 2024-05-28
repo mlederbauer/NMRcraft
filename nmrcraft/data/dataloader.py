@@ -72,7 +72,6 @@ class DataLoader:
             Preprocessed data (pandas.DataFrame): The preprocessed dataset.
         """
         self.dataset = filename_to_ligands(self.dataset)
-        self.dataset = self.dataset.sample(frac=self.dataset_size)
         self.choose_geometry()
         return self.split_and_preprocess()
 
@@ -192,6 +191,19 @@ class DataLoader:
             test_size=self.test_size,
             random_state=self.random_state,
         )
+
+        # Further sample the training data to reduce its size
+        train_size = int(len(y_train) * self.dataset_size)
+        if train_size < 1:
+            train_size = 1  # Ensure at least one sample
+
+        indices = np.arange(len(y_train))
+        np.random.shuffle(indices)
+        indices = indices[:train_size]
+
+        X_train_NMR = X_train_NMR[indices]
+        X_train_Structural = X_train_Structural[indices]
+        y_train = y_train[indices]
 
         # Scale numerical features (the NMR tensor)
         scaler = StandardScaler()
