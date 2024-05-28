@@ -6,16 +6,20 @@ import mlflow
 import numpy as np
 import pandas as pd
 
-from nmrcraft.analysis import plotting
+from nmrcraft.analysis.plotting import plot_confusion_matrix
 from nmrcraft.data.dataloader import DataLoader
-from nmrcraft.evaluation import evaluation
+from nmrcraft.evaluation.evaluation import (
+    evaluate_bootstrap,
+    evaluate_model,
+    metrics_statistics,
+)
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
 from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
-mlflow.set_experiment("Test_final_results")
+mlflow.set_experiment("Final_Results")
 
 # Setup parser
 parser = argparse.ArgumentParser(
@@ -25,7 +29,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=10,
+    default=50,
     help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
@@ -48,8 +52,7 @@ parser.add_argument(
 )
 
 
-if __name__ == "__main__":
-    # Add arguments
+if __name__ == "main":
     args = parser.parse_args()
 
     # Check if folder path exists, if not create it
@@ -66,10 +69,9 @@ if __name__ == "__main__":
     log.getLogger().setLevel(log.INFO)
 
     dataset_sizes = [
-        # 0.01,
-        0.1,
-        0.15,
-        # 0.5,
+        0.01,
+        # 0.1,
+        0.5,
         # 1.0,
     ]
     models = [
@@ -77,7 +79,7 @@ if __name__ == "__main__":
         # "logistic_regression",
         # "gradient_boosting",
         # "svc",
-        "extra_trees",
+        # "extra_trees",
     ]
 
     # Initialize df to store all the info for later plotting
@@ -127,11 +129,9 @@ if __name__ == "__main__":
                 best_model.fit(X_train, np.squeeze(y_train))
                 y_pred = np.atleast_2d(best_model.predict(X_test)).T
 
-                metrics, cm_list = evaluation.evaluate_model(
-                    y_test, y_pred, args.target
-                )
+                metrics, cm_list = evaluate_model(y_test, y_pred, args.target)
 
-                plotting.plot_confusion_matrix(
+                plot_confusion_matrix(
                     cm_list,
                     y_labels,
                     model_name,
@@ -139,20 +139,18 @@ if __name__ == "__main__":
                     args.plot_folder,
                 )
 
-                bootstrap_metrics = evaluation.evaluate_bootstrap(
+                bootstrap_metrics = evaluate_bootstrap(
                     X_test, y_test, best_model, args.target
                 )
 
-                statistical_metrics = evaluation.metrics_statistics(
-                    bootstrap_metrics
-                )
+                statistical_metrics = metrics_statistics(bootstrap_metrics)
 
                 # Add all the newly generated metrics to the unified dataframe
                 unified_metrics = add_rows_metrics(
                     unified_metrics,
                     statistical_metrics,
                     dataset_size,
-                    args.include_structural,
+                    args.structural_features,
                     model_name,
                     args.max_evals,
                 )
@@ -161,37 +159,4 @@ if __name__ == "__main__":
     if not os.path.isdir("metrics"):
         os.mkdir("metrics")
     unified_metrics.to_csv(f"metrics/metrics_{args.target}.csv")
-    # mlflow.log_input(unified_metrics, context="unified metrics")
-
-    # TODO: Adapt this code to the new structure
-    #         visualizer = Visualizer(
-    #             model_name=model_name,
-    #             cm=cm,
-    #             rates=rates_df,
-    #             metrics=metrics,
-    #             folder_path=args.plot_folder,
-    #             classes=C.y_labels,
-    #             dataset_size=str(dataset_size),
-    #         )
-    #         path_CM = visualizer.plot_confusion_matrix()
-
-    #     data.index = dataset_sizes
-    #     model_metrics.append(data)
-    #     data.index = dataset_sizes
-
-    # path_AC = visualizer.plot_metric(
-    #     data=model_data,
-    #     metric="accuracy",
-    #     title="Accuracy",
-    #     filename="accuracy.png",
-    # )
-    # path_F1 = visualizer.plot_metric(
-    #     data=model_data,
-    #     metric="f1_score",
-    #     title="F1 Score",
-    #     filename="f1_score.png",
-    # )
-
-    # for df, model in zip(model_metrics, models):
-    #     print(model)
-    #     print(df)
+    mlflow.log_input(unified_metrics, context="unified metrics")
