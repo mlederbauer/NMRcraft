@@ -16,6 +16,7 @@ from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
 mlflow.set_experiment("Final_Results")
+mlflow.set_experiment("Final_Results")
 
 # Setup parser
 parser = argparse.ArgumentParser(
@@ -31,7 +32,7 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default=["metal"],
+    default="E_ligand",
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
@@ -160,6 +161,7 @@ if __name__ == "__main__":
 
     # Add arguments
     args = parser.parse_args()
+    args.target = [args.target]  # FIXME
 
     unified_metrics = main(args)
 
