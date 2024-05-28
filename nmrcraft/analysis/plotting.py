@@ -1,5 +1,6 @@
 """Functions to plot."""
 
+import ast
 import os
 
 import matplotlib.patches as mpatches
@@ -222,6 +223,106 @@ def plot_with_without_ligands_bar(df):
     plt.tight_layout()
     plt.savefig("plots/exp3_incorporate_ligand_info.png")
     print("Saved to plots/exp3_incorporate_ligand_info.png")
+
+
+def plot_metric(
+    data,
+    title="Accuracy",
+    filename="plots/accuracy.png",
+    metric="accuracy",
+    iterative_column="model",
+    xdata="dataset_fraction",
+):
+    if iterative_column == "target":
+
+        def convert_to_labels(target_list):
+            label_dict = {"metal": "M", "E_ligand": "E", "X3_ligand": "X3"}
+            return ", ".join([label_dict[i] for i in target_list])
+
+        # Convert string representations of lists to actual lists
+        data["model_targets"] = data["model_targets"].apply(
+            lambda x: ast.literal_eval(x) if isinstance(x, str) else x
+        )
+
+        data["xlabel"] = data["model_targets"].apply(convert_to_labels)
+        print(data)
+
+    for iterator in data[iterative_column].unique():
+        model_data = data[data[iterative_column] == iterator]
+        errors = [
+            model_data[metric + "_mean"].values
+            - model_data[metric + "_lb"].values,
+            model_data[metric + "_hb"].values
+            - model_data[metric + "_mean"].values,
+        ]
+        plt.errorbar(
+            model_data[xdata],
+            model_data[metric + "_mean"],
+            yerr=errors,
+            fmt="o",
+            label=iterator,
+            capsize=5,
+        )
+    plt.legend()
+    plt.title(title)
+    plt.grid(True)
+    if iterative_column == "model":
+        plt.xlim(0, 1)
+        plt.ylim(0, 1.2)
+    plt.xlabel("Dataset Size")
+    plt.ylabel(metric)
+    plt.savefig(filename)
+    plt.close()
+
+
+def plot_metric_1(
+    data,
+    title="Accuracy",
+    filename="plots/accuracy.png",
+    metric="accuracy",
+    iterative_column="model",
+    xdata="dataset_fraction",
+):
+    if iterative_column == "target":
+
+        def convert_to_labels(target_list):
+            label_dict = {"metal": "M", "E_ligand": "E", "X3_ligand": "X3"}
+            return ", ".join([label_dict[i] for i in target_list])
+
+        # Convert string representations of lists to actual lists
+        data["model_targets"] = data["model_targets"].apply(
+            lambda x: ast.literal_eval(x) if isinstance(x, str) else x
+        )
+
+        data["xlabel"] = data["model_targets"].apply(convert_to_labels)
+        print(data)
+
+    for iterator in data[iterative_column].unique():
+        model_data = data[data[iterative_column] == iterator]
+        errors = [
+            model_data[metric + "_mean"].values
+            - model_data[metric + "_lb"].values,
+            model_data[metric + "_hb"].values
+            - model_data[metric + "_mean"].values,
+        ]
+        plt.errorbar(
+            model_data[xdata],
+            model_data[metric + "_mean"],
+            yerr=errors,
+            fmt="o",
+            label=model_data["target"],
+            capsize=5,
+        )
+    plt.legend()
+    plt.title(title)
+    plt.grid(True)
+    if iterative_column == "model":
+        plt.xlim(0, 1)
+        plt.ylim(0, 1.2)
+    plt.xlabel("Dataset Size")
+    plt.ylabel(metric)
+    plt.savefig(filename)
+    plt.close()
 
 
 if __name__ == "main":
