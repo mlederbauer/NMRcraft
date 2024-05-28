@@ -16,7 +16,6 @@ from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
 mlflow.set_experiment("Final_results")
-mlflow.set_experiment("Final_results")
 
 # Setup parser
 parser = argparse.ArgumentParser(

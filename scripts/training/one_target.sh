@@ -11,7 +11,7 @@ declare -a target_combinations=(
 for targets in "${target_combinations[@]}"; do
     echo "Running model training for targets: $targets"
     # Pass targets as a single comma-separated string, mimicking list-like input
-    python scripts/training/multiple_targets.py --target "$targets" --max_evals 2
+    python scripts/training/one_target.py --target "$targets" --max_evals 2
     echo "Training completed for $targets"
 done
 
