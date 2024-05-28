@@ -10,56 +10,52 @@
   NMRcraft
 </h1>
 <h2 align="center">
-  NMR Chemical Reactivity Analysis with Feature Tracking
+  Crafting Catalysts from NMR Features
 </h2>
 <p align="center">
-NMRcraft will help you to mine into your NMR data and craft awesome predictions!
+NMRcraft is a project that predicts ligands of complexes from their chemical shift tensors.
 </p>
 
-- **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
-- **Documentation** <https://mlederbauer.github.io/nmrcraft/>
+# 🐳 Installation 
 
-## 🔥 Usage
+<details>
+  <summary>See installation instructions</summary>
+  
+## Docker Desktop 🐳
 
-```bash
-python scripts/train.py # Placeholder for now, scripts for reproducing results
-```
+First you need to install [Docker](https://www.docker.com/products/docker-desktop/).
 
-## 👩‍💻 App
+### Download Docker Image
 
-Run the app demo locally with
+You can download the image by going onto the searchbar on top and searching for 'tiaguinho/nmrcraft_arch' and clicking on pull.
 
-```bash
-python nmrcraft/app.py
-```
+### Running the Image
 
-## 🖼️Poster
+To run the image you need to go to the 'Images' tab and click the "play" button on the nmrcraft*arch container you pulled. It should appear as running in the 'Containers' tab and there you should click on the ⋮ symbol and click on '>* open in termnial'. After that a terminal window should pop up where you will type in the command `zsh`.
 
-WIP #TODO
+## Console 🐧
 
-## 🧑‍💻 Developing
+### Download Docker Image
 
-### Setting it up
-
-To use the docker image just pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch) and make sure [Docker](https://www.docker.com/products/docker-desktop/) is installed. To pull it you can execute this command:
+To use the docker image, pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch) and make sure that [Docker](https://www.docker.com/products/docker-desktop/) is installed. To pull it you can execute this command:
 
 ```bash
 docker pull tiaguinho/nmrcraft_arch
 ```
 
-Open the container either via console or in Vscode:
+(If running on windows, you might need to call docker.exe instead of just docker)
 
-_Linux/MacOS_ console command:
+### Running the Image
 
 ```bash
 docker run -it nmrcraft_arch
 ```
 
-Windows powershell command:
+## Visual Studio Code 🪟
 
-```bash
-docker.exe run -it nmrcraft_arch
-```
+To download the image, follow the same steps as either console or docker desktop.
+
+### Running the Docker Image
 
 <details>
 <summary>Using Docker in VS Code</summary>
@@ -75,6 +71,43 @@ docker.exe run -it nmrcraft_arch
 </ol>
 </details>
 
+## Getting Access to the Dataset 💾
+
+For the script to be able to access the dataset, you must login via to huggingface by using the following command:
+
+```bash
+huggingface-cli login
+```
+
+We include the link to be authenticated in the report appendix. If you run into issues accessing the dataset, contact [mlederbauer@ethz.ch](mlederbauer@ethz.ch).
+</details>
+
+# 🔥 Usage
+
+To reproduce all results shown in the report, run the following commands:
+
+```bash
+poetry shell
+python scripts/reproduce_results.py
+```
+
+This script will interatively
+* plot dataset statistics (stored in `./plots/dataset`)
+* train and evaluate all single-output models (stored in `./metrics/single_targets.csv`)
+* traom and evaluate all multi-output models (stored in `./metrics/one_target.csv`)
+* train and evaluate all baseline models (stored in `./metrics/baselines.csv`)
+* create the plots (stored in `./plots/models`).
+
+When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines.
+
+# 🖼️Poster
+
+If you were not able to visit our beautiful poster at ETH Zurich on May 30th 2024, you can access our poster [here](TODO)!
+
+# 🧑‍💻 Developing
+
+<details>
+  <summary>See developer instructions</summary>
 ### Activate the Poetry venv
 
 To use the packages installed via poetry you need to execute the following command:
@@ -95,27 +128,9 @@ gh auth login
 
 and follow the interactive instructions with enter and the arrow keys. Once logged in you should be able to push changes to the repo.
 
-### Building a Docker Image and running it manually
+### Adding packages and libraries to the project
 
-To build a Docker image you can run the following commands on _Linux/MacOS_ to build and run an image:
-
-```bash
-docker buildx build -t $Image_Name .
-```
-
-or on Windows
-
-```bash
-docker.exe buildx build -t $Image_Name .
-```
-
-### Adding dependencies to the project
-
-If you added a new feature that requires a new package/dependency, you can add it to the `pyproject.toml` file and run `make install` to install the new dependencies.
-
-```bash
-poetry add <package-name>
-```
+If you added a new feature that requires a new package/library, you can add by running `poetry add <package-name>` and run `make install` to install the new dependencies.
 
 (You might need to run `poetry lock` to update the `poetry.lock` file if you added a dependency manually in the `pyproject.toml` file.)
 
@@ -128,26 +143,17 @@ To download the dataset on the Hub in Python, you need to log in to your Hugging
 ```bash
 huggingface-cli login
 ```
+</details>
 
-Access the dataset:
-
-```python
-from datasets import load_dataset
-dataset = load_dataset("NMRcraft/nmrcraft", data_files='all_no_nan.csv')
-dataset['train'].to_pandas() # contains the data for now
-```
-
-Or download locally in just a few lines:
-
-```python
-from huggingface_hub import hf_hub_download
-hf_hub_download(repo_id="NMRcraft/nmrcraft", filename="all_no_nan.csv", repo_type="dataset", local_dir="./data/")
+# Citation
 
 ```
-
-The dataset is provided in its "raw" form as a dataframe in `all_no_nan.csv`, meaning without a train/test split or feature selection.
-in the folder `./xyz.zip`, all optimized geometries are added as an .xtpopt.xyz file.
-
-### References
+@software{nmrcraft2024,
+  author       = {Magdalena Lederbauer and Karolina Biniek and Tiago Würthner and Samuel Stricker and Yingnan Wang},
+  title        = {{mlederbauer/NMRcraft: Crafting Catalysts from NMR Features}},
+  month        = may,
+  year         = 2024
+}
+```
 
 Repository initiated with [fpgmaas/cookiecutter-poetry](https://github.com/fpgmaas/cookiecutter-poetry).
