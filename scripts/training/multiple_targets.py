@@ -43,7 +43,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot_folder",
     type=str,
-    default="plots/",
+    default="plots/models/",
     help="The Folder where the plots are saved",
 )
 
@@ -64,12 +64,6 @@ def main(args) -> pd.DataFrame:
     log.getLogger().setLevel(log.INFO)
 
     dataset_sizes = [
-        0.01,
-        0.01,
-        0.1,
-        0.5,
-        1.0,
-        0.5,
         1.0,
     ]
     models = [
