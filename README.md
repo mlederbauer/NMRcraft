@@ -20,6 +20,7 @@ NMRcraft is a project that predicts ligands of complexes from their chemical shi
 
 <details>
   <summary>See installation instructions</summary>
+  
 ## Docker Desktop 🐳
 
 First you need to install [Docker](https://www.docker.com/products/docker-desktop/).
