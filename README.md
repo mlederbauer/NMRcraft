@@ -92,11 +92,11 @@ python scripts/reproduce_results.py
 ```
 
 This script will interatively
-* plot dataset statistics
-* train and evaluate all single-output models (stored in `./metrics`)
-* traom and evaluate all multi-output models (stored in `./metrics`)
-* train and evaluate all baseline models (stored in `./metrics`)
-* create the plots (stored in `./plots`).
+* plot dataset statistics (stored in `./plots/dataset`)
+* train and evaluate all single-output models (stored in `./metrics/single_targets.csv`)
+* traom and evaluate all multi-output models (stored in `./metrics/one_target.csv`)
+* train and evaluate all baseline models (stored in `./metrics/baselines.csv`)
+* create the plots (stored in `./plots/models`).
 
 When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines.
 
