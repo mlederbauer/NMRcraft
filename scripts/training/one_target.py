@@ -15,7 +15,7 @@ from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
 from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
-mlflow.set_experiment("Test_final_results")
+mlflow.set_experiment("Final_Results")
 
 # Setup parser
 parser = argparse.ArgumentParser(
@@ -25,13 +25,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=1,
+    default=2,
     help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
     "--target",
     type=str,
-    default=["metal"],
+    default="E_ligand",
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
@@ -48,9 +48,7 @@ parser.add_argument(
 )
 
 
-if __name__ == "__main__":
-    # Add arguments
-    args = parser.parse_args()
+def main(args) -> pd.DataFrame:
 
     # Check if folder path exists, if not create it
     if not os.path.exists(args.plot_folder):
@@ -66,17 +64,16 @@ if __name__ == "__main__":
     log.getLogger().setLevel(log.INFO)
 
     dataset_sizes = [
-        # 0.01,
+        0.01,
         0.1,
-        0.15,
-        # 0.5,
-        # 1.0,
+        0.5,
+        1.0,
     ]
     models = [
         "random_forest",
-        # "logistic_regression",
-        # "gradient_boosting",
-        # "svc",
+        "logistic_regression",
+        "gradient_boosting",
+        "svc",
         "extra_trees",
     ]
 
@@ -99,7 +96,6 @@ if __name__ == "__main__":
 
     with mlflow.start_run():
         for model_name in models:
-            data = pd.DataFrame()
             config = model_configs[model_name]
             tuner = HyperparameterTuner(
                 model_name, config, max_evals=args.max_evals
@@ -157,41 +153,23 @@ if __name__ == "__main__":
                     args.max_evals,
                 )
 
+    return unified_metrics
+
+
+if __name__ == "__main__":
+
+    # Add arguments
+    args = parser.parse_args()
+    args.target = [args.target]  # FIXME
+
+    unified_metrics = main(args)
+
     # save all the results
     if not os.path.isdir("metrics"):
         os.mkdir("metrics")
-    unified_metrics.to_csv(f"metrics/metrics_{args.target}.csv")
-    # mlflow.log_input(unified_metrics, context="unified metrics")
 
-    # TODO: Adapt this code to the new structure
-    #         visualizer = Visualizer(
-    #             model_name=model_name,
-    #             cm=cm,
-    #             rates=rates_df,
-    #             metrics=metrics,
-    #             folder_path=args.plot_folder,
-    #             classes=C.y_labels,
-    #             dataset_size=str(dataset_size),
-    #         )
-    #         path_CM = visualizer.plot_confusion_matrix()
-
-    #     data.index = dataset_sizes
-    #     model_metrics.append(data)
-    #     data.index = dataset_sizes
-
-    # path_AC = visualizer.plot_metric(
-    #     data=model_data,
-    #     metric="accuracy",
-    #     title="Accuracy",
-    #     filename="accuracy.png",
-    # )
-    # path_F1 = visualizer.plot_metric(
-    #     data=model_data,
-    #     metric="f1_score",
-    #     title="F1 Score",
-    #     filename="f1_score.png",
-    # )
-
-    # for df, model in zip(model_metrics, models):
-    #     print(model)
-    #     print(df)
+    results_path = "metrics/results_one_target.csv"
+    if os.path.exists(results_path):
+        existing_data = pd.read_csv(results_path)
+        unified_metrics = pd.concat([existing_data, unified_metrics])
+    unified_metrics.to_csv(results_path, index=False)
