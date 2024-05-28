@@ -12,6 +12,7 @@ from nmrcraft.evaluation import evaluation
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
+from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
 mlflow.set_experiment("Test_final_results")
@@ -30,8 +31,14 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default=["X3_ligand"],
+    default=["metal"],
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
+)
+parser.add_argument(
+    "--include_structural",
+    type=bool,
+    default=False,
+    help="Handles if structural features will be included or only nmr tensors are used.",
 )
 parser.add_argument(
     "--plot_folder",
@@ -61,21 +68,36 @@ if __name__ == "__main__":
     dataset_sizes = [
         # 0.01,
         0.1,
-        # 0.15
+        0.15
         # 0.5,
         # 1.0,
     ]
     models = [
-        # "random_forest",
+        "random_forest",
         # "logistic_regression",
         # "gradient_boosting",
         # "svc",
         "extra_trees",
     ]
 
-    with mlflow.start_run():
-        model_metrics = []
+    # Initialize df to store all the info for later plotting
+    unified_metrics_columns = [
+        "target",
+        "model_targets",
+        "model",
+        "nmr_only",
+        "dataset_fraction",
+        "max_evals",
+        "accuracy_mean",
+        "accuracy_lb",
+        "accuracy_hb",
+        "f1_mean",
+        "f1_lb",
+        "f1_hb",
+    ]
+    unified_metrics = pd.DataFrame(columns=unified_metrics_columns)
 
+    with mlflow.start_run():
         for model_name in models:
             data = pd.DataFrame()
             config = model_configs[model_name]
@@ -87,6 +109,7 @@ if __name__ == "__main__":
                 data_loader = DataLoader(
                     target_columns=args.target,
                     dataset_size=dataset_size,
+                    include_structural_features=args.include_structural,
                 )
                 (
                     X_train,
@@ -120,10 +143,25 @@ if __name__ == "__main__":
                     X_test, y_test, best_model, args.target
                 )
 
-                bootsrap_stat_metrics = evaluation.metrics_statistics(
+                statistical_metrics = evaluation.metrics_statistics(
                     bootstrap_metrics
                 )
-                print(bootsrap_stat_metrics)
+
+                # Add all the newly generated metrics to the unified dataframe
+                unified_metrics = add_rows_metrics(
+                    unified_metrics,
+                    statistical_metrics,
+                    dataset_size,
+                    args.include_structural,
+                    model_name,
+                    args.max_evals,
+                )
+
+    # save all the results
+    if not os.path.isdir("metrics"):
+        os.mkdir("metrics")
+    unified_metrics.to_csv(f"metrics/metrics_{args.target}.csv")
+    # mlflow.log_input(unified_metrics, context="unified metrics")
 
     # TODO: Adapt this code to the new structure
     #         visualizer = Visualizer(
