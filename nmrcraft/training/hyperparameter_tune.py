@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from hyperopt import STATUS_OK, Trials, fmin, space_eval, tpe
 
@@ -47,7 +49,7 @@ class HyperparameterTuner:
         model = load_model(
             self.model_name, **{**params, **self.model_config["model_params"]}
         )
-        model.fit(X_train, y_train)
+        model.fit(X_train, y_train, n_jobs=os.cpu_count - 1)
         # y_pred = model.predict(X_test)
         # score = accuracy_score(y_test, y_pred)
         score = cross_val_score(model, X_train, y_train, cv=5).mean()
