@@ -7,14 +7,17 @@ def add_rows_metrics(
     dataset_size,
     include_structural: bool,
     model_name: str,
+    max_evals: int,
 ):
     # Add all the newly generated metrics to the unified dataframe targetwise
     for i in range(len(statistical_metrics[0])):
         new_row = [
             statistical_metrics[0][i],
+            statistical_metrics[0],
             model_name,
             not include_structural,
             dataset_size,
+            max_evals,
             statistical_metrics[1][i],
             statistical_metrics[2][i][0],
             statistical_metrics[2][i][1],
@@ -23,4 +26,4 @@ def add_rows_metrics(
             statistical_metrics[4][i][1],
         ]
         unified_metrics.loc[len(unified_metrics)] = new_row
-        return unified_metrics
+    return unified_metrics

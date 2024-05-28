@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default=["X3_ligand"],
+    default=["metal"],
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
@@ -83,9 +83,11 @@ if __name__ == "__main__":
     # Initialize df to store all the info for later plotting
     unified_metrics_columns = [
         "target",
+        "model_targets",
         "model",
         "nmr_only",
         "dataset_fraction",
+        "max_evals",
         "accuracy_mean",
         "accuracy_lb",
         "accuracy_hb",
@@ -152,11 +154,14 @@ if __name__ == "__main__":
                     dataset_size,
                     args.include_structural,
                     model_name,
+                    args.max_evals,
                 )
 
-    print(unified_metrics)
-    unified_metrics.to_csv(f"metrics_{args.target}.csv")
-    test_loaded_df = pd.read_csv(f"metrics_{args.target}.csv")
+    # save all the results
+    if not os.path.isdir("metrics"):
+        os.mkdir("metrics")
+    unified_metrics.to_csv(f"metrics/metrics_{args.target}.csv")
+    # mlflow.log_input(unified_metrics, context="unified metrics")
 
     # TODO: Adapt this code to the new structure
     #         visualizer = Visualizer(
