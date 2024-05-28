@@ -19,27 +19,23 @@ NMRcraft will help you to mine into your NMR data and craft awesome predictions!
 - **Github repository**: <https://github.com/mlederbauer/nmrcraft/>
 - **Documentation** <https://mlederbauer.github.io/nmrcraft/>
 
-## 🔥 Usage
+# 🔥 Usage
 
-```bash
-python scripts/train.py # Placeholder for now, scripts for reproducing results
-```
+## Docker Desktop 🐳
 
-## 👩‍💻 App
+First you need to install [Docker](https://www.docker.com/products/docker-desktop/).
 
-Run the app demo locally with
+### Download Docker Image
 
-```bash
-python nmrcraft/app.py
-```
+You can download the image by going onto the searchbar on top and searching for 'tiaguinho/nmrcraft_arch' and clicking on pull.
 
-## 🖼️Poster
+### Running the Image
 
-WIP #TODO
+To run the image you need to go to the 'Images' tab and click the "play" button on the nmrcraft*arch container you pulled. It should appear as running in the 'Containers' tab and there you should click on the ⋮ symbol and click on '>* open in termnial'. After that a terminal window should pop up where you will type in the command `zsh`.
 
-## 🧑‍💻 Developing
+## Console 🐧
 
-### Setting it up
+### Download Docker Image
 
 To use the docker image just pull it from [Docker Hub](https://hub.docker.com/r/tiaguinho/nmrcraft_arch) and make sure [Docker](https://www.docker.com/products/docker-desktop/) is installed. To pull it you can execute this command:
 
@@ -47,19 +43,21 @@ To use the docker image just pull it from [Docker Hub](https://hub.docker.com/r/
 docker pull tiaguinho/nmrcraft_arch
 ```
 
-Open the container either via console or in Vscode:
+(If you're o windows you might need to call docker.exe instead of just docker)
 
-_Linux/MacOS_ console command:
+### Running the Image
 
 ```bash
 docker run -it nmrcraft_arch
 ```
 
-Windows powershell command:
+## Visual Studio Code 🪟
 
-```bash
-docker.exe run -it nmrcraft_arch
-```
+To download the image follow the same steps as either console or docker desktop.
+
+### Running the Docker Image
+
+To run follow the following tutorial on how to get Docker to work nicely with VS Code.
 
 <details>
 <summary>Using Docker in VS Code</summary>
@@ -74,6 +72,28 @@ docker.exe run -it nmrcraft_arch
 <li> Have fun developing.</li>
 </ol>
 </details>
+
+## Getting Access to the Dataset 💾
+
+For the script to be able to access the dataset, you must login via to huggingface by using the following command:
+
+```bash
+huggingface-cli login
+```
+
+# 👩‍💻 App
+
+Run the app demo locally with
+
+```bash
+python nmrcraft/app.py
+```
+
+# 🖼️Poster
+
+WIP #TODO
+
+# 🧑‍💻 Developing
 
 ### Activate the Poetry venv
 
@@ -95,27 +115,9 @@ gh auth login
 
 and follow the interactive instructions with enter and the arrow keys. Once logged in you should be able to push changes to the repo.
 
-### Building a Docker Image and running it manually
+### Adding packages and libraries to the project
 
-To build a Docker image you can run the following commands on _Linux/MacOS_ to build and run an image:
-
-```bash
-docker buildx build -t $Image_Name .
-```
-
-or on Windows
-
-```bash
-docker.exe buildx build -t $Image_Name .
-```
-
-### Adding dependencies to the project
-
-If you added a new feature that requires a new package/dependency, you can add it to the `pyproject.toml` file and run `make install` to install the new dependencies.
-
-```bash
-poetry add <package-name>
-```
+If you added a new feature that requires a new package/library, you can add by running `poetry add <package-name>` and run `make install` to install the new dependencies.
 
 (You might need to run `poetry lock` to update the `poetry.lock` file if you added a dependency manually in the `pyproject.toml` file.)
 
@@ -132,21 +134,11 @@ huggingface-cli login
 Access the dataset:
 
 ```python
-from datasets import load_dataset
-dataset = load_dataset("NMRcraft/nmrcraft", data_files='all_no_nan.csv')
-dataset['train'].to_pandas() # contains the data for now
+from nmrcraft.data.data_utils import load_dataset_from_hf
+load_dataset_from_hf()
 ```
 
-Or download locally in just a few lines:
-
-```python
-from huggingface_hub import hf_hub_download
-hf_hub_download(repo_id="NMRcraft/nmrcraft", filename="all_no_nan.csv", repo_type="dataset", local_dir="./data/")
-
-```
-
-The dataset is provided in its "raw" form as a dataframe in `all_no_nan.csv`, meaning without a train/test split or feature selection.
-in the folder `./xyz.zip`, all optimized geometries are added as an .xtpopt.xyz file.
+The raw dataset can then be found in 'dataset/dataset.csv'
 
 ### References
 
