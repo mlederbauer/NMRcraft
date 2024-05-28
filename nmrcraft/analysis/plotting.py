@@ -1,3 +1,7 @@
+"""Functions to plot."""
+
+import matplotlib.patches as mpatches
+import os
 import matplotlib.pyplot as plt
 import numpy as np
 from cycler import cycler
@@ -15,11 +19,13 @@ def style_setup():
     plt.rcParams["text.latex.preamble"] = r"\usepackage{sansmathfonts}"
     plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
 
-    # Use the first color from the custom color cycle
-    first_color = plt.rcParams["axes.prop_cycle"].by_key()["color"][0]
+    all_colors = [
+        plt.rcParams["axes.prop_cycle"].by_key()["color"][i]
+        for i in range(len(colors))
+    ]
     plt.rcParams["text.usetex"] = False
 
-    return cmap, colors, first_color
+    return cmap, colors, all_colors
 
 
 def plot_predicted_vs_ground_truth(
@@ -33,7 +39,8 @@ def plot_predicted_vs_ground_truth(
     Returns:
     None
     """
-    _, _, first_color = style_setup()
+    _, _, colors = style_setup()
+    first_color = colors[0]
     # Creating the plot
     plt.figure(figsize=(10, 8))
     plt.scatter(y_test, y_pred, color=first_color, edgecolor="k", alpha=0.6)
@@ -85,7 +92,7 @@ def plot_predicted_vs_ground_truth_density(
 
 
 def plot_confusion_matrix(
-    cm, classes, title, path, full=True, columns_set=False
+    cm_list, y_labels, model_name, dataset_size, folder_path: str = "plots/"
 ):
     """
     Plots the confusion matrix.
@@ -98,45 +105,27 @@ def plot_confusion_matrix(
     Returns:
     None
     """
-    _, _, _ = style_setup()
-    if full:  # Plot one big cm
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+    # _, _, _ = style_setup()
+    for target in y_labels:
+        file_path = os.path.join(
+            folder_path,
+            f"ConfusionMatrix_{model_name}_{dataset_size}_{target}.png",
+        )
+        cm = cm_list[target]
+        classes = y_labels[target]
         plt.figure(figsize=(10, 8))
         plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
-        plt.title(title)
+        plt.title(f"{target} Confusion Matrix")
         plt.colorbar()
         tick_marks = np.arange(len(classes))
-        plt.xticks(tick_marks, classes, rotation=45)
+        plt.xticks(tick_marks, classes, rotation=90)
         plt.yticks(tick_marks, classes)
         plt.tight_layout()
         plt.ylabel("True label")
         plt.xlabel("Predicted label")
-        plt.savefig(path)
-        plt.close()
-
-    elif not full:  # Plot many small cms of each target
-        cms = []
-        for columns in columns_set:  # Make list of confusion matrices
-            cms.append(
-                cm[
-                    slice(columns[0], columns[-1] + 1),
-                    slice(columns[0], columns[-1] + 1),
-                ]
-            )
-        fig, axs = plt.subplots(nrows=len(cms), figsize=(10, 8 * len(cms)))
-        for i, sub_cm in enumerate(cms):
-            sub_classes = classes[
-                slice(columns_set[i][0], columns_set[i][-1] + 1)
-            ]
-            axs[i].imshow(sub_cm, interpolation="nearest", cmap=plt.cm.Blues)
-            axs[i].set_title(f"Confusion Matrix {i+1}")
-            tick_marks = np.arange(len(sub_classes))
-            axs[i].set_xticks(tick_marks)
-            axs[i].set_xticklabels(sub_classes, rotation=45)
-            axs[i].set_yticks(tick_marks)
-            axs[i].set_yticklabels(sub_classes)
-            plt.tight_layout()
-        print(cm)
-        plt.savefig(path)
+        plt.savefig(file_path)
         plt.close()
 
 
@@ -167,3 +156,75 @@ def plot_roc_curve(fpr, tpr, roc_auc, title, path):
     plt.legend(loc="lower right")
     plt.savefig(path)
     plt.close()
+
+
+def plot_with_without_ligands_bar(df):
+    categories = df["target"].unique()
+    _, _, colors = style_setup()
+    first_color = colors[0]
+    second_color = colors[1]
+
+    # Extract data
+
+    x_pos = np.arange(len(categories))
+    bar_width = 0.35
+
+    # Initialize plot
+    fig, ax = plt.subplots()
+
+    # Loop through each category and plot bars
+    for i, category in enumerate(categories):
+        subset = df[df["target"] == category]
+
+        # Means and error bars
+        means = subset["accuracy_mean"].values
+        errors = [
+            subset["accuracy_mean"].values
+            - subset["accuracy_lower_bd"].values,
+            subset["accuracy_upper_bd"].values
+            - subset["accuracy_mean"].values,
+        ]
+
+        # Bar locations for the group
+        bar_positions = x_pos[i] + np.array([-bar_width / 2, bar_width / 2])
+
+        # Determine bar colors based on 'nmr_tensor_input_only' field
+        bar_colors = [
+            first_color if x else second_color
+            for x in subset["nmr_tensor_input_only"]
+        ]
+
+        # Plotting the bars
+        ax.bar(
+            bar_positions,
+            means,
+            yerr=np.array(errors),
+            color=bar_colors,
+            align="center",
+            ecolor="black",
+            capsize=5,
+            width=bar_width,
+        )
+
+    # Labeling and aesthetics
+    ax.set_ylabel("Accuracy / %")
+    ax.set_xlabel("Target(s)")
+    ax.set_xticks(x_pos)
+    ax.set_xticklabels(categories)
+    ax.set_title("Accuracy Measurements with Error Bars")
+
+    handles = [
+        mpatches.Patch(color=first_color, label="With Ligand Info"),
+        mpatches.Patch(color=second_color, label="Without Ligand Info"),
+    ]
+    ax.legend(handles=handles, loc="best", fontsize=20)
+    plt.tight_layout()
+    plt.savefig("plots/exp3_incorporate_ligand_info.png")
+    print("Saved to plots/exp3_incorporate_ligand_info.png")
+
+
+if __name__ == "main":
+    import pandas as pd
+
+    df = pd.read_csv("dataset/path_to_results.csv")
+    plot_with_without_ligands_bar(df)

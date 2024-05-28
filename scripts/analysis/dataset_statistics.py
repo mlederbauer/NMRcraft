@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from nmrcraft.analysis.plotting import style_setup
-from nmrcraft.data.dataset import filename_to_ligands, load_dataset_from_hf
+from nmrcraft.data.dataloader import filename_to_ligands, load_dataset_from_hf
 
 
 def plot_stacked_bars(
