@@ -32,6 +32,9 @@ RUN git clone https://github.com/tiaguinho-code/Archpy_dots /home/steve/Archpy_d
 RUN chsh -s $(which zsh)
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 RUN cp /home/steve/Archpy_dots/.zshrc /root/.zshrc
+RUN cp /home/steve/Archpy_dots/welcome /root/welcome
+RUN cp /home/steve/Archpy_dots/fastfetch.jsonc /root/fastfetch.jsonc
+
 VOLUME [ "/home/steve" ]
 
 # start a zsh shell
