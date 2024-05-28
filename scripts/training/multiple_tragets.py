@@ -12,6 +12,7 @@ from nmrcraft.evaluation import evaluation
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
+from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
 mlflow.set_experiment("Test_final_results")
@@ -32,6 +33,12 @@ parser.add_argument(
     type=str,
     default=["metal", "X3_ligand"],
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
+)
+parser.add_argument(
+    "--include_structural",
+    type=bool,
+    default=False,
+    help="Handles if structural features will be included or only nmr tensors are used.",
 )
 parser.add_argument(
     "--plot_folder",
@@ -59,16 +66,31 @@ if __name__ == "__main__":
     log.getLogger().setLevel(log.INFO)
 
     dataset_sizes = [
-        # 0.01,
+        0.01,
         0.1,
         # 0.15
         # 0.5,
         # 1.0,
     ]
     models = [
-        # "random_forest",
+        "random_forest",
         "extra_trees",
     ]
+
+    # Initialize df to store all the info for later plotting
+    unified_metrics_columns = [
+        "target",
+        "model",
+        "nmr_only",
+        "dataset_fraction",
+        "accuracy_mean",
+        "accuracy_lb",
+        "accuracy_hb",
+        "f1_mean",
+        "f1_lb",
+        "f1_hb",
+    ]
+    unified_metrics = pd.DataFrame(columns=unified_metrics_columns)
 
     with mlflow.start_run():
         model_metrics = []
@@ -119,3 +141,19 @@ if __name__ == "__main__":
                 bootstrap_metrics = evaluation.evaluate_bootstrap(
                     X_test, y_test, multioutput_model, args.target
                 )
+
+                statistical_metrics = evaluation.metrics_statistics(
+                    bootstrap_metrics
+                )
+
+                unified_metrics = add_rows_metrics(
+                    unified_metrics,
+                    statistical_metrics,
+                    dataset_size,
+                    args.include_structural,
+                    model_name,
+                )
+                # Add all the newly generated metrics to the unified dataframe
+
+    print(unified_metrics)
+    unified_metrics.to_csv(f"metrics_{args.target}.csv")

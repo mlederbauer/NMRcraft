@@ -12,6 +12,7 @@ from nmrcraft.evaluation import evaluation
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
+from nmrcraft.utils.general import add_rows_metrics
 
 # Setup MLflow
 mlflow.set_experiment("Test_final_results")
@@ -67,12 +68,12 @@ if __name__ == "__main__":
     dataset_sizes = [
         # 0.01,
         0.1,
-        # 0.15
+        0.15
         # 0.5,
         # 1.0,
     ]
     models = [
-        # "random_forest",
+        "random_forest",
         # "logistic_regression",
         # "gradient_boosting",
         # "svc",
@@ -82,9 +83,15 @@ if __name__ == "__main__":
     # Initialize df to store all the info for later plotting
     unified_metrics_columns = [
         "target",
-        "nmr_tensor_input_only",
+        "model",
+        "nmr_only",
         "dataset_fraction",
-        "metrics_statistics",
+        "accuracy_mean",
+        "accuracy_lb",
+        "accuracy_hb",
+        "f1_mean",
+        "f1_lb",
+        "f1_hb",
     ]
     unified_metrics = pd.DataFrame(columns=unified_metrics_columns)
 
@@ -134,18 +141,22 @@ if __name__ == "__main__":
                     X_test, y_test, best_model, args.target
                 )
 
-                bootsrap_stat_metrics = evaluation.metrics_statistics(
+                statistical_metrics = evaluation.metrics_statistics(
                     bootstrap_metrics
                 )
 
                 # Add all the newly generated metrics to the unified dataframe
-                new_row = [
-                    args.target,
-                    not args.include_structural,
+                unified_metrics = add_rows_metrics(
+                    unified_metrics,
+                    statistical_metrics,
                     dataset_size,
-                    bootsrap_stat_metrics,
-                ]
-                unified_metrics.loc[len(unified_metrics)] = new_row
+                    args.include_structural,
+                    model_name,
+                )
+
+    print(unified_metrics)
+    unified_metrics.to_csv(f"metrics_{args.target}.csv")
+    test_loaded_df = pd.read_csv(f"metrics_{args.target}.csv")
 
     # TODO: Adapt this code to the new structure
     #         visualizer = Visualizer(
