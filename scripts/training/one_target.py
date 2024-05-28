@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     "--target",
     type=str,
-    default=["metal"],
+    default="E_ligand",
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(

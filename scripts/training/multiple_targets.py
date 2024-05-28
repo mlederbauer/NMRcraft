@@ -25,13 +25,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--max_evals",
     type=int,
-    default=3,
+    default=2,
     help="The max evaluations for the hyperparameter tuning with hyperopt",
 )
 parser.add_argument(
     "--target",
     type=str,
-    default=["metal", "E_ligand", "X4_ligand"],
+    default="metal E_ligand X3_ligand",
     help="The Target for the predictions. Choose from: 'metal', 'X1_ligand', 'X2_ligand', 'X3_ligand', 'X4_ligand', 'L_ligand', 'E_ligand'",
 )
 parser.add_argument(
@@ -158,6 +158,7 @@ if __name__ == "__main__":
 
     # Add arguments
     args = parser.parse_args()
+    args.target = args.target.split()
 
     unified_metrics = main(args)
 
