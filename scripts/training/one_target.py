@@ -160,6 +160,7 @@ if __name__ == "__main__":
 
     # Add arguments
     args = parser.parse_args()
+    args.target = [args.target]  # FIXME
 
     unified_metrics = main(args)
 

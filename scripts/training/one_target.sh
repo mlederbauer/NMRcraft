@@ -5,7 +5,6 @@ declare -a target_combinations=(
     "metal"
     "X3_ligand"
     "E_ligand"
-    "metal E_ligand X3_ligand"
 )
 
 # Loop through each target combination and run the training script
