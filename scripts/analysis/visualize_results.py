@@ -75,13 +75,7 @@ def plot_exp_1(
                     (df["model"] == model)
                     & (df["dataset_fraction"] == fraction)
                 ]
-                # The following lines are new or modified:
-                # Retrieve the first 'model_targets' value assuming all entries are the same for this 'model'
-                model_targets_str = subset["model_targets"].values[0]
-                # Format the model name and targets for display. You might adjust this formatting as needed.
-                display_label = (
-                    f"{model.replace('_', ' ')}\n ({model_targets_str})"
-                )
+                display_label = f"{model.replace('_', ' ')}"
 
                 means.append(subset[metric_mean].values[0])
                 error_down.append(
@@ -231,7 +225,7 @@ def plot_exp_1_multi(
             borderaxespad=0.0,
         )
         fig.subplots_adjust(right=0.75)
-        plt.savefig(f"plots/results/plot{target}.png")
+        plt.savefig(f"plots/results/plot{target}_multioutput.png")
 
 
 def plot_exp_2(df_one, df_multi):
