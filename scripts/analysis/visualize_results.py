@@ -35,8 +35,8 @@ def plot_exp_1(
     """
 
     # Initialize the plot style and colors
-    cmap, colors, all_colors = style_setup()
-    del cmap, all_colors
+    _, colors, _ = style_setup()
+
     df_full = pd.concat([df_base, df_one])
 
     # Get targets
@@ -139,8 +139,7 @@ def plot_exp_1_multi(
         metric (str): The metric to plot ('accuracy' or 'f1').
     """
     # Initialize the plot style and colors
-    cmap, colors, all_colors = style_setup()
-    del cmap, all_colors
+    _, colors, _ = style_setup()
     df_full = pd.concat([df_base, df_one])
 
     # Create a unique identifier for each model based on 'model' and 'model_targets'
