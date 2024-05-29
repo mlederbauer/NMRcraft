@@ -73,9 +73,11 @@ full_df["model_targets"] = full_df["model_targets"].apply(
 
 # Add 'lig' to model_targets if nmr_only is True
 full_df["model_targets"] = full_df.apply(
-    lambda row: row["model_targets"] + ["lig"]
-    if not row["nmr_only"]
-    else row["model_targets"],
+    lambda row: (
+        row["model_targets"] + ["lig"]
+        if not row["nmr_only"]
+        else row["model_targets"]
+    ),
     axis=1,
 )
 
