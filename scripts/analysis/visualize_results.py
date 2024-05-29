@@ -1,13 +1,14 @@
+import argparse
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from nmrcraft.analysis.plotting import plot_bar, plot_metric
+from nmrcraft.analysis.plotting import plot_bar, style_setup
 
 
-def load_results(results_dir: str, baselines_dir: str):
+def load_results(results_dir: str, baselines_dir: str, max_evals: int):
     import_filename_base = os.path.join(baselines_dir, "results_baselines.csv")
     import_filename_one = os.path.join(results_dir, "results_one_target.csv")
     import_filename_multi = os.path.join(
@@ -16,42 +17,113 @@ def load_results(results_dir: str, baselines_dir: str):
 
     df_base = pd.read_csv(import_filename_base)
     df_one = pd.read_csv(import_filename_one)
+    df_one = df_one[df_one["max_evals"] == max_evals]
     df_multi = pd.read_csv(import_filename_multi)
-
+    df_multi = df_multi[df_multi["max_evals"] == max_evals]
     return df_base, df_one, df_multi
 
 
-def plot_exp_1(df_base, df_one):
-    """Compare single output models with baselines for accuracy/f1-score as a function of dataset size."""
-    # x axis = datase size
-    # y axis = accuracy or f1 score
-    # legend on the bottom of the plot (below the plot itself)
-    # color according to the used model
-    # use bar plots for one dataset_size and put them next to each other
+def plot_exp_1(
+    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "f1"
+):
+    """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
-    df_combined = pd.concat([df_base, df_one])
+    Args:
+        df_base (pd.DataFrame): Baseline data frame.
+        df_one (pd.DataFrame): Single output data frame.
+        metric (str): The metric to plot ('accuracy' or 'f1').
+    """
 
-    targets = df_combined["target"].unique()
+    # Initialize the plot style and colors
+    cmap, colors, all_colors = style_setup()
+    del cmap, all_colors
+    df_full = pd.concat([df_base, df_one])
+
+    # Get targets
+    targets = df_full["target"].unique()
+
     for target in targets:
-        sub_df = df_combined[df_combined["target"] == target]
-        print(sub_df)
-        plot_metric(
-            sub_df,
-            title=f"Accuracy of {target} Prediction",
-            filename=f"plots/01_accuracy_{target}.png",
-            metric="accuracy",
-            iterative_column="model",
-            xdata="dataset_fraction",
+        # Restrict the dataframe to the given target
+        df = df_full[df_full["target"] == target]
+
+        models = df["model"].unique()
+        dataset_fractions = df["dataset_fraction"].unique()
+
+        # Set the appropriate metric columns based on the input argument
+        metric_mean = f"{metric}_mean"
+        metric_lb = f"{metric}_lb"
+        metric_hb = f"{metric}_hb"
+
+        # Sort the dataset fractions to ensure consistent plotting
+        dataset_fractions = np.sort(dataset_fractions)
+
+        # Set up the plot
+        fig, ax = plt.subplots(figsize=(12, 8))
+
+        # Bar width
+        total_width = 0.8
+        single_width = total_width / len(models)
+
+        # Create a bar for each model/dataset fraction
+        for idx, model in enumerate(models):
+            means = []
+            error_up = []
+            error_down = []
+            for fraction in dataset_fractions:
+                # Filter data for each model and fraction
+                subset = df[
+                    (df["model"] == model)
+                    & (df["dataset_fraction"] == fraction)
+                ]
+                means.append(subset[metric_mean].values[0])
+                error_down.append(
+                    subset[metric_mean].values[0] - subset[metric_lb].values[0]
+                )
+                error_up.append(
+                    subset[metric_hb].values[0] - subset[metric_mean].values[0]
+                )
+
+            # Positioning of each group of bars
+            positions = (
+                np.arange(len(dataset_fractions))
+                - (total_width - single_width) / 2
+                + idx * single_width
+            )
+
+            # Plotting the bars
+            ax.bar(
+                positions,
+                means,
+                color=colors[idx],
+                width=single_width,
+                label=model,
+                yerr=[error_down, error_up],
+                capsize=5,
+            )
+
+        # Adding labels and titles
+        ax.set_xticks(np.arange(len(dataset_fractions)))
+        ax.set_xticklabels(dataset_fractions)
+        ax.set_xlabel("Dataset Size")
+        if metric == "f1":
+            ax.set_ylabel("F1 Score")
+        else:
+            ax.set_ylabel("Accuracy")
+        ax.set_title(f"Model Performance by Dataset Size for {target}")
+
+        # Adding the legend on the right side
+        ax.legend(
+            title="Model",
+            bbox_to_anchor=(1.05, 0.5),
+            loc="center left",
+            borderaxespad=0.0,
         )
-        plot_metric(
-            sub_df,
-            title=f"F1-Score of {target} Prediction",
-            filename=f"plots/01_f1-score_{target}.png",
-            metric="f1",
-            iterative_column="model",
-            xdata="dataset_fraction",
-        )
-    return
+
+        # Adjust the plot layout to accommodate the legend
+        fig.subplots_adjust(right=0.75)
+
+        # Show plot
+        plt.savefig(f"plots/results/exp1_{target}.png")
 
 
 def plot_exp_2(df_one, df_multi):
@@ -138,7 +210,6 @@ def plot_exp_2(df_one, df_multi):
         # Show the plot
         plt.tight_layout()
         plt.savefig(f"{metric}_comparison_plot.png")
-        plt.savefig("fooo.png")
         pass
 
 
@@ -174,13 +245,38 @@ def plot_exp_3(df_one, df_multi):
     return
 
 
+# Setup parser
+parser = argparse.ArgumentParser(
+    description="Train a model with MLflow tracking."
+)
+
+parser.add_argument(
+    "--max_evals",
+    "-me",
+    type=int,
+    default=100,
+    help="How many max_evals the analysed data has",
+)
+
+parser.add_argument(
+    "--results_dir",
+    "-rd",
+    type=str,
+    default="metrics/20eval/",
+    help="What directory the results are in",
+)
+# Add arguments
+args = parser.parse_args()
+
 if __name__ == "__main__":
 
     if not os.path.exists("./plots/results/"):
         os.makedirs("./plots/results/")
 
     df_base, df_one, df_multi = load_results(
-        results_dir="metrics/20eval/", baselines_dir="metrics/"
+        results_dir=args.results_dir,
+        baselines_dir="metrics/",
+        max_evals=args.max_evals,
     )
     plot_exp_1(df_base, df_one)
     plot_exp_2(df_one, df_multi)

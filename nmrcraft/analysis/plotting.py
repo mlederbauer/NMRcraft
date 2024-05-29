@@ -27,6 +27,12 @@ def style_setup():
     plt.style.use("./style.mplstyle")
     plt.rcParams["text.latex.preamble"] = r"\usepackage{sansmathfonts}"
     plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
+    plt.rcParams["font.size"] = 20  # Set default font size
+    plt.rcParams["axes.titlesize"] = 20  # Title font size
+    plt.rcParams["axes.labelsize"] = 20  # X and Y label font size
+    plt.rcParams["xtick.labelsize"] = 14  # X tick label font size
+    plt.rcParams["ytick.labelsize"] = 14  # Y tick label font size
+    plt.rcParams["legend.fontsize"] = 12  # Legend font size
 
     all_colors = [
         plt.rcParams["axes.prop_cycle"].by_key()["color"][i]
@@ -116,7 +122,7 @@ def plot_confusion_matrix(
     """
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    # _, _, _ = style_setup()
+    cmap, _, _ = style_setup()
     for target in y_labels:
         file_path = os.path.join(
             folder_path,
@@ -125,7 +131,7 @@ def plot_confusion_matrix(
         cm = cm_list[target]
         classes = y_labels[target]
         plt.figure(figsize=(10, 8))
-        plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+        plt.imshow(cm, interpolation="nearest", cmap=cmap)
         plt.title(f"{target} Confusion Matrix")
         plt.colorbar()
         tick_marks = np.arange(len(classes))
