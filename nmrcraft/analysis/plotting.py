@@ -14,7 +14,15 @@ from scipy.stats import gaussian_kde
 
 def style_setup():
     """Function to set up matplotlib parameters."""
-    colors = ["#C28340", "#854F2B", "#61371F", "#8FCA5C", "#70B237", "#477A1E"]
+    colors = [
+        "#C28340",
+        "#854F2B",
+        "#61371F",
+        "#8FCA5C",
+        "#70B237",
+        "#477A1E",
+        "#3B661A",
+    ]
     cmap = LinearSegmentedColormap.from_list("custom", colors)
 
     plt.style.use("./style.mplstyle")
@@ -233,6 +241,7 @@ def plot_metric(
     iterative_column="model",
     xdata="dataset_fraction",
 ):
+    _, colors, _ = style_setup()
     if iterative_column == "target":
 
         def convert_to_labels(target_list):
@@ -247,7 +256,7 @@ def plot_metric(
         data["xlabel"] = data["model_targets"].apply(convert_to_labels)
         print(data)
 
-    for iterator in data[iterative_column].unique():
+    for i, iterator in enumerate(data[iterative_column].unique()):
         model_data = data[data[iterative_column] == iterator]
         errors = [
             model_data[metric + "_mean"].values
@@ -259,8 +268,9 @@ def plot_metric(
             model_data[xdata],
             model_data[metric + "_mean"],
             yerr=errors,
-            fmt="o",
+            fmt="o-",
             label=iterator,
+            color=colors[i],
             capsize=5,
         )
     plt.legend()
@@ -286,7 +296,12 @@ def plot_bar(
     _, colors, _ = style_setup()
 
     def convert_to_labels(target_list):
-        label_dict = {"metal": "M", "E_ligand": "E", "X3_ligand": "X3"}
+        label_dict = {
+            "metal": "M",
+            "E_ligand": "E",
+            "X3_ligand": "X3",
+            "lig": "\n  (ligands input)",
+        }
         return ", ".join([label_dict[i] for i in target_list])
 
     # Convert string representations of lists to actual lists
