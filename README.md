@@ -16,11 +16,11 @@
 NMRcraft is a project that predicts ligands of complexes from their chemical shift tensors.
 </p>
 
-# 🐳 Installation 
+# 🐳 Installation
 
 <details>
   <summary>See installation instructions</summary>
-  
+
 ## Docker Desktop 🐳
 
 First you need to install [Docker](https://www.docker.com/products/docker-desktop/).
@@ -80,6 +80,7 @@ huggingface-cli login
 ```
 
 We include the link to be authenticated in the report appendix. If you run into issues accessing the dataset, contact [mlederbauer@ethz.ch](mlederbauer@ethz.ch).
+
 </details>
 
 # 🔥 Usage
@@ -92,11 +93,12 @@ python scripts/reproduce_results.py
 ```
 
 This script will interatively
-* plot dataset statistics (stored in `./plots/dataset`)
-* train and evaluate all single-output models (stored in `./metrics/single_targets.csv`)
-* traom and evaluate all multi-output models (stored in `./metrics/one_target.csv`)
-* train and evaluate all baseline models (stored in `./metrics/baselines.csv`)
-* create the plots (stored in `./plots/models`).
+
+- plot dataset statistics (stored in `./plots/dataset`)
+- train and evaluate all single-output models (stored in `./metrics/single_targets.csv`)
+- traom and evaluate all multi-output models (stored in `./metrics/one_target.csv`)
+- train and evaluate all baseline models (stored in `./metrics/baselines.csv`)
+- create the plots (stored in `./plots/models`).
 
 When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines.
 
@@ -143,6 +145,7 @@ To download the dataset on the Hub in Python, you need to log in to your Hugging
 ```bash
 huggingface-cli login
 ```
+
 </details>
 
 # Citation

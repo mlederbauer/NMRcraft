@@ -97,7 +97,7 @@ def plot_exp_1(
                 means,
                 color=colors[idx],
                 width=single_width,
-                label=model,
+                label=model.replace("_", " "),
                 yerr=[error_down, error_up],
                 capsize=5,
             )
@@ -110,7 +110,8 @@ def plot_exp_1(
             ax.set_ylabel("F1 Score")
         else:
             ax.set_ylabel("Accuracy")
-        ax.set_title(f"Model Performance by Dataset Size for {target}")
+        target_clean = target.replace("_", " ")
+        ax.set_title(f"Model Performance by Dataset Size for {target_clean}")
 
         # Adding the legend on the right side
         ax.legend(
@@ -124,7 +125,7 @@ def plot_exp_1(
         fig.subplots_adjust(right=0.75)
 
         # Show plot
-        plt.savefig(f"yeet{target}.png")
+        plt.savefig(f"plots/results/plot{target}.png")
 
 
 def plot_exp_2(df_one, df_multi):
