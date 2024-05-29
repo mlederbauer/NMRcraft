@@ -228,89 +228,69 @@ def plot_exp_1_multi(
 
 
 def plot_exp_2(df_one, df_multi):
-    """Compare the best single-output model to the best multi-output model for each target category.
-    Separate plots for accuracy and F1 score, including upper and lower bounds.
-    """
-    # Combine and filter the dataframes
+    """Compare the best single-output model to the best multi-output model for each target category."""
     df_combined = pd.concat([df_one, df_multi])
     df_full = df_combined[df_combined["dataset_fraction"] == 1.0]
 
-    # Define the target combinations to plot
     target_combinations = [
         "metal",
         "E_ligand",
         "X3_ligand",
         "metal & E_ligand",
         "metal & X3_ligand",
-        "E_ligand & X3_ligand",
+        "X3_ligand & E_ligand",
         "metal & E_ligand & X3_ligand",
     ]
+    _, colors, _ = style_setup()
 
-    # Define colors for clarity
-    colors = {"metal": "navy", "E_ligand": "darkorange", "X3_ligand": "green"}
+    abbreviated_target_combination_dict = {
+        "metal": "Metal",
+        "E_ligand": "E",
+        "X3_ligand": "X3",
+        "metal & E_ligand": "Metal & E",
+        "metal & X3_ligand": "Metal & X3",
+        "X3_ligand & E_ligand": "X3 & E",
+        "metal & E_ligand & X3_ligand": "Metal & X3 & E",
+    }
 
-    # Prepare to plot for both Accuracy and F1 score
+    abbreviated_target_combinations = [
+        abbreviated_target_combination_dict[target]
+        for target in target_combinations
+    ]
+
     metrics = ["accuracy", "f1"]
     metric_labels = {"accuracy": "Accuracy", "f1": "F1 Score"}
 
-    # Iterate over each metric to create separate plots
     for metric in metrics:
         fig, ax = plt.subplots(figsize=(14, 8))
-        bar_width = 0.05  # Adjusted for multiple bars
+        bar_width = 0.15
 
-        # Process each target combination
         for idx, target in enumerate(target_combinations):
-            sub_df = df_full[
-                df_full["model_targets"].apply(
-                    lambda x: set(eval(x))  # noqa: S307 PGH001
-                    == set(target.split(" & "))  # noqa: B023
-                )
-            ]
+            target = f"""['{target.replace(" & ", "', '")}']"""
+            sub_df = df_full[df_full["model_targets"] == target]
+            mean = sub_df[f"{metric}_mean"].values
+            error = sub_df[f"{metric}_hb"].values - mean
 
-            if not sub_df.empty:
-                # Determine sub-positions for bars within the same main position
-                targets_to_plot = target.split(" & ")
-                sub_positions = np.arange(len(targets_to_plot)) * bar_width + (
-                    idx * 2 * bar_width
-                )
+            ax.bar(
+                idx,
+                mean,
+                bar_width,
+                label=target,
+                color=colors[idx % len(colors)],
+                yerr=error,
+                capsize=5,
+            )
 
-                for sub_idx, target_to_plot in enumerate(targets_to_plot):
-                    best_model = sub_df[
-                        sub_df["target"] == target_to_plot
-                    ].nlargest(1, f"{metric}_mean")
-
-                    if not best_model.empty:
-                        mean = best_model[f"{metric}_mean"].values[0]
-                        lower = mean - best_model[f"{metric}_lb"].values[0]
-                        upper = best_model[f"{metric}_hb"].values[0] - mean
-
-                        # Plot bars with error bars
-                        ax.bar(
-                            sub_positions[sub_idx],
-                            mean,
-                            bar_width,
-                            label=f"{target_to_plot} ({metric})"
-                            if idx == 0 and sub_idx == 0
-                            else "",
-                            color=colors.get(target_to_plot, "grey"),
-                            yerr=[[lower], [upper]],
-                            capsize=5,
-                        )
-
-        # Add labels and legend
         ax.set_ylabel(metric_labels[metric])
         ax.set_title(
-            f"Comparison of Best Models by Target Combination ({metric_labels[metric]})"
+            f"Comparison of Best Models by Target Combination ({metric})"
         )
-        ax.set_xticks(
-            np.arange(len(target_combinations)) * 2 * bar_width + bar_width
-        )
-        ax.set_xticklabels(target_combinations)
-        ax.legend()
-
-        # Show the plot
+        ax.set_xticks(range(len(target_combinations)))
+        ax.set_xticklabels(abbreviated_target_combinations)
+        # ax.legend(title="Model Targets", bbox_to_anchor=(1.05, 1), loc='upper left')
         plt.tight_layout()
-        plt.savefig(f"plots/results/02_{target}_{metric}_multioutput.png")
+
+        plt.savefig(f"plots/results/02_{metric}_multioutput.png")
 
 
 def plot_exp_3(df_one, df_multi):
@@ -362,7 +342,7 @@ parser.add_argument(
     "--results_dir",
     "-rd",
     type=str,
-    default="metrics/multi_evals/",
+    default="metrics/",
     help="What directory the results are in",
 )
 # Add arguments
@@ -378,7 +358,7 @@ if __name__ == "__main__":
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
-    plot_exp_1(df_base, df_one)
+    # plot_exp_1(df_base, df_one)
     # plot_exp_1_multi(df_base, df_multi)
     plot_exp_2(df_one, df_multi)
     # plot_exp_3(df_one, df_multi)
