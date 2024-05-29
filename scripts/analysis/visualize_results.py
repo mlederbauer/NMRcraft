@@ -105,13 +105,13 @@ def plot_exp_1(
         # Adding labels and titles
         ax.set_xticks(np.arange(len(dataset_fractions)))
         ax.set_xticklabels(dataset_fractions)
-        plt.xticks(fontsize=25)
-        ax.set_xlabel("Dataset Size", fontsize=25)
-        plt.yticks(fontsize=25)
+        plt.xticks(fontsize=30)
+        ax.set_xlabel("Dataset Size", fontsize=30)
+        plt.yticks(fontsize=30)
         if metric == "f1":
-            ax.set_ylabel("F1 Score", fontsize=25)
+            ax.set_ylabel("F1 Score", fontsize=30)
         else:
-            ax.set_ylabel("Accuracy", fontsize=25)
+            ax.set_ylabel("Accuracy", fontsize=30)
         target_clean = target.replace("_", " ")
         ax.set_title(
             f"Model Performance by Dataset Size for {target_clean}",
@@ -119,13 +119,13 @@ def plot_exp_1(
         )
 
         # Adding the legend on the right side
-        ax.legend(
-            title="Model",
-            bbox_to_anchor=(1.05, 0.5),
-            loc="center left",
-            borderaxespad=0.0,
-            fontsize=20,
-        )
+        # ax.legend(
+        #     title="Model",
+        #     bbox_to_anchor=(1.05, 0.5),
+        #     loc="center left",
+        #     borderaxespad=0.0,
+        #     fontsize=20,
+        # )
 
         # Adjust the plot layout to accommodate the legend
         fig.subplots_adjust(right=0.75)
@@ -218,10 +218,10 @@ def plot_exp_1_multi(
 
         ax.set_xticks(np.arange(len(dataset_fractions)))
         ax.set_xticklabels(dataset_fractions)
-        ax.set_xlabel("Dataset Size", fontsize=25)
+        ax.set_xlabel("Dataset Size", fontsize=30)
         plt.xticks(fontsize=25)
         ax.set_ylabel(
-            "F1 Score" if metric == "f1" else "Accuracy", fontsize=25
+            "F1 Score" if metric == "f1" else "Accuracy", fontsize=30
         )
         plt.yticks(fontsize=25)
         target_clean = target.replace("_", " ").capitalize()
@@ -235,7 +235,7 @@ def plot_exp_1_multi(
             bbox_to_anchor=(1.05, 0.5),
             loc="center left",
             borderaxespad=0.0,
-            fontsize=20,
+            fontsize=25,
         )
         fig.subplots_adjust(right=0.75)
         plt.tight_layout()
@@ -244,113 +244,60 @@ def plot_exp_1_multi(
 
 def plot_exp_2(df_one, df_multi):
     """Compare the best single-output model to the best multi-output model for each target category."""
-    df_combined = pd.concat([df_one, df_multi])
-    df_full = df_combined[
-        (df_combined["dataset_fraction"] == 1.0)
-        & (df_combined["model"] == "random_forest")
-        & (df_combined["nmr_only"])
-    ]
+    df = pd.concat([df_one, df_multi])
+    full_df = df[df["dataset_fraction"] == 1.0]
+    true_df = full_df[full_df["nmr_only"]]
 
-    target_combinations = [
-        "metal",
-        "E_ligand",
-        "X3_ligand",
-        "metal & E_ligand",
-        "metal & X3_ligand",
-        "X3_ligand & E_ligand",
-        "metal & E_ligand & X3_ligand",
-    ]
-    _, colors, _ = style_setup()
-
-    abbreviated_target_combination_dict = {
-        "metal": "Metal",
-        "E_ligand": "E",
-        "X3_ligand": "X3",
-        "metal & E_ligand": "Metal & E",
-        "metal & X3_ligand": "Metal & X3",
-        "X3_ligand & E_ligand": "X3 & E",
-        "metal & E_ligand & X3_ligand": "Metal & X3 & E",
-    }
-
-    abbreviated_target_combinations = [
-        abbreviated_target_combination_dict[target]
-        for target in target_combinations
-    ]
-
-    metrics = ["accuracy", "f1"]
-    metric_labels = {"accuracy": "Accuracy", "f1": "F1 Score"}
-
-    targets = df_full["target"].unique()
-
-    for metric in metrics:
-        fig, ax = plt.subplots(figsize=(14, 8))
-        total_width = 0.8
-        single_width = total_width / len(targets)
-
-        for idx, target in enumerate(targets):
-            # target = f"""['{target.replace(" & ", "', '")}']"""
-            sub_df = df_full[df_full["target"] == target]
-            mean = sub_df[f"{metric}_mean"].values
-            error = sub_df[f"{metric}_hb"].values - mean
-
-            positions = (
-                np.arange(len(mean))
-                - (total_width - single_width) / 2
-                + idx * single_width
-            )
-
-            ax.bar(
-                positions,
-                mean,
-                single_width,
-                label=target,
-                color=colors[idx],
-                yerr=error,
-                capsize=5,
-            )
-
-        ax.set_ylabel(metric_labels[metric])
-        ax.set_title(
-            f"Comparison of Best Models by Target Combination ({metric})"
-        )
-        ax.set_xticks(range(len(target_combinations)))
-        ax.set_xticklabels(abbreviated_target_combinations)
-        # ax.legend(title="Model Targets", bbox_to_anchor=(1.05, 1), loc='upper left')
-        plt.tight_layout()
-
-        plt.savefig(f"plots/results/02_{metric}_multioutput.png")
-
-
-def plot_exp_3(df_one, df_multi):
-    """Compare whether nmr-only is set to true or false
-    plot for X3 (best one target model) the bar plot with/without ligands
-    plot for metal & E & X3 (best multi target model) the bar plot with/withut ligands
-    legens also below the plot itself
-    """
-    df_combined = pd.concat([df_one, df_multi])
-    full_df = df_combined[df_combined["dataset_fraction"] == 1]
-
-    models = full_df["model"].unique()
-    for model in models:
-        sub_df = full_df[full_df["model"] == model]
-        print(sub_df)
+    for model in ["random_forest"]:
+        sub_df = true_df[true_df["model"] == model]
         plot_bar(
             sub_df,
-            title=f"Accuracy for {model} Predictions",
-            filename=f"plots/03_accuracy_{model}.png",
+            title="Single-Output vs. Multi-Output Model (Accuracy)",
+            filename=f"plots/results/02_accuracy_{model}.png",
             metric="accuracy",
             iterative_column="target",
             xdata="xlabel",
         )
         plot_bar(
             sub_df,
-            title=f"F1-Score for {model} Predictions",
-            filename=f"plots/03_f1-score_{model}.png",
+            title="Single-Output vs. Multi-Output Model (F1 Score)",
+            filename=f"plots/results/02_f1-score_{model}.png",
             metric="f1",
             iterative_column="target",
             xdata="xlabel",
         )
-    return
+
+
+# def plot_exp_3(df_one, df_multi):
+#     """Compare whether nmr-only is set to true or false
+#     plot for X3 (best one target model) the bar plot with/without ligands
+#     plot for metal & E & X3 (best multi target model) the bar plot with/withut ligands
+#     legens also below the plot itself
+#     """
+#     df_combined = pd.concat([df_one, df_multi])
+#     full_df = df_combined[df_combined["dataset_fraction"] == 1]
+
+#     models = full_df["model"].unique()
+#     for model in models:
+#         sub_df = full_df[full_df["model"] == model]
+#         print(sub_df)
+#         plot_bar(
+#             sub_df,
+#             title=f"Accuracy for {model} Predictions",
+#             filename=f"plots/03_accuracy_{model}.png",
+#             metric="accuracy",
+#             iterative_column="target",
+#             xdata="xlabel",
+#         )
+#         plot_bar(
+#             sub_df,
+#             title=f"F1-Score for {model} Predictions",
+#             filename=f"plots/03_f1-score_{model}.png",
+#             metric="f1",
+#             iterative_column="target",
+#             xdata="xlabel",
+#         )
+#     return
 
 
 # Setup parser
@@ -388,4 +335,3 @@ if __name__ == "__main__":
     )
     plot_exp_1(df_base, df_one)
     plot_exp_2(df_one, df_multi)
-    # plot_exp_3(df_one, df_multi)
