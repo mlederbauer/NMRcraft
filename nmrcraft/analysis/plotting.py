@@ -237,12 +237,12 @@ def plot_bar(
 
     def convert_to_labels(target_list):
         label_dict = {
-            "metal": "M",
+            "metal": "Metal",
             "E_ligand": "E",
             "X3_ligand": "X3",
             "lig": "\n  (ligands input)",
         }
-        return ", ".join([label_dict[i] for i in target_list])
+        return " & ".join([label_dict[i] for i in target_list])
 
     # Convert string representations of lists to actual lists
     data["model_targets"] = data["model_targets"].apply(
@@ -271,25 +271,56 @@ def plot_bar(
     # Pivot the aggregated data
     new_df = aggregated_data.pivot(
         index="xlabel", columns="target", values=metric + "_mean"
-    )
+    ).loc[
+        [
+            "Metal",
+            "E",
+            "X3",
+            "Metal & E",
+            "Metal & X3",
+            "X3 & E",
+            "Metal & E & X3",
+        ]
+    ]
+    print(new_df)
     new_lb = aggregated_data_lb.pivot(
         index="xlabel", columns="target", values=metric + "_lb"
-    )
+    ).loc[
+        [
+            "Metal",
+            "E",
+            "X3",
+            "Metal & E",
+            "Metal & X3",
+            "X3 & E",
+            "Metal & E & X3",
+        ]
+    ]
     new_hb = aggregated_data_hb.pivot(
         index="xlabel", columns="target", values=metric + "_hb"
-    )
+    ).loc[
+        [
+            "Metal",
+            "E",
+            "X3",
+            "Metal & E",
+            "Metal & X3",
+            "X3 & E",
+            "Metal & E & X3",
+        ]
+    ]
 
-    fig, ax = plt.subplots()
-    width = 0.2  # width of the bar
+    fig, ax = plt.subplots(figsize=(14, 8))
+    width = 0.28  # width of the bar
     x = np.arange(len(new_df.index))
 
     # Plotting each column (target) as a separate group
-    for i, column in enumerate(new_df.columns):
+    for i, column in enumerate(["metal", "E_ligand", "X3_ligand"]):
         ax.bar(
             x + i * width,
             new_df[column],
             width,
-            color=colors[i],
+            color=colors[i * 2],
             label=column,
             yerr=[
                 new_df[column] - new_lb[column],
@@ -298,13 +329,23 @@ def plot_bar(
             capsize=5,
         )
 
-    ax.set_ylabel(f"{metric}")
-    ax.set_ylim(0, 1.2)
+    ax.set_ylabel(
+        "Accuracy" if metric == "accuracy" else "F1 Score", fontsize=25
+    )
+    plt.yticks(fontsize=20)
+    plt.xticks(fontsize=20)
+    ax.set_ylim(0, 1.0)
     ax.set_xticks(x + width * (len(new_df.columns) - 1) / 2)
-    ax.set_xticklabels(new_df.index, rotation=45, ha="right")
-    ax.set_title(title)
-    ax.legend()
-    plt.grid(True, "major", "y", ls="--", lw=0.5, c="k", alpha=0.3)
+    ax.set_xticklabels(new_df.index, rotation=45, fontsize=20)
+    ax.set_title(title, fontsize=25, pad=20)
+    ax.legend(
+        title="Target",
+        bbox_to_anchor=(1.05, 0.5),
+        loc="center left",
+        borderaxespad=0.0,
+        fontsize=20,
+    )
+    plt.grid(False)
     fig.tight_layout()
     plt.savefig(filename)
     plt.close()
