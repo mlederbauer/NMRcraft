@@ -311,7 +311,7 @@ def plot_bar(
     ]
 
     fig, ax = plt.subplots(figsize=(14, 8))
-    width = 0.28  # width of the bar
+    width = 0.25  # width of the bar
     x = np.arange(len(new_df.index))
 
     # Plotting each column (target) as a separate group
@@ -330,21 +330,21 @@ def plot_bar(
         )
 
     ax.set_ylabel(
-        "Accuracy" if metric == "accuracy" else "F1 Score", fontsize=25
+        "Accuracy" if metric == "accuracy" else "F1 Score", fontsize=30
     )
-    plt.yticks(fontsize=20)
-    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=30)
+    plt.xticks(fontsize=30)
     ax.set_ylim(0, 1.0)
     ax.set_xticks(x + width * (len(new_df.columns) - 1) / 2)
-    ax.set_xticklabels(new_df.index, rotation=45, fontsize=20)
-    ax.set_title(title, fontsize=25, pad=20)
-    ax.legend(
-        title="Target",
-        bbox_to_anchor=(1.05, 0.5),
-        loc="center left",
-        borderaxespad=0.0,
-        fontsize=20,
-    )
+    ax.set_xticklabels(new_df.index, rotation=45, fontsize=30)
+    ax.set_title(title, fontsize=35, pad=20)
+    # ax.legend(
+    #     title="Target",
+    #     bbox_to_anchor=(1.05, 0.5),
+    #     loc="center left",
+    #     borderaxespad=0.0,
+    #     fontsize=20,
+    # )
     plt.grid(False)
     fig.tight_layout()
     plt.savefig(filename)
