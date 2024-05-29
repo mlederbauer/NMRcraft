@@ -24,84 +24,107 @@ def load_results(results_dir: str, baselines_dir: str, max_evals: int):
     return df_base, df_one, df_multi
 
 
-def plot_exp_1(df_base: pd.DataFrame, df_one: pd.DataFrame):
-    """Compare single output models with baselines for accuracy/f1-score as a function of dataset size."""
+def plot_exp_1(
+    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "f1"
+):
+    """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
+
+    Args:
+        df_base (pd.DataFrame): Baseline data frame.
+        df_one (pd.DataFrame): Single output data frame.
+        metric (str): The metric to plot ('accuracy' or 'f1').
+    """
+
     # Initialize the plot style and colors
     cmap, colors, all_colors = style_setup()
     del cmap, all_colors
-    df = pd.concat([df_base, df_one])
+    df_full = pd.concat([df_base, df_one])
 
-    models = df["model"].unique()
-    dataset_fractions = df["dataset_fraction"].unique()
+    # Get targets
+    targets = df_full["target"].unique()
 
-    # Sort the dataset fractions to ensure consistent plotting
-    dataset_fractions = np.sort(dataset_fractions)
+    for target in targets:
+        # Restrict the dataframe to the given target
+        df = df_full[df_full["target"] == target]
 
-    # Set up the plot
-    fig, ax = plt.subplots(figsize=(12, 8))
+        models = df["model"].unique()
+        dataset_fractions = df["dataset_fraction"].unique()
 
-    # Bar width
-    total_width = 0.8
-    single_width = total_width / len(models)
+        # Set the appropriate metric columns based on the input argument
+        metric_mean = f"{metric}_mean"
+        metric_lb = f"{metric}_lb"
+        metric_hb = f"{metric}_hb"
 
-    # Create a bar for each model/dataset fraction
-    for idx, model in enumerate(models):
-        means = []
-        error_up = []
-        error_down = []
-        for fraction in dataset_fractions:
-            # Filter data for each model and fraction
-            subset = df[
-                (df["model"] == model) & (df["dataset_fraction"] == fraction)
-            ]
-            means.append(subset["accuracy_mean"].values[0])
-            error_down.append(
-                subset["accuracy_mean"].values[0]
-                - subset["accuracy_lb"].values[0]
+        # Sort the dataset fractions to ensure consistent plotting
+        dataset_fractions = np.sort(dataset_fractions)
+
+        # Set up the plot
+        fig, ax = plt.subplots(figsize=(12, 8))
+
+        # Bar width
+        total_width = 0.8
+        single_width = total_width / len(models)
+
+        # Create a bar for each model/dataset fraction
+        for idx, model in enumerate(models):
+            means = []
+            error_up = []
+            error_down = []
+            for fraction in dataset_fractions:
+                # Filter data for each model and fraction
+                subset = df[
+                    (df["model"] == model)
+                    & (df["dataset_fraction"] == fraction)
+                ]
+                means.append(subset[metric_mean].values[0])
+                error_down.append(
+                    subset[metric_mean].values[0] - subset[metric_lb].values[0]
+                )
+                error_up.append(
+                    subset[metric_hb].values[0] - subset[metric_mean].values[0]
+                )
+
+            # Positioning of each group of bars
+            positions = (
+                np.arange(len(dataset_fractions))
+                - (total_width - single_width) / 2
+                + idx * single_width
             )
-            error_up.append(
-                subset["accuracy_hb"].values[0]
-                - subset["accuracy_mean"].values[0]
+
+            # Plotting the bars
+            ax.bar(
+                positions,
+                means,
+                color=colors[idx],
+                width=single_width,
+                label=model,
+                yerr=[error_down, error_up],
+                capsize=5,
             )
 
-        # Positioning of each group of bars
-        positions = (
-            np.arange(len(dataset_fractions))
-            - (total_width - single_width) / 2
-            + idx * single_width
+        # Adding labels and titles
+        ax.set_xticks(np.arange(len(dataset_fractions)))
+        ax.set_xticklabels(dataset_fractions)
+        ax.set_xlabel("Dataset Size")
+        if metric == "f1":
+            ax.set_ylabel("F1 Score")
+        else:
+            ax.set_ylabel("Accuracy")
+        ax.set_title(f"Model Performance by Dataset Size for {target}")
+
+        # Adding the legend on the right side
+        ax.legend(
+            title="Model",
+            bbox_to_anchor=(1.05, 0.5),
+            loc="center left",
+            borderaxespad=0.0,
         )
 
-        # Plotting the bars
-        ax.bar(
-            positions,
-            means,
-            color=colors[idx],
-            width=single_width,
-            label=model,
-            yerr=[error_down, error_up],
-            capsize=5,
-        )
+        # Adjust the plot layout to accommodate the legend
+        fig.subplots_adjust(right=0.75)
 
-    # Adding labels and titles
-    ax.set_xticks(np.arange(len(dataset_fractions)))
-    ax.set_xticklabels(dataset_fractions)
-    ax.set_xlabel("Dataset Size")
-    ax.set_ylabel("Accuracy")
-    ax.set_title("Model Performance by Dataset Size")
-
-    # Adding the legend on the right side
-    ax.legend(
-        title="Model",
-        bbox_to_anchor=(1.05, 0.5),
-        loc="center left",
-        borderaxespad=0.0,
-    )
-
-    # Adjust the plot layout to accommodate the legend
-    fig.subplots_adjust(right=0.75)
-
-    # Show plot
-    plt.savefig("yeet.png")
+        # Show plot
+        plt.savefig(f"yeet{target}.png")
 
 
 def plot_exp_2(df_one, df_multi):
