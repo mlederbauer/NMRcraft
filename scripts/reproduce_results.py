@@ -100,6 +100,16 @@ def run_multi_target_experiments(max_evals):
         )
 
 
+def plot_results(script_name: str):
+    cmd = ["python", script_name]
+    print("---------------------------------------------------")
+    print(f"Running command: {' '.join(cmd)}")
+    print("---------------------------------------------------")
+
+    # pylint: disable=subprocess-run-check
+    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run reproducibility script for all experiments."
@@ -115,10 +125,7 @@ def main():
     # run baselines
     run_one_target_experiments(args.max_evals)
     run_multi_target_experiments(args.max_evals)
-    # plot the data
-    # plot exp 1
-    # plot exp 2
-    # plot exp 3
+    plot_results("scripts/analysis/visualize_results.py")
 
 
 if __name__ == "__main__":
