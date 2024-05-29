@@ -27,6 +27,12 @@ def style_setup():
     plt.style.use("./style.mplstyle")
     plt.rcParams["text.latex.preamble"] = r"\usepackage{sansmathfonts}"
     plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
+    plt.rcParams["font.size"] = 20  # Set default font size
+    plt.rcParams["axes.titlesize"] = 20  # Title font size
+    plt.rcParams["axes.labelsize"] = 20  # X and Y label font size
+    plt.rcParams["xtick.labelsize"] = 14  # X tick label font size
+    plt.rcParams["ytick.labelsize"] = 14  # Y tick label font size
+    plt.rcParams["legend.fontsize"] = 12  # Legend font size
 
     all_colors = [
         plt.rcParams["axes.prop_cycle"].by_key()["color"][i]

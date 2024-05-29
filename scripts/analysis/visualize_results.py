@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from nmrcraft.analysis.plotting import plot_bar, plot_metric, style_setup
+from nmrcraft.analysis.plotting import plot_bar, style_setup
 
 
 def load_results(results_dir: str, baselines_dir: str, max_evals: int):
@@ -24,7 +24,7 @@ def load_results(results_dir: str, baselines_dir: str, max_evals: int):
     return df_base, df_one, df_multi
 
 
-def plot_exp_1_twedition(df_base: pd.DataFrame, df_one: pd.DataFrame):
+def plot_exp_1(df_base: pd.DataFrame, df_one: pd.DataFrame):
     """Compare single output models with baselines for accuracy/f1-score as a function of dataset size."""
     # Initialize the plot style and colors
     cmap, colors, all_colors = style_setup()
@@ -98,43 +98,10 @@ def plot_exp_1_twedition(df_base: pd.DataFrame, df_one: pd.DataFrame):
     )
 
     # Adjust the plot layout to accommodate the legend
-    fig.subplots_adjust(right=0.5)
+    fig.subplots_adjust(right=0.75)
 
     # Show plot
     plt.savefig("yeet.png")
-
-
-def plot_exp_1(df_base, df_one):
-    """Compare single output models with baselines for accuracy/f1-score as a function of dataset size."""
-    # x axis = datase size
-    # y axis = accuracy or f1 score
-    # legend on the bottom of the plot (below the plot itself)
-    # color according to the used model
-    # use bar plots for one dataset_size and put them next to each other
-
-    df_combined = pd.concat([df_base, df_one])
-
-    targets = df_combined["target"].unique()
-    for target in targets:
-        sub_df = df_combined[df_combined["target"] == target]
-        print(sub_df)
-        plot_metric(
-            sub_df,
-            title=f"Accuracy of {target} Prediction",
-            filename=f"plots/01_accuracy_{target}.png",
-            metric="accuracy",
-            iterative_column="model",
-            xdata="dataset_fraction",
-        )
-        plot_metric(
-            sub_df,
-            title=f"F1-Score of {target} Prediction",
-            filename=f"plots/01_f1-score_{target}.png",
-            metric="f1",
-            iterative_column="model",
-            xdata="dataset_fraction",
-        )
-    return
 
 
 def plot_exp_2(df_one, df_multi):
@@ -251,7 +218,7 @@ if __name__ == "__main__":
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
-    plot_exp_1_twedition(df_base, df_one)
+    plot_exp_1(df_base, df_one)
     # plot_exp_1(df_base, df_one)
     # plot_exp_2(df_one, df_multi)
     # plot_exp_3(df_one, df_multi)
