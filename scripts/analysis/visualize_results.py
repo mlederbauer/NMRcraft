@@ -143,9 +143,18 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument(
     "--max_evals",
+    "-me",
     type=int,
     default=100,
     help="How many max_evals the analysed data has",
+)
+
+parser.add_argument(
+    "--results_dir",
+    "-rd",
+    type=str,
+    default="metrics/multi_evals/",
+    help="What directory the results are in",
 )
 # Add arguments
 args = parser.parse_args()
@@ -156,7 +165,7 @@ if __name__ == "__main__":
         os.makedirs("./plots/results/")
 
     df_base, df_one, df_multi = load_results(
-        results_dir="metrics/20eval/",
+        results_dir=args.results_dir,
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
