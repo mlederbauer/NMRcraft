@@ -24,7 +24,7 @@ def load_results(results_dir: str, baselines_dir: str, max_evals: int):
 
 
 def plot_exp_1(
-    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "f1"
+    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "accuracy"
 ):
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
@@ -125,11 +125,11 @@ def plot_exp_1(
         fig.subplots_adjust(right=0.75)
 
         # Show plot
-        plt.savefig(f"plots/results/plot{target}.png")
+        plt.savefig(f"plots/results/01_{target}_{metric}.png")
 
 
 def plot_exp_1_multi(
-    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "f1"
+    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "accuracy"
 ):
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
@@ -224,7 +224,7 @@ def plot_exp_1_multi(
             borderaxespad=0.0,
         )
         fig.subplots_adjust(right=0.75)
-        plt.savefig(f"plots/results/plot{target}_multioutput.png")
+        plt.savefig(f"plots/results/01_{target}_{metric}_multioutput.png")
 
 
 def plot_exp_2(df_one, df_multi):
@@ -310,8 +310,7 @@ def plot_exp_2(df_one, df_multi):
 
         # Show the plot
         plt.tight_layout()
-        plt.savefig(f"{metric}_comparison_plot.png")
-        pass
+        plt.savefig(f"plots/results/02_{target}_{metric}_multioutput.png")
 
 
 def plot_exp_3(df_one, df_multi):
@@ -380,7 +379,6 @@ if __name__ == "__main__":
         max_evals=args.max_evals,
     )
     plot_exp_1(df_base, df_one)
-    plot_exp_1_multi(df_base, df_multi)
-    # plot_exp_1(df_base, df_one)
-    # plot_exp_2(df_one, df_multi)
+    # plot_exp_1_multi(df_base, df_multi)
+    plot_exp_2(df_one, df_multi)
     # plot_exp_3(df_one, df_multi)
