@@ -58,7 +58,7 @@ def plot_exp_1(
         dataset_fractions = np.sort(dataset_fractions)
 
         # Set up the plot
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax = plt.subplots(figsize=(14, 8))
 
         # Bar width
         total_width = 0.8
@@ -105,13 +105,18 @@ def plot_exp_1(
         # Adding labels and titles
         ax.set_xticks(np.arange(len(dataset_fractions)))
         ax.set_xticklabels(dataset_fractions)
-        ax.set_xlabel("Dataset Size")
+        plt.xticks(fontsize=25)
+        ax.set_xlabel("Dataset Size", fontsize=25)
+        plt.yticks(fontsize=25)
         if metric == "f1":
-            ax.set_ylabel("F1 Score")
+            ax.set_ylabel("F1 Score", fontsize=25)
         else:
-            ax.set_ylabel("Accuracy")
+            ax.set_ylabel("Accuracy", fontsize=25)
         target_clean = target.replace("_", " ")
-        ax.set_title(f"Model Performance by Dataset Size for {target_clean}")
+        ax.set_title(
+            f"Model Performance by Dataset Size for {target_clean}",
+            fontsize=35,
+        )
 
         # Adding the legend on the right side
         ax.legend(
@@ -119,10 +124,12 @@ def plot_exp_1(
             bbox_to_anchor=(1.05, 0.5),
             loc="center left",
             borderaxespad=0.0,
+            fontsize=20,
         )
 
         # Adjust the plot layout to accommodate the legend
         fig.subplots_adjust(right=0.75)
+        plt.tight_layout()
 
         # Show plot
         plt.savefig(f"plots/results/01_{target}_{metric}.png")
@@ -161,7 +168,7 @@ def plot_exp_1_multi(
         metric_hb = f"{metric}_hb"
         dataset_fractions = np.sort(dataset_fractions)
 
-        fig, ax = plt.subplots(figsize=(12, 8))
+        fig, ax = plt.subplots(figsize=(15, 8))
         total_width = 0.8
         single_width = total_width / len(model_ids)
 
@@ -211,25 +218,38 @@ def plot_exp_1_multi(
 
         ax.set_xticks(np.arange(len(dataset_fractions)))
         ax.set_xticklabels(dataset_fractions)
-        ax.set_xlabel("Dataset Size")
-        ax.set_ylabel("F1 Score" if metric == "f1" else "Accuracy")
+        ax.set_xlabel("Dataset Size", fontsize=25)
+        plt.xticks(fontsize=25)
+        ax.set_ylabel(
+            "F1 Score" if metric == "f1" else "Accuracy", fontsize=25
+        )
+        plt.yticks(fontsize=25)
         target_clean = target.replace("_", " ").capitalize()
-        ax.set_title(f"Model Performance by Dataset Size for {target_clean}")
+        ax.set_title(
+            f"Model Performance by Dataset Size for {target_clean}",
+            fontsize=35,
+        )
 
         ax.legend(
             title="Model",
             bbox_to_anchor=(1.05, 0.5),
             loc="center left",
             borderaxespad=0.0,
+            fontsize=20,
         )
         fig.subplots_adjust(right=0.75)
+        plt.tight_layout()
         plt.savefig(f"plots/results/01_{target}_{metric}_multioutput.png")
 
 
 def plot_exp_2(df_one, df_multi):
     """Compare the best single-output model to the best multi-output model for each target category."""
     df_combined = pd.concat([df_one, df_multi])
-    df_full = df_combined[df_combined["dataset_fraction"] == 1.0]
+    df_full = df_combined[
+        (df_combined["dataset_fraction"] == 1.0)
+        & (df_combined["model"] == "random_forest")
+        & (df_combined["nmr_only"])
+    ]
 
     target_combinations = [
         "metal",
@@ -260,22 +280,31 @@ def plot_exp_2(df_one, df_multi):
     metrics = ["accuracy", "f1"]
     metric_labels = {"accuracy": "Accuracy", "f1": "F1 Score"}
 
+    targets = df_full["target"].unique()
+
     for metric in metrics:
         fig, ax = plt.subplots(figsize=(14, 8))
-        bar_width = 0.15
+        total_width = 0.8
+        single_width = total_width / len(targets)
 
-        for idx, target in enumerate(target_combinations):
-            target = f"""['{target.replace(" & ", "', '")}']"""
-            sub_df = df_full[df_full["model_targets"] == target]
+        for idx, target in enumerate(targets):
+            # target = f"""['{target.replace(" & ", "', '")}']"""
+            sub_df = df_full[df_full["target"] == target]
             mean = sub_df[f"{metric}_mean"].values
             error = sub_df[f"{metric}_hb"].values - mean
 
+            positions = (
+                np.arange(len(mean))
+                - (total_width - single_width) / 2
+                + idx * single_width
+            )
+
             ax.bar(
-                idx,
+                positions,
                 mean,
-                bar_width,
+                single_width,
                 label=target,
-                color=colors[idx % len(colors)],
+                color=colors[idx],
                 yerr=error,
                 capsize=5,
             )
