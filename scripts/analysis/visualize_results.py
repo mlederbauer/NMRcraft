@@ -2,9 +2,11 @@ import argparse
 import ast
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
-from nmrcraft.analysis.plotting import plot_bar, plot_metric
+from nmrcraft.analysis.plotting import plot_bar, plot_metric, style_setup
 
 
 def load_results(results_dir: str, baselines_dir: str, max_evals: int):
@@ -20,6 +22,86 @@ def load_results(results_dir: str, baselines_dir: str, max_evals: int):
     df_multi = pd.read_csv(import_filename_multi)
     df_multi = df_multi[df_multi["max_evals"] == max_evals]
     return df_base, df_one, df_multi
+
+
+def plot_exp_1_twedition(df_base: pd.DataFrame, df_one: pd.DataFrame):
+    """Compare single output models with baselines for accuracy/f1-score as a function of dataset size."""
+    # Initialize the plot style and colors
+    cmap, colors, all_colors = style_setup()
+    del cmap, all_colors
+    df = pd.concat([df_base, df_one])
+
+    models = df["model"].unique()
+    dataset_fractions = df["dataset_fraction"].unique()
+
+    # Sort the dataset fractions to ensure consistent plotting
+    dataset_fractions = np.sort(dataset_fractions)
+
+    # Set up the plot
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Bar width
+    total_width = 0.8
+    single_width = total_width / len(models)
+
+    # Create a bar for each model/dataset fraction
+    for idx, model in enumerate(models):
+        means = []
+        error_up = []
+        error_down = []
+        for fraction in dataset_fractions:
+            # Filter data for each model and fraction
+            subset = df[
+                (df["model"] == model) & (df["dataset_fraction"] == fraction)
+            ]
+            means.append(subset["accuracy_mean"].values[0])
+            error_down.append(
+                subset["accuracy_mean"].values[0]
+                - subset["accuracy_lb"].values[0]
+            )
+            error_up.append(
+                subset["accuracy_hb"].values[0]
+                - subset["accuracy_mean"].values[0]
+            )
+
+        # Positioning of each group of bars
+        positions = (
+            np.arange(len(dataset_fractions))
+            - (total_width - single_width) / 2
+            + idx * single_width
+        )
+
+        # Plotting the bars
+        ax.bar(
+            positions,
+            means,
+            color=colors[idx],
+            width=single_width,
+            label=model,
+            yerr=[error_down, error_up],
+            capsize=5,
+        )
+
+    # Adding labels and titles
+    ax.set_xticks(np.arange(len(dataset_fractions)))
+    ax.set_xticklabels(dataset_fractions)
+    ax.set_xlabel("Dataset Size")
+    ax.set_ylabel("Accuracy")
+    ax.set_title("Model Performance by Dataset Size")
+
+    # Adding the legend on the right side
+    ax.legend(
+        title="Model",
+        bbox_to_anchor=(1.05, 0.5),
+        loc="center left",
+        borderaxespad=0.0,
+    )
+
+    # Adjust the plot layout to accommodate the legend
+    fig.subplots_adjust(right=0.5)
+
+    # Show plot
+    plt.savefig("yeet.png")
 
 
 def plot_exp_1(df_base, df_one):
@@ -169,7 +251,7 @@ if __name__ == "__main__":
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
-
-    plot_exp_1(df_base, df_one)
-    plot_exp_2(df_one, df_multi)
-    plot_exp_3(df_one, df_multi)
+    plot_exp_1_twedition(df_base, df_one)
+    # plot_exp_1(df_base, df_one)
+    # plot_exp_2(df_one, df_multi)
+    # plot_exp_3(df_one, df_multi)
