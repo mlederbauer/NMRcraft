@@ -1,8 +1,8 @@
 """Functions to plot."""
 
+import ast
 import os
 
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 from cycler import cycler
@@ -13,12 +13,26 @@ from scipy.stats import gaussian_kde
 
 def style_setup():
     """Function to set up matplotlib parameters."""
-    colors = ["#C28340", "#854F2B", "#61371F", "#8FCA5C", "#70B237", "#477A1E"]
+    colors = [
+        "#C28340",
+        "#854F2B",
+        "#61371F",
+        "#8FCA5C",
+        "#70B237",
+        "#477A1E",
+        "#3B661A",
+    ]
     cmap = LinearSegmentedColormap.from_list("custom", colors)
 
     plt.style.use("./style.mplstyle")
     plt.rcParams["text.latex.preamble"] = r"\usepackage{sansmathfonts}"
     plt.rcParams["axes.prop_cycle"] = cycler(color=colors)
+    plt.rcParams["font.size"] = 20  # Set default font size
+    plt.rcParams["axes.titlesize"] = 20  # Title font size
+    plt.rcParams["axes.labelsize"] = 20  # X and Y label font size
+    plt.rcParams["xtick.labelsize"] = 14  # X tick label font size
+    plt.rcParams["ytick.labelsize"] = 14  # Y tick label font size
+    plt.rcParams["legend.fontsize"] = 12  # Legend font size
 
     all_colors = [
         plt.rcParams["axes.prop_cycle"].by_key()["color"][i]
@@ -108,7 +122,7 @@ def plot_confusion_matrix(
     """
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-    # _, _, _ = style_setup()
+    cmap, _, _ = style_setup()
     for target in y_labels:
         file_path = os.path.join(
             folder_path,
@@ -117,7 +131,7 @@ def plot_confusion_matrix(
         cm = cm_list[target]
         classes = y_labels[target]
         plt.figure(figsize=(10, 8))
-        plt.imshow(cm, interpolation="nearest", cmap=plt.cm.Blues)
+        plt.imshow(cm, interpolation="nearest", cmap=cmap)
         plt.title(f"{target} Confusion Matrix")
         plt.colorbar()
         tick_marks = np.arange(len(classes))
@@ -159,73 +173,185 @@ def plot_roc_curve(fpr, tpr, roc_auc, title, path):
     plt.close()
 
 
-def plot_with_without_ligands_bar(df):
-    categories = df["target"].unique()
-    _, _, colors = style_setup()
-    first_color = colors[0]
-    second_color = colors[1]
+def plot_metric(
+    data,
+    title="Accuracy",
+    filename="plots/accuracy.png",
+    metric="accuracy",
+    iterative_column="model",
+    xdata="dataset_fraction",
+):
+    _, colors, _ = style_setup()
+    if iterative_column == "target":
 
-    # Extract data
+        def convert_to_labels(target_list):
+            label_dict = {"metal": "M", "E_ligand": "E", "X3_ligand": "X3"}
+            return ", ".join([label_dict[i] for i in target_list])
 
-    x_pos = np.arange(len(categories))
-    bar_width = 0.35
-
-    # Initialize plot
-    fig, ax = plt.subplots()
-
-    # Loop through each category and plot bars
-    for i, category in enumerate(categories):
-        subset = df[df["target"] == category]
-
-        # Means and error bars
-        means = subset["accuracy_mean"].values
-        errors = [
-            subset["accuracy_mean"].values
-            - subset["accuracy_lower_bd"].values,
-            subset["accuracy_upper_bd"].values
-            - subset["accuracy_mean"].values,
-        ]
-
-        # Bar locations for the group
-        bar_positions = x_pos[i] + np.array([-bar_width / 2, bar_width / 2])
-
-        # Determine bar colors based on 'nmr_tensor_input_only' field
-        bar_colors = [
-            first_color if x else second_color
-            for x in subset["nmr_tensor_input_only"]
-        ]
-
-        # Plotting the bars
-        ax.bar(
-            bar_positions,
-            means,
-            yerr=np.array(errors),
-            color=bar_colors,
-            align="center",
-            ecolor="black",
-            capsize=5,
-            width=bar_width,
+        # Convert string representations of lists to actual lists
+        data["model_targets"] = data["model_targets"].apply(
+            lambda x: ast.literal_eval(x) if isinstance(x, str) else x
         )
 
-    # Labeling and aesthetics
-    ax.set_ylabel("Accuracy / %")
-    ax.set_xlabel("Target(s)")
-    ax.set_xticks(x_pos)
-    ax.set_xticklabels(categories)
-    ax.set_title("Accuracy Measurements with Error Bars")
+        data["xlabel"] = data["model_targets"].apply(convert_to_labels)
+        print(data)
 
-    handles = [
-        mpatches.Patch(color=first_color, label="With Ligand Info"),
-        mpatches.Patch(color=second_color, label="Without Ligand Info"),
+    for i, iterator in enumerate(data[iterative_column].unique()):
+        model_data = data[data[iterative_column] == iterator]
+        errors = [
+            model_data[metric + "_mean"].values
+            - model_data[metric + "_lb"].values,
+            model_data[metric + "_hb"].values
+            - model_data[metric + "_mean"].values,
+        ]
+        plt.errorbar(
+            model_data[xdata],
+            model_data[metric + "_mean"],
+            yerr=errors,
+            fmt="o-",
+            label=iterator,
+            color=colors[i],
+            capsize=5,
+        )
+    plt.legend()
+    plt.title(title)
+    plt.grid(True)
+    if iterative_column == "model":
+        plt.xlim(0, 1)
+        plt.ylim(0, 1.2)
+    plt.xlabel("Dataset Size")
+    plt.ylabel(metric)
+    plt.savefig(filename)
+    plt.close()
+
+
+def plot_bar(
+    data,
+    title="Accuracy",
+    filename="plots/accuracy.png",
+    metric="accuracy",
+    iterative_column="model",
+    xdata="dataset_fraction",
+):
+    _, colors, _ = style_setup()
+
+    def convert_to_labels(target_list):
+        label_dict = {
+            "metal": "Metal",
+            "E_ligand": "E",
+            "X3_ligand": "X3",
+            "lig": "\n  (ligands input)",
+        }
+        return " & ".join([label_dict[i] for i in target_list])
+
+    # Convert string representations of lists to actual lists
+    data["model_targets"] = data["model_targets"].apply(
+        lambda x: ast.literal_eval(x) if isinstance(x, str) else x
+    )
+
+    data["xlabel"] = data["model_targets"].apply(convert_to_labels)
+
+    # Aggregate the data to handle duplicates
+    aggregated_data = (
+        data.groupby(["xlabel", "target"])
+        .agg({metric + "_mean": "mean"})
+        .reset_index()
+    )
+    aggregated_data_lb = (
+        data.groupby(["xlabel", "target"])
+        .agg({metric + "_lb": "mean"})
+        .reset_index()
+    )
+    aggregated_data_hb = (
+        data.groupby(["xlabel", "target"])
+        .agg({metric + "_hb": "mean"})
+        .reset_index()
+    )
+
+    # Pivot the aggregated data
+    new_df = aggregated_data.pivot(
+        index="xlabel", columns="target", values=metric + "_mean"
+    ).loc[
+        [
+            "Metal",
+            "E",
+            "X3",
+            "Metal & E",
+            "Metal & X3",
+            "X3 & E",
+            "Metal & E & X3",
+        ]
     ]
-    ax.legend(handles=handles, loc="best", fontsize=20)
-    plt.tight_layout()
-    plt.savefig("plots/exp3_incorporate_ligand_info.png")
-    print("Saved to plots/exp3_incorporate_ligand_info.png")
+    print(new_df)
+    new_lb = aggregated_data_lb.pivot(
+        index="xlabel", columns="target", values=metric + "_lb"
+    ).loc[
+        [
+            "Metal",
+            "E",
+            "X3",
+            "Metal & E",
+            "Metal & X3",
+            "X3 & E",
+            "Metal & E & X3",
+        ]
+    ]
+    new_hb = aggregated_data_hb.pivot(
+        index="xlabel", columns="target", values=metric + "_hb"
+    ).loc[
+        [
+            "Metal",
+            "E",
+            "X3",
+            "Metal & E",
+            "Metal & X3",
+            "X3 & E",
+            "Metal & E & X3",
+        ]
+    ]
+
+    fig, ax = plt.subplots(figsize=(14, 8))
+    width = 0.25  # width of the bar
+    x = np.arange(len(new_df.index))
+
+    # Plotting each column (target) as a separate group
+    for i, column in enumerate(["metal", "E_ligand", "X3_ligand"]):
+        ax.bar(
+            x + i * width,
+            new_df[column],
+            width,
+            color=colors[i * 2],
+            label=column,
+            yerr=[
+                new_df[column] - new_lb[column],
+                new_hb[column] - new_df[column],
+            ],
+            capsize=5,
+        )
+
+    ax.set_ylabel(
+        "Accuracy" if metric == "accuracy" else "F1 Score", fontsize=30
+    )
+    plt.yticks(fontsize=30)
+    plt.xticks(fontsize=30)
+    ax.set_ylim(0, 1.0)
+    ax.set_xticks(x + width * (len(new_df.columns) - 1) / 2)
+    ax.set_xticklabels(new_df.index, rotation=45, fontsize=30)
+    ax.set_title(title, fontsize=35, pad=20)
+    # ax.legend(
+    #     title="Target",
+    #     bbox_to_anchor=(1.05, 0.5),
+    #     loc="center left",
+    #     borderaxespad=0.0,
+    #     fontsize=20,
+    # )
+    plt.grid(False)
+    fig.tight_layout()
+    plt.savefig(filename)
+    plt.close()
 
 
 if __name__ == "main":
     import pandas as pd
 
     df = pd.read_csv("dataset/path_to_results.csv")
-    plot_with_without_ligands_bar(df)
