@@ -7,9 +7,11 @@ from nmrcraft.analysis.plotting import plot_bar, plot_metric
 
 
 def load_results(results_dir: str, baselines_dir: str):
-    import_filename_base = "metrics/results_baselines.csv"
-    import_filename_one = "metrics/20eval/results_one_target.csv"
-    import_filename_multi = "metrics/20eval/results_multi_target.csv"
+    import_filename_base = os.path.join(baselines_dir, "results_baselines.csv")
+    import_filename_one = os.path.join(results_dir, "results_one_target.csv")
+    import_filename_multi = os.path.join(
+        results_dir, "results_multi_target.csv"
+    )
 
     df_base = pd.read_csv(import_filename_base)
     df_one = pd.read_csv(import_filename_one)
