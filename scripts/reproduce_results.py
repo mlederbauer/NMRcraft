@@ -39,6 +39,9 @@ def run_script(script_name, targets, include_structural, max_evals):
         "--max_evals",
         str(max_evals),
     ]
+    print("---------------------------------------------------")
+    print(f"Running command: {' '.join(cmd)}")
+    print("---------------------------------------------------")
 
     # pylint: disable=subprocess-run-check
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
@@ -104,7 +107,7 @@ def main():
     parser.add_argument(
         "--max_evals",
         type=int,
-        default=50,
+        default=1,
         help="Max evaluations for hyperparameter tuning.",
     )
     args = parser.parse_args()
