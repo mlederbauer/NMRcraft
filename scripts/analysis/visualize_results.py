@@ -1,6 +1,7 @@
-import ast
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from nmrcraft.analysis.plotting import plot_bar, plot_metric
@@ -54,52 +55,91 @@ def plot_exp_1(df_base, df_one):
 
 
 def plot_exp_2(df_one, df_multi):
-    """Compare a single-output model to its multi-output model counterpart. For the targets
-    x axis = metal, metal E, metal X3, E X3, metal E X3
-    y axus = accuracy or f1 score
-    use the best one-target/multi-target model for the target to plot
-    and take dataset_size = 1.0
-    use bar plot
+    """Compare the best single-output model to the best multi-output model for each target category.
+    Separate plots for accuracy and F1 score, including upper and lower bounds.
     """
+    # Combine and filter the dataframes
     df_combined = pd.concat([df_one, df_multi])
-    full_df = df_combined[df_combined["dataset_fraction"] == 1]
+    df_full = df_combined[df_combined["dataset_fraction"] == 1.0]
 
-    true_df = full_df[full_df["nmr_only"]]
-    models = true_df["model"].unique()
-    for model in models:
-        sub_df = true_df[true_df["model"] == model]
-        print(sub_df)
-        plot_bar(
-            sub_df,
-            title=f"Accuracy for {model} Predictions",
-            filename=f"plots/02_accuracy_{model}.png",
-            metric="accuracy",
-            iterative_column="target",
-            xdata="xlabel",
+    # Define the target combinations to plot
+    target_combinations = [
+        "metal",
+        "E_ligand",
+        "X3_ligand",
+        "metal & E_ligand",
+        "metal & X3_ligand",
+        "E_ligand & X3_ligand",
+        "metal & E_ligand & X3_ligand",
+    ]
+
+    # Define colors for clarity
+    colors = {"metal": "navy", "E_ligand": "darkorange", "X3_ligand": "green"}
+
+    # Prepare to plot for both Accuracy and F1 score
+    metrics = ["accuracy", "f1"]
+    metric_labels = {"accuracy": "Accuracy", "f1": "F1 Score"}
+
+    # Iterate over each metric to create separate plots
+    for metric in metrics:
+        fig, ax = plt.subplots(figsize=(14, 8))
+        bar_width = 0.05  # Adjusted for multiple bars
+
+        # Process each target combination
+        for idx, target in enumerate(target_combinations):
+            sub_df = df_full[
+                df_full["model_targets"].apply(
+                    lambda x: set(eval(x))  # noqa: S307 PGH001
+                    == set(target.split(" & "))  # noqa: B023
+                )
+            ]
+
+            if not sub_df.empty:
+                # Determine sub-positions for bars within the same main position
+                targets_to_plot = target.split(" & ")
+                sub_positions = np.arange(len(targets_to_plot)) * bar_width + (
+                    idx * 2 * bar_width
+                )
+
+                for sub_idx, target_to_plot in enumerate(targets_to_plot):
+                    best_model = sub_df[
+                        sub_df["target"] == target_to_plot
+                    ].nlargest(1, f"{metric}_mean")
+
+                    if not best_model.empty:
+                        mean = best_model[f"{metric}_mean"].values[0]
+                        lower = mean - best_model[f"{metric}_lb"].values[0]
+                        upper = best_model[f"{metric}_hb"].values[0] - mean
+
+                        # Plot bars with error bars
+                        ax.bar(
+                            sub_positions[sub_idx],
+                            mean,
+                            bar_width,
+                            label=f"{target_to_plot} ({metric})"
+                            if idx == 0 and sub_idx == 0
+                            else "",
+                            color=colors.get(target_to_plot, "grey"),
+                            yerr=[[lower], [upper]],
+                            capsize=5,
+                        )
+
+        # Add labels and legend
+        ax.set_ylabel(metric_labels[metric])
+        ax.set_title(
+            f"Comparison of Best Models by Target Combination ({metric_labels[metric]})"
         )
-        plot_bar(
-            sub_df,
-            title=f"F1-Score for {model} Predictions",
-            filename=f"plots/02_f1-score_{model}.png",
-            metric="f1",
-            iterative_column="target",
-            xdata="xlabel",
+        ax.set_xticks(
+            np.arange(len(target_combinations)) * 2 * bar_width + bar_width
         )
+        ax.set_xticklabels(target_combinations)
+        ax.legend()
 
-    full_df["model_targets"] = full_df["model_targets"].apply(
-        lambda x: ast.literal_eval(x) if isinstance(x, str) else x
-    )
-
-    # Add 'lig' to model_targets if nmr_only is True
-    full_df["model_targets"] = full_df.apply(
-        lambda row: (
-            row["model_targets"] + ["lig"]
-            if not row["nmr_only"]
-            else row["model_targets"]
-        ),
-        axis=1,
-    )
-    return
+        # Show the plot
+        plt.tight_layout()
+        plt.savefig(f"{metric}_comparison_plot.png")
+        plt.savefig("fooo.png")
+        pass
 
 
 def plot_exp_3(df_one, df_multi):
@@ -142,7 +182,6 @@ if __name__ == "__main__":
     df_base, df_one, df_multi = load_results(
         results_dir="metrics/20eval/", baselines_dir="metrics/"
     )
-
     plot_exp_1(df_base, df_one)
     plot_exp_2(df_one, df_multi)
     plot_exp_3(df_one, df_multi)
