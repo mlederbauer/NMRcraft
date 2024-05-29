@@ -65,7 +65,6 @@ def plot_exp_1(
         total_width = 0.8
         single_width = total_width / len(models)
 
-        # Create a bar for each model/dataset fraction
         for idx, model in enumerate(models):
             means = []
             error_up = []
@@ -76,6 +75,14 @@ def plot_exp_1(
                     (df["model"] == model)
                     & (df["dataset_fraction"] == fraction)
                 ]
+                # The following lines are new or modified:
+                # Retrieve the first 'model_targets' value assuming all entries are the same for this 'model'
+                model_targets_str = subset["model_targets"].values[0]
+                # Format the model name and targets for display. You might adjust this formatting as needed.
+                display_label = (
+                    f"{model.replace('_', ' ')}\n ({model_targets_str})"
+                )
+
                 means.append(subset[metric_mean].values[0])
                 error_down.append(
                     subset[metric_mean].values[0] - subset[metric_lb].values[0]
@@ -91,13 +98,13 @@ def plot_exp_1(
                 + idx * single_width
             )
 
-            # Plotting the bars
+            # Plotting the bars. 'label' argument is modified to use 'display_label'.
             ax.bar(
                 positions,
                 means,
                 color=colors[idx],
                 width=single_width,
-                label=model.replace("_", " "),
+                label=display_label,  # This line has been changed to use 'display_label'.
                 yerr=[error_down, error_up],
                 capsize=5,
             )
@@ -125,6 +132,105 @@ def plot_exp_1(
         fig.subplots_adjust(right=0.75)
 
         # Show plot
+        plt.savefig(f"plots/results/plot{target}.png")
+
+
+def plot_exp_1_multi(
+    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "f1"
+):
+    """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
+
+    Args:
+        df_base (pd.DataFrame): Baseline data frame.
+        df_one (pd.DataFrame): Single output data frame.
+        metric (str): The metric to plot ('accuracy' or 'f1').
+    """
+    # Initialize the plot style and colors
+    cmap, colors, all_colors = style_setup()
+    del cmap, all_colors
+    df_full = pd.concat([df_base, df_one])
+
+    # Create a unique identifier for each model based on 'model' and 'model_targets'
+    df_full["model_id"] = df_full.apply(
+        lambda row: f"{row['model']}_{row['model_targets']}", axis=1
+    )
+
+    # Get targets
+    targets = df_full["target"].unique()
+
+    for target in targets:
+        df = df_full[df_full["target"] == target]
+
+        # Use the new 'model_id' for unique identification
+        model_ids = df["model_id"].unique()
+        dataset_fractions = df["dataset_fraction"].unique()
+        metric_mean = f"{metric}_mean"
+        metric_lb = f"{metric}_lb"
+        metric_hb = f"{metric}_hb"
+        dataset_fractions = np.sort(dataset_fractions)
+
+        fig, ax = plt.subplots(figsize=(12, 8))
+        total_width = 0.8
+        single_width = total_width / len(model_ids)
+
+        for idx, model_id in enumerate(model_ids):
+            means = []
+            error_up = []
+            error_down = []
+            for fraction in dataset_fractions:
+                subset = df[
+                    (df["model_id"] == model_id)
+                    & (df["dataset_fraction"] == fraction)
+                ]
+                means.append(subset[metric_mean].values[0])
+                error_down.append(
+                    subset[metric_mean].values[0] - subset[metric_lb].values[0]
+                )
+                error_up.append(
+                    subset[metric_hb].values[0] - subset[metric_mean].values[0]
+                )
+
+            positions = (
+                np.arange(len(dataset_fractions))
+                - (total_width - single_width) / 2
+                + idx * single_width
+            )
+            model_label = (
+                model_id.replace("_", " ")
+                .replace(",", ", ")
+                .replace("[", "")
+                .replace("]", "")
+                .replace("'", "")
+                .capitalize()
+                .replace("metal", "\nmetal")
+                .replace("metal", "Metal")
+                .replace("x3", "X3")
+                .replace(" e ", " E ")
+            )
+            ax.bar(
+                positions,
+                means,
+                color=colors[idx % len(colors)],
+                width=single_width,
+                label=model_label,
+                yerr=[error_down, error_up],
+                capsize=5,
+            )
+
+        ax.set_xticks(np.arange(len(dataset_fractions)))
+        ax.set_xticklabels(dataset_fractions)
+        ax.set_xlabel("Dataset Size")
+        ax.set_ylabel("F1 Score" if metric == "f1" else "Accuracy")
+        target_clean = target.replace("_", " ").capitalize()
+        ax.set_title(f"Model Performance by Dataset Size for {target_clean}")
+
+        ax.legend(
+            title="Model",
+            bbox_to_anchor=(1.05, 0.5),
+            loc="center left",
+            borderaxespad=0.0,
+        )
+        fig.subplots_adjust(right=0.75)
         plt.savefig(f"plots/results/plot{target}.png")
 
 
@@ -243,6 +349,7 @@ if __name__ == "__main__":
         max_evals=args.max_evals,
     )
     plot_exp_1(df_base, df_one)
+    plot_exp_1_multi(df_base, df_multi)
     # plot_exp_1(df_base, df_one)
     # plot_exp_2(df_one, df_multi)
     # plot_exp_3(df_one, df_multi)
