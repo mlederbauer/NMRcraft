@@ -9,6 +9,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
+from sklearn.utils import resample
 
 
 def evaluate_model(
@@ -63,6 +64,50 @@ def evaluate_model(
     return metrics, cm_list
 
 
+def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
+    """
+    Perform bootstrap evaluation of a model on test data.
+
+    This function repeatedly samples with replacement from the test dataset and evaluates
+    the model on these samples. It aggregates the performance metrics across all bootstrap
+    samples to give a robust estimate of the model's generalizability.
+
+    Args:
+        X_test (np.ndarray): The input features of the test data.
+        y_test (np.ndarray): The true labels of the test data.
+        model (object): The model that is being evaluated.
+        targets (List[str]): A list of target variable names.
+        n_times (int, optional): The number of bootstrap samples to generate.
+
+    Returns:
+        Dict[str, Dict[str, List[float]]]: A dictionary containing the computed metrics
+        for each target. Each target's value is another dictionary containing lists
+        of performance scores ('Accuracy' and 'F1') across the bootstrap samples.
+    """
+    bootstrap_metrics: Dict = {}
+    for _ in range(n_times):
+        X_test, y_test = resample(
+            X_test, y_test, replace=True, random_state=42
+        )
+        y_pred = (
+            np.atleast_2d(model.predict(X_test)).T
+            if len(targets) == 1
+            else model.predict(X_test)
+        )
+        metrics, _ = evaluate_model(y_test, y_pred, targets)
+        for target in targets:
+            if target not in bootstrap_metrics:
+                bootstrap_metrics[target] = {
+                    "Accuracy": [],
+                    "F1": [],
+                }
+            bootstrap_metrics[target]["Accuracy"].append(
+                metrics[target]["Accuracy"]
+            )
+            bootstrap_metrics[target]["F1"].append(metrics[target]["F1"])
+    return bootstrap_metrics
+
+
 def metrics_statistics(
     bootstrapped_metrics,
 ):
@@ -82,7 +127,6 @@ def metrics_statistics(
 
         Each element in the list corresponds to a specific set of statistical values related to the performance metrics (accuracy and F1 score) of the bootstrapped models for each target.
     """
-
     Targets = []
     Accuracy_mean = []
     Accuracy_ci = []
