@@ -9,7 +9,6 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
 )
-from sklearn.utils import resample
 
 
 def evaluate_model(
@@ -64,44 +63,26 @@ def evaluate_model(
     return metrics, cm_list
 
 
-def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
-    bootstrap_metrics: Dict = {}
-    for _ in range(n_times):
-        X_test, y_test = resample(
-            X_test, y_test, replace=True, random_state=42
-        )
-        y_pred = (
-            np.atleast_2d(model.predict(X_test)).T
-            if len(targets) == 1
-            else model.predict(X_test)
-        )
-        metrics, _ = evaluate_model(y_test, y_pred, targets)
-        for target in targets:
-            if target not in bootstrap_metrics:
-                bootstrap_metrics[target] = {
-                    "Accuracy": [],
-                    "F1": [],
-                }
-            bootstrap_metrics[target]["Accuracy"].append(
-                metrics[target]["Accuracy"]
-            )
-            bootstrap_metrics[target]["F1"].append(metrics[target]["F1"])
-    return bootstrap_metrics
-
-
 def metrics_statistics(
     bootstrapped_metrics,
-):  # TODO: Handle what to do when there are more than one target -> unify scores or return splitted
-    """
-    Do statistics with the bootsrapped metrics
+):
+    """Calculate the statistical summary of bootstrapped evaluation metrics with F1 score and Accuracy.
 
     Args:
-        dict: bootstrapped_metrics
+        bootstrapped_metrics (dict): A dictionary containing the name of each target with another dictionary
+        as value, which includes values of the F1 scores and Accuracies of the bootstrapped models.
 
     Returns:
-        dict: Mean and 95% ci for the bootstrapped values for each target
+        list: A list containing five elements:
+            - [0]: List of target names for which metrics are calculated.
+            - [1]: List of mean accuracies for each target.
+            - [2]: List of tuples where each tuple consists of the lower and upper bounds of the 95% confidence interval for accuracy for each target.
+            - [3]: List of mean F1 scores for each target.
+            - [4]: List of tuples where each tuple consists of the lower and upper bounds of the 95% confidence interval for F1 score for each target.
+
+        Each element in the list corresponds to a specific set of statistical values related to the performance metrics (accuracy and F1 score) of the bootstrapped models for each target.
     """
-    # metrics_stats = pd.DataFrame(columns=["Targets", "Accuracy_mean", "Accuracy_ci", "F1_mean", "F1_ci",])
+
     Targets = []
     Accuracy_mean = []
     Accuracy_ci = []
