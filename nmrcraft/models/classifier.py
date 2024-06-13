@@ -18,6 +18,31 @@ from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
 
 
 class Classifier:
+    """
+    A machine learning classifier for structured data prediction.
+
+    This class encapsulates the entire process of model construction, from data loading
+    and preprocessing, through hyperparameter tuning, to training and evaluation.
+
+    Attributes:
+        model_name (str): Identifier for the model type.
+        max_evals (int): Maximum number of evaluations for tuning the model's hyperparameters.
+        target (str): Name of the target variable(s) in the dataset.
+        dataset_size (float): Size of the dataset to be used.
+        feature_columns (list, optional): List of feature names to be included in the model. Defaults to a predefined list.
+        random_state (int, optional): Seed for random number generators for reproducibility. Defaults to 42.
+        include_structural_features (bool, optional): Flag to include structural features in the data. Defaults to True.
+        complex_geometry (str, optional): Geometry type associated with the metal complexes. Defaults to 'oct'.
+        test_size (float, optional): Proportion of the dataset to include in the test split. Defaults to 0.2.
+        testing (bool, optional): Flag to indicate whether the instance is used for testing, affecting certain behaviors. Defaults to False.
+
+    Methods:
+        hyperparameter_tune: Tunes model parameters using specified algorithms.
+        train: Fits the model on the training data.
+        train_bootstrapped: Performs training using bootstrapped samples to gather statistics on models.
+        evaluate: Assesses model performance on test data.
+    """
+
     def __init__(
         self,
         model_name: str,
@@ -71,6 +96,10 @@ class Classifier:
         ) = data_loader.load_data()
 
     def hyperparameter_tune(self):
+        """
+        Optimizes model parameters using training data and updates the best_params attribute.
+        """
+
         log.info(
             f"Performing Hyperparameter tuning for the Model ({self.model_name})"
         )
@@ -80,15 +109,27 @@ class Classifier:
     def train(self):
         """
         Train the machine learning model using the best hyperparameters.
-
-        Returns:
-            None
         """
+
         all_params = {**self.model_config["model_params"], **self.best_params}
         self.model = load_model(self.model_name, **all_params)
         self.model.fit(self.X_train, self.y_train)
 
     def train_bootstrapped(self, n_times=10):
+        """
+        Trains the model using bootstrapping to estimate accuracy and F1 score.
+
+        This method resamples the training set with replacement 'n_times', trains the model,
+        and then evaluates it to collect accuracy and F1 scores. It returns a DataFrame containing
+        the mean and standard deviation of these metrics.
+
+        Args:
+            n_times (int, optional): Number of bootstrap samples to generate. Defaults to 10.
+
+        Returns:
+            pd.DataFrame: DataFrame containing mean and standard deviation of accuracy and F1 score.
+        """
+
         accuracy = []
         f1_score = []
         i = 0
@@ -120,8 +161,16 @@ class Classifier:
         Evaluate the performance of the trained machine learning model.
 
         Returns:
-            pd.DataFrame: A DataFrame containing evaluation metrics (accuracy, f1_score, roc_auc),
-                        the confusion matrix, false positive rates, and true positive rates for each class.
+            pd.DataFrame: A single-row DataFrame with the following columns:
+                - 'accuracy' (float)
+                - 'accuracy_std' (float)
+                - 'f1_score' (float)
+                - 'f1_score_std' (float)
+                - 'dataset_size' (float)
+                - 'model' (str)
+                - 'confusion_matrix' (list of lists)
+                - 'fpr' (list)
+                - 'tpr' (list)
         """
         y_pred = self.model.predict(self.X_test)
         # print(y_pred)
@@ -138,6 +187,15 @@ class Classifier:
         cm = confusion_matrix(self.y_test, y_pred)
 
         def calculate_fpr_fnr(cm):
+            """
+            Calculates the False Positive Rate (FPR) and False Negative Rate (FNR) for each class from a confusion matrix.
+
+            Args:
+                cm (np.ndarray): Confusion matrix.
+
+            Returns:
+                tuple: Two numpy arrays `(FPR, FNR)` containing the FPR and FNR for each class.
+            """
             FPR = []
             FNR = []
             num_classes = cm.shape[0]
