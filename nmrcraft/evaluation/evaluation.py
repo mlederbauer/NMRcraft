@@ -133,10 +133,10 @@ def metrics_statistics(
     F1_mean = []
     F1_ci = []
 
-    for key, value in bootstrapped_metrics.items():
-        # calc mean and 95% confidence interval for Accuracy
-        Targets.append(key)
+    for target, value in bootstrapped_metrics.items():
+        Targets.append(target)
 
+        # Calculate mean and 95% confidence interval for Accuracy
         Accuracy_mean.append(np.mean(value["Accuracy"]))
         Accuracy_ci.append(
             st.t.interval(
@@ -147,7 +147,7 @@ def metrics_statistics(
             )
         )
 
-        # calc mean and 95% confidence interval for F1 score
+        # Calculate mean and 95% confidence interval for F1 score
         F1_mean.append(np.mean(value["F1"]))
         F1_ci.append(
             st.t.interval(
