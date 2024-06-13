@@ -123,6 +123,21 @@ class Visualizer:
         title="Title",
         filename="Plot.png",
     ):
+        """
+        Generates a plot for a specified metric against dataset size for different models.
+
+        The graph includes error bars representing the standard deviation of the metric.
+
+        Args:
+            data (pd.DataFrame): DataFrame with columns 'model', 'dataset_size', metric, and its standard deviation.
+            metric (str): Name of the metric to be plotted (e.g., 'accuracy', 'f1_score').
+            title (str, optional): Plot title. Defaults to "Title".
+            filename (str, optional): Filename for saving the plot. Defaults to "Plot.png".
+
+        Returns:
+            str: Path where the plot is saved.
+        """
+
         for model in data["model"].unique():
             model_data = data[data["model"] == model]
             std_name = metric + "_std"
