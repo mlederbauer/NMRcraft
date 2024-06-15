@@ -117,15 +117,15 @@ def plot_exp_1(
             f"Model Performance by Dataset Size for {target_clean}",
             fontsize=35,
         )
-
-        # Adding the legend on the right side
-        # ax.legend(
-        #     title="Model",
-        #     bbox_to_anchor=(1.05, 0.5),
-        #     loc="center left",
-        #     borderaxespad=0.0,
-        #     fontsize=20,
-        # )
+        # Adding the legend on the right side for F1 score
+        if metric == "f1":
+            ax.legend(
+                title="Model",
+                bbox_to_anchor=(1.05, 0.5),
+                loc="center left",
+                borderaxespad=0.0,
+                fontsize=20,
+            )
 
         # Adjust the plot layout to accommodate the legend
         fig.subplots_adjust(right=0.75)
@@ -229,14 +229,16 @@ def plot_exp_1_multi(
             f"Model Performance by Dataset Size for {target_clean}",
             fontsize=35,
         )
+        # Adding the legend on the right side for F1 score
+        if metric == "f1":
+            ax.legend(
+                title="Model",
+                bbox_to_anchor=(1.05, 0.5),
+                loc="center left",
+                borderaxespad=0.0,
+                fontsize=20,
+            )
 
-        ax.legend(
-            title="Model",
-            bbox_to_anchor=(1.05, 0.5),
-            loc="center left",
-            borderaxespad=0.0,
-            fontsize=25,
-        )
         fig.subplots_adjust(right=0.75)
         plt.tight_layout()
         plt.savefig(f"plots/results/01_{target}_{metric}_multioutput.png")
@@ -333,5 +335,6 @@ if __name__ == "__main__":
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
-    plot_exp_1(df_base, df_one)
-    plot_exp_2(df_one, df_multi)
+    plot_exp_1(df_base, df_one, metric="f1")
+    plot_exp_1_multi(df_base, df_multi, "f1")
+#    plot_exp_2(df_one, df_multi)
