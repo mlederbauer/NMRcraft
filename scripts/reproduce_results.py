@@ -113,8 +113,8 @@ def run_baselines():
     return
 
 
-def plot_results(script_name: str):
-    cmd = ["python", script_name]
+def run_visualize_results(script_name: str, max_evals: int):
+    cmd = ["python", script_name, "--max_evals", str(max_evals)]
     print("---------------------------------------------------")
     print(f"Running command: {' '.join(cmd)}")
     print("---------------------------------------------------")
@@ -138,7 +138,9 @@ def main():
     run_baselines()
     run_one_target_experiments(args.max_evals)
     run_multi_target_experiments(args.max_evals)
-    plot_results("scripts/analysis/visualize_results.py")
+    run_visualize_results(
+        "scripts/analysis/visualize_results.py", args.max_evals
+    )
 
 
 if __name__ == "__main__":
