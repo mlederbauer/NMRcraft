@@ -100,6 +100,19 @@ def run_multi_target_experiments(max_evals):
         )
 
 
+def run_baselines():
+    # Run the script scripts/training/baselines.py
+    cmd = ["python", "scripts/training/baselines.py"]
+    print("---------------------------------------------------")
+    print(f"Running command: {' '.join(cmd)}")
+    print("---------------------------------------------------")
+
+    # pylint: disable=subprocess-run-check
+    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+
+    return
+
+
 def plot_results(script_name: str):
     cmd = ["python", script_name]
     print("---------------------------------------------------")
@@ -122,7 +135,7 @@ def main():
     )
     args = parser.parse_args()
 
-    # run baselines
+    run_baselines()
     run_one_target_experiments(args.max_evals)
     run_multi_target_experiments(args.max_evals)
     plot_results("scripts/analysis/visualize_results.py")
