@@ -40,7 +40,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot_folder",
     type=str,
-    default="plots/",
+    default="plots/baselines/",
     help="The Folder where the plots are saved",
 )
 
