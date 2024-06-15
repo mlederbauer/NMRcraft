@@ -129,9 +129,12 @@ def plot_confusion_matrix(
             f"ConfusionMatrix_{model_name}_{dataset_size}_{target}.png",
         )
         cm = cm_list[target]
+        cm_normalized = cm.astype("float") / cm.sum(axis=1)[:, np.newaxis]
         classes = y_labels[target]
         plt.figure(figsize=(10, 8))
-        plt.imshow(cm, interpolation="nearest", cmap=cmap)
+        plt.imshow(
+            cm_normalized, interpolation="nearest", cmap=cmap, vmin=0, vmax=1
+        )
         plt.title(f"{target} Confusion Matrix")
         plt.colorbar()
         tick_marks = np.arange(len(classes))
