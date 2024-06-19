@@ -269,38 +269,6 @@ def plot_exp_2(df_one, df_multi):
         )
 
 
-# def plot_exp_3(df_one, df_multi):
-#     """Compare whether nmr-only is set to true or false
-#     plot for X3 (best one target model) the bar plot with/without ligands
-#     plot for metal & E & X3 (best multi target model) the bar plot with/withut ligands
-#     legens also below the plot itself
-#     """
-#     df_combined = pd.concat([df_one, df_multi])
-#     full_df = df_combined[df_combined["dataset_fraction"] == 1]
-
-#     models = full_df["model"].unique()
-#     for model in models:
-#         sub_df = full_df[full_df["model"] == model]
-#         print(sub_df)
-#         plot_bar(
-#             sub_df,
-#             title=f"Accuracy for {model} Predictions",
-#             filename=f"plots/03_accuracy_{model}.png",
-#             metric="accuracy",
-#             iterative_column="target",
-#             xdata="xlabel",
-#         )
-#         plot_bar(
-#             sub_df,
-#             title=f"F1-Score for {model} Predictions",
-#             filename=f"plots/03_f1-score_{model}.png",
-#             metric="f1",
-#             iterative_column="target",
-#             xdata="xlabel",
-#         )
-#     return
-
-
 # Setup parser
 parser = argparse.ArgumentParser(
     description="Train a model with MLflow tracking."
