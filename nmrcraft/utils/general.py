@@ -27,3 +27,14 @@ def add_rows_metrics(
         ]
         unified_metrics.loc[len(unified_metrics)] = new_row
     return unified_metrics
+
+
+def str2bool(value: str) -> bool:
+    """Function converts a string to boolean in a human expected way.
+
+    Args (str):
+      <value> as a string for example 'True' or 'true' or 't'
+    Returns (bool):
+      bool corresponding to if the <value> was true or false
+    """
+    return value.lower() in ("yes", "true", "t", "1")
