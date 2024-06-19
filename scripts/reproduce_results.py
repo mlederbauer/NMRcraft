@@ -156,6 +156,7 @@ def main():
     args = parser.parse_args()
 
     # run baselines
+    run_baselines()
     run_dataframe_statistics()
     run_baselines()
     run_one_target_experiments(args.max_evals)
