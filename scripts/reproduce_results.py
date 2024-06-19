@@ -39,9 +39,13 @@ def run_script(script_name, targets, include_structural, max_evals):
         "--max_evals",
         str(max_evals),
     ]
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
     print(f"Running command: {' '.join(cmd)}")
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
 
     # pylint: disable=subprocess-run-check
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
@@ -103,9 +107,13 @@ def run_multi_target_experiments(max_evals):
 def run_baselines():
     # Run the script scripts/training/baselines.py
     cmd = ["python", "scripts/training/baselines.py"]
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
     print(f"Running command: {' '.join(cmd)}")
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
 
     # pylint: disable=subprocess-run-check
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
@@ -122,12 +130,30 @@ def run_visualize_results(script_name: str, max_evals: int):
         "-me",
         str(max_evals),
     ]
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
     print(f"Running command: {' '.join(cmd)}")
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
 
     # pylint: disable=subprocess-run-check
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+
+
+def run_dataframe_statistics():
+    cmd = [
+        "python",
+        "scripts/analysis/dataset_statistics.py",
+    ]
+    print(
+        "---------------------------------------------------------------------"
+    )
+    print(f"Running command: {' '.join(cmd)}")
+    print(
+        "---------------------------------------------------------------------"
+    )
 
 
 def main():
