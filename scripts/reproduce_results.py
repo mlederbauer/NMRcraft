@@ -172,6 +172,7 @@ def main():
     # run baselines
     run_one_target_experiments(args.max_evals)
     run_multi_target_experiments(args.max_evals)
+    run_dataframe_statistics()
     run_visualize_results(
         "scripts/analysis/visualize_results.py", max_evals=args.max_evals
     )
