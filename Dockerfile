@@ -1,3 +1,21 @@
+#   _______                       __
+#   |       \                     |  \
+#   | $$$$$$$\  ______    _______ | $$   __   ______    ______
+#   | $$  | $$ /      \  /       \| $$  /  \ /      \  /      \
+#   | $$  | $$|  $$$$$$\|  $$$$$$$| $$_/  $$|  $$$$$$\|  $$$$$$\
+#   | $$  | $$| $$  | $$| $$      | $$   $$ | $$    $$| $$   \$$
+#   | $$__/ $$| $$__/ $$| $$_____ | $$$$$$\ | $$$$$$$$| $$
+#   | $$    $$ \$$    $$ \$$     \| $$  \$$\ \$$     \| $$
+#    \$$$$$$$   \$$$$$$   \$$$$$$$ \$$   \$$  \$$$$$$$ \$$
+#
+#
+# If you want to build this image from this dockerfile instead of using the provided one you
+# have to just execute the following command:
+#   ```bash
+#       docker buildx build -t nmrcraft_arch .
+#   ```
+
+
 FROM archlinux
 
 # Install python, poetry and looks stuff from arch system repos
