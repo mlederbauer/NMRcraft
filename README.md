@@ -104,7 +104,9 @@ When the parameter `max_eval` is set to a high value such as 20, expect the whol
 
 # 🖼️Poster
 
-If you were not able to visit our beautiful poster at ETH Zurich on May 30th 2024, you can access our poster [here](TODO)!
+If you were not able to visit our beautiful poster at ETH Zurich on May 30th 2024, you can access our poster [here](assets/Poster.pdf)!
+
+![Poster](assets/Poster_200dpi.png)
 
 # 🧑‍💻 Developing
 

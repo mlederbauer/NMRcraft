@@ -31,6 +31,37 @@ TARGET_TYPES = [
 
 
 class DataLoader:
+    """
+    DataLoader is responsible for loading and preparing data for machine learning models
+    in the `nmrcraft` project.
+
+    It supports configuration of various dataset parameters including feature selection,
+    target column specification, dataset size manipulation, and can return split datasets
+    tuned for training and testing phases.
+
+    Parameters:
+    feature_columns (list of str): Names of columns to be used as features.
+    target_columns (str): Name(s) of the column(s) used as targets.
+    test_size (float): Proportion of the dataset to include in the test split.
+    random_state (int): Seed used by random number generator for reproducibility.
+    dataset_size (float): Proportion of the full dataset to use.
+    complex_geometry (str): Specifies the type of complex geometries to include ('oct', 'spy', 'tbp', or 'all').
+    include_structural_features (bool): Indicates whether structural features should be included in the dataset.
+
+    Returns:
+    dataloader (DataLoader): dataloader object that is used to load and preprocess the dataset.
+    Example:
+    >>> data_loader = DataLoader(
+        feature_columns=["M_sigma11_ppm", "M_sigma22_ppm"],
+        target_columns="metal X4_ligand E_ligand",
+        test_size=0.2,
+        random_state=42,
+        dataset_size=0.1,
+        complex_geometry="all",
+        include_structural_features=True
+    )
+    """
+
     def __init__(
         self,
         target_columns: str,

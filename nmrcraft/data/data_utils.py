@@ -40,8 +40,16 @@ def filename_to_ligands(dataset: pd.DataFrame):
     return dataset
 
 
-def load_dummy_dataset_locally(datset_path: str = "tests/data.csv"):
-    dataset = pd.read_csv(datset_path)
+def load_dummy_dataset_locally(dataset_path: str = "tests/data.csv"):
+    """
+    Load a dummy dataset from a local CSV file for testing purposes.
+
+    Args:
+        dataset_path (str, optional): The path to the CSV file containing the dataset. Defaults to "tests/data.csv".
+    Returns:
+        pandas.DataFrame: The dataset loaded from the CSV file.
+    """
+    dataset = pd.read_csv(dataset_path)
     return dataset
 
 
