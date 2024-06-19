@@ -12,7 +12,7 @@ from nmrcraft.evaluation import evaluation
 from nmrcraft.models.model_configs import model_configs
 from nmrcraft.models.models import load_model
 from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
-from nmrcraft.utils.general import add_rows_metrics
+from nmrcraft.utils.general import add_rows_metrics, str2bool
 
 # Setup MLflow
 mlflow.set_experiment("Final_Results")
@@ -36,8 +36,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--include_structural",
-    type=bool,
-    default=False,
+    type=str2bool,
+    default="False",
     help="Handles if structural features will be included or only nmr tensors are used.",
 )
 parser.add_argument(
@@ -161,7 +161,6 @@ if __name__ == "__main__":
     # Add arguments
     args = parser.parse_args()
     args.target = [args.target]  # FIXME
-
     unified_metrics = main(args)
 
     # save all the results

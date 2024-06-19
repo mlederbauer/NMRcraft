@@ -20,12 +20,6 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-    "--max_evals",
-    type=int,
-    default=3,
-    help="The max evaluations for the hyperparameter tuning with hyperopt",
-)
-parser.add_argument(
     "--target",
     type=str,
     default=["metal", "X3_ligand", "E_ligand"],
@@ -40,7 +34,7 @@ parser.add_argument(
 parser.add_argument(
     "--plot_folder",
     type=str,
-    default="plots/",
+    default="plots/baselines/",
     help="The Folder where the plots are saved",
 )
 
@@ -67,7 +61,7 @@ def main(args) -> pd.DataFrame:
         1.0,
     ]
     models = [
-        "baseline_random_ligand",
+        "baseline_random_selector",
         "baseline_most_often",
     ]
 
@@ -105,7 +99,7 @@ def main(args) -> pd.DataFrame:
                     y_labels,
                 ) = data_loader.load_data()
 
-                if model_name == "baseline_random_ligand":
+                if model_name == "baseline_random_selector":
                     multioutput_model = DummyClassifier(strategy="uniform")
                 elif model_name == "baseline_most_often":
                     multioutput_model = DummyClassifier(
@@ -141,7 +135,6 @@ def main(args) -> pd.DataFrame:
                     dataset_size,
                     args.include_structural,
                     model_name,
-                    args.max_evals,
                 )
     return unified_metrics
 

@@ -7,7 +7,7 @@ def add_rows_metrics(
     dataset_size,
     include_structural: bool,
     model_name: str,
-    max_evals: int,
+    max_evals: int = 0,
 ):
     """
     Compiles and adds a series of statistical metrics into a unified DataFrame, one row at a time.
@@ -53,3 +53,14 @@ def add_rows_metrics(
         ]
         unified_metrics.loc[len(unified_metrics)] = new_row
     return unified_metrics
+
+
+def str2bool(value: str) -> bool:
+    """Function converts a string to boolean in a human expected way.
+
+    Args (str):
+      <value> as a string for example 'True' or 'true' or 't'
+    Returns (bool):
+      bool corresponding to if the <value> was true or false
+    """
+    return value.lower() in ("yes", "true", "t", "1")

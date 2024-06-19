@@ -183,6 +183,7 @@ def plot_metric(
     metric="accuracy",
     iterative_column="model",
     xdata="dataset_fraction",
+    legend=True,
 ):
     _, colors, _ = style_setup()
     if iterative_column == "target":
@@ -270,6 +271,10 @@ def plot_bar(
         .agg({metric + "_hb": "mean"})
         .reset_index()
     )
+
+    # desired_index = ["Metal", "E", "X3", "Metal & E", "Metal & X3", "X3 & E", "Metal & E & X3"]
+    # pivot_df = aggregated_data.pivot(index="xlabel", columns="target", values="accuracy_mean")
+    # new_df = pivot_df.reindex(desired_index)
 
     # Pivot the aggregated data
     new_df = aggregated_data.pivot(

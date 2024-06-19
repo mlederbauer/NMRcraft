@@ -24,7 +24,10 @@ def load_results(results_dir: str, baselines_dir: str, max_evals: int):
 
 
 def plot_exp_1(
-    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "accuracy"
+    df_base: pd.DataFrame,
+    df_one: pd.DataFrame,
+    metric: str = "accuracy",
+    legend: bool = True,
 ):
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
@@ -118,25 +121,32 @@ def plot_exp_1(
             fontsize=35,
         )
 
-        # Adding the legend on the right side
-        # ax.legend(
-        #     title="Model",
-        #     bbox_to_anchor=(1.05, 0.5),
-        #     loc="center left",
-        #     borderaxespad=0.0,
-        #     fontsize=20,
-        # )
+        # Adding the legend on the right side if metric is F1-Score
+        if legend:
+            ax.legend(
+                title="Model",
+                bbox_to_anchor=(1.05, 0.5),
+                loc="center left",
+                borderaxespad=0.0,
+                fontsize=20,
+            )
+            plotname = f"plots/results/01_{target}_{metric}_legend.png"
+        else:
+            plotname = f"plots/results/01_{target}_{metric}.png"
 
         # Adjust the plot layout to accommodate the legend
         fig.subplots_adjust(right=0.75)
         plt.tight_layout()
 
         # Show plot
-        plt.savefig(f"plots/results/01_{target}_{metric}.png")
+        plt.savefig(plotname)
 
 
 def plot_exp_1_multi(
-    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "accuracy"
+    df_base: pd.DataFrame,
+    df_one: pd.DataFrame,
+    metric: str = "accuracy",
+    legend: bool = True,
 ):
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
@@ -229,17 +239,22 @@ def plot_exp_1_multi(
             f"Model Performance by Dataset Size for {target_clean}",
             fontsize=35,
         )
-
-        ax.legend(
-            title="Model",
-            bbox_to_anchor=(1.05, 0.5),
-            loc="center left",
-            borderaxespad=0.0,
-            fontsize=25,
-        )
+        if legend:
+            ax.legend(
+                title="Model",
+                bbox_to_anchor=(1.05, 0.5),
+                loc="center left",
+                borderaxespad=0.0,
+                fontsize=25,
+            )
+            plotname = (
+                f"plots/results/01_{target}_{metric}_multioutput_legend.png"
+            )
+        else:
+            plotname = f"plots/results/01_{target}_{metric}_multioutput.png"
         fig.subplots_adjust(right=0.75)
         plt.tight_layout()
-        plt.savefig(f"plots/results/01_{target}_{metric}_multioutput.png")
+        plt.savefig(plotname)
 
 
 def plot_exp_2(df_one, df_multi):
@@ -266,38 +281,6 @@ def plot_exp_2(df_one, df_multi):
             iterative_column="target",
             xdata="xlabel",
         )
-
-
-# def plot_exp_3(df_one, df_multi):
-#     """Compare whether nmr-only is set to true or false
-#     plot for X3 (best one target model) the bar plot with/without ligands
-#     plot for metal & E & X3 (best multi target model) the bar plot with/withut ligands
-#     legens also below the plot itself
-#     """
-#     df_combined = pd.concat([df_one, df_multi])
-#     full_df = df_combined[df_combined["dataset_fraction"] == 1]
-
-#     models = full_df["model"].unique()
-#     for model in models:
-#         sub_df = full_df[full_df["model"] == model]
-#         print(sub_df)
-#         plot_bar(
-#             sub_df,
-#             title=f"Accuracy for {model} Predictions",
-#             filename=f"plots/03_accuracy_{model}.png",
-#             metric="accuracy",
-#             iterative_column="target",
-#             xdata="xlabel",
-#         )
-#         plot_bar(
-#             sub_df,
-#             title=f"F1-Score for {model} Predictions",
-#             filename=f"plots/03_f1-score_{model}.png",
-#             metric="f1",
-#             iterative_column="target",
-#             xdata="xlabel",
-#         )
-#     return
 
 
 # Setup parser
@@ -333,5 +316,9 @@ if __name__ == "__main__":
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
-    plot_exp_1(df_base, df_one)
-    plot_exp_2(df_one, df_multi)
+    plot_exp_1(df_base=df_base, df_one=df_one, metric="accuracy")
+    plot_exp_1(df_base=df_base, df_one=df_one, metric="f1")
+    plot_exp_1_multi(df_base=df_base, df_one=df_one)
+    plot_exp_1(df_base=df_base, df_one=df_one, metric="f1", legend=False)
+    plot_exp_1_multi(df_base=df_base, df_one=df_one, legend=False)
+    plot_exp_2(df_one=df_one, df_multi=df_multi)

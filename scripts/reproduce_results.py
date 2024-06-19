@@ -1,19 +1,4 @@
-"""Scripts for reproducing all results shown in the report.
-
-The project consists of 3 main "experiments". that are all enabled by:
-(i) loading, splitting and preprocessing data
-(ii) declaring and hyperparameter-tune models by CV
-(iii) training and evaluating models
-(iv) plotting results
-For three "experiments":
-(i)
-(ii)
-(iii)
-The following scipts are called in this script:
-- analysis: analysing the dataset with PCA
-- training: training single-target, multi-target and baseline models
-- plotting: plotting the results as shown in the report
-"""
+"""Scripts for reproducing all results shown in the report."""
 
 import argparse
 import shlex
@@ -39,9 +24,13 @@ def run_script(script_name, targets, include_structural, max_evals):
         "--max_evals",
         str(max_evals),
     ]
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
     print(f"Running command: {' '.join(cmd)}")
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
 
     # pylint: disable=subprocess-run-check
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
@@ -100,13 +89,56 @@ def run_multi_target_experiments(max_evals):
         )
 
 
-def plot_results(script_name: str):
-    cmd = ["python", script_name]
-    print("---------------------------------------------------")
+def run_baselines():
+    # Run the script scripts/training/baselines.py
+    cmd = ["python", "scripts/training/baselines.py"]
+    print(
+        "---------------------------------------------------------------------"
+    )
     print(f"Running command: {' '.join(cmd)}")
-    print("---------------------------------------------------")
+    print(
+        "---------------------------------------------------------------------"
+    )
 
     # pylint: disable=subprocess-run-check
+    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+
+    return
+
+
+def run_visualize_results(script_name: str, max_evals: int):
+    cmd = [
+        "python",
+        script_name,
+        "--max_evals",
+        str(max_evals),
+        "-me",
+        str(max_evals),
+    ]
+    print(
+        "---------------------------------------------------------------------"
+    )
+    print(f"Running command: {' '.join(cmd)}")
+    print(
+        "---------------------------------------------------------------------"
+    )
+
+    # pylint: disable=subprocess-run-check
+    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+
+
+def run_dataframe_statistics():
+    cmd = [
+        "python",
+        "scripts/analysis/dataset_statistics.py",
+    ]
+    print(
+        "---------------------------------------------------------------------"
+    )
+    print(f"Running command: {' '.join(cmd)}")
+    print(
+        "---------------------------------------------------------------------"
+    )
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
 
 
@@ -116,6 +148,7 @@ def main():
     )
     parser.add_argument(
         "--max_evals",
+        "-me",
         type=int,
         default=1,
         help="Max evaluations for hyperparameter tuning.",
@@ -123,9 +156,13 @@ def main():
     args = parser.parse_args()
 
     # run baselines
+    run_baselines()
+    run_dataframe_statistics()
     run_one_target_experiments(args.max_evals)
     run_multi_target_experiments(args.max_evals)
-    plot_results("scripts/analysis/visualize_results.py")
+    run_visualize_results(
+        "scripts/analysis/visualize_results.py", max_evals=args.max_evals
+    )
 
 
 if __name__ == "__main__":
