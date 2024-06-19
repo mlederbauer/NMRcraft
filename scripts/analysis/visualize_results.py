@@ -24,7 +24,10 @@ def load_results(results_dir: str, baselines_dir: str, max_evals: int):
 
 
 def plot_exp_1(
-    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "accuracy"
+    df_base: pd.DataFrame,
+    df_one: pd.DataFrame,
+    metric: str = "accuracy",
+    legend: bool = True,
 ):
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
@@ -119,7 +122,7 @@ def plot_exp_1(
         )
 
         # Adding the legend on the right side if metric is F1-Score
-        if metric == "f1":
+        if legend:
             ax.legend(
                 title="Model",
                 bbox_to_anchor=(1.05, 0.5),
@@ -127,17 +130,23 @@ def plot_exp_1(
                 borderaxespad=0.0,
                 fontsize=20,
             )
+            plotname = f"plots/results/01_{target}_{metric}_legend.png"
+        else:
+            plotname = f"plots/results/01_{target}_{metric}.png"
 
         # Adjust the plot layout to accommodate the legend
         fig.subplots_adjust(right=0.75)
         plt.tight_layout()
 
         # Show plot
-        plt.savefig(f"plots/results/01_{target}_{metric}.png")
+        plt.savefig(plotname)
 
 
 def plot_exp_1_multi(
-    df_base: pd.DataFrame, df_one: pd.DataFrame, metric: str = "accuracy"
+    df_base: pd.DataFrame,
+    df_one: pd.DataFrame,
+    metric: str = "accuracy",
+    legend: bool = True,
 ):
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
@@ -230,17 +239,22 @@ def plot_exp_1_multi(
             f"Model Performance by Dataset Size for {target_clean}",
             fontsize=35,
         )
-
-        ax.legend(
-            title="Model",
-            bbox_to_anchor=(1.05, 0.5),
-            loc="center left",
-            borderaxespad=0.0,
-            fontsize=25,
-        )
+        if legend:
+            ax.legend(
+                title="Model",
+                bbox_to_anchor=(1.05, 0.5),
+                loc="center left",
+                borderaxespad=0.0,
+                fontsize=25,
+            )
+            plotname = (
+                f"plots/results/01_{target}_{metric}_multioutput_legend.png"
+            )
+        else:
+            plotname = f"plots/results/01_{target}_{metric}_multioutput.png"
         fig.subplots_adjust(right=0.75)
         plt.tight_layout()
-        plt.savefig(f"plots/results/01_{target}_{metric}_multioutput.png")
+        plt.savefig(plotname)
 
 
 def plot_exp_2(df_one, df_multi):
@@ -305,4 +319,6 @@ if __name__ == "__main__":
     plot_exp_1(df_base=df_base, df_one=df_one, metric="accuracy")
     plot_exp_1(df_base=df_base, df_one=df_one, metric="f1")
     plot_exp_1_multi(df_base=df_base, df_one=df_one)
+    plot_exp_1(df_base=df_base, df_one=df_one, metric="f1", legend=False)
+    plot_exp_1_multi(df_base=df_base, df_one=df_one, legend=False)
     plot_exp_2(df_one=df_one, df_multi=df_multi)

@@ -183,6 +183,7 @@ def plot_metric(
     metric="accuracy",
     iterative_column="model",
     xdata="dataset_fraction",
+    legend=True,
 ):
     _, colors, _ = style_setup()
     if iterative_column == "target":
