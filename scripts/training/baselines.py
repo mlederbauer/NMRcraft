@@ -61,7 +61,7 @@ def main(args) -> pd.DataFrame:
         1.0,
     ]
     models = [
-        "baseline_random_ligand",
+        "baseline_random_selector",
         "baseline_most_often",
     ]
 
@@ -98,7 +98,7 @@ def main(args) -> pd.DataFrame:
                     y_labels,
                 ) = data_loader.load_data()
 
-                if model_name == "baseline_random_ligand":
+                if model_name == "baseline_random_selector":
                     multioutput_model = DummyClassifier(strategy="uniform")
                 elif model_name == "baseline_most_often":
                     multioutput_model = DummyClassifier(
