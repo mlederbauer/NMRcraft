@@ -333,5 +333,6 @@ if __name__ == "__main__":
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
-    plot_exp_1(df_base, df_one)
-    plot_exp_2(df_one, df_multi)
+    plot_exp_1(df_base=df_base, df_one=df_one)
+    plot_exp_1_multi(df_base=df_base, df_one=df_one)
+    plot_exp_2(df_one=df_one, df_multi=df_multi)

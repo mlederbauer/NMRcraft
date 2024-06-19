@@ -100,8 +100,8 @@ def run_multi_target_experiments(max_evals):
         )
 
 
-def plot_results(script_name: str):
-    cmd = ["python", script_name]
+def plot_results(script_name: str, max_evals: int):
+    cmd = ["python", script_name, "-me", str(max_evals)]
     print("---------------------------------------------------")
     print(f"Running command: {' '.join(cmd)}")
     print("---------------------------------------------------")
@@ -116,6 +116,7 @@ def main():
     )
     parser.add_argument(
         "--max_evals",
+        "-me",
         type=int,
         default=1,
         help="Max evaluations for hyperparameter tuning.",
@@ -123,9 +124,11 @@ def main():
     args = parser.parse_args()
 
     # run baselines
-    run_one_target_experiments(args.max_evals)
-    run_multi_target_experiments(args.max_evals)
-    plot_results("scripts/analysis/visualize_results.py")
+    # run_one_target_experiments(args.max_evals)
+    # run_multi_target_experiments(args.max_evals)
+    plot_results(
+        "scripts/analysis/visualize_results.py", max_evals=args.max_evals
+    )
 
 
 if __name__ == "__main__":
