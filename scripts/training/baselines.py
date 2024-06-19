@@ -20,12 +20,6 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-    "--max_evals",
-    type=int,
-    default=3,
-    help="The max evaluations for the hyperparameter tuning with hyperopt",
-)
-parser.add_argument(
     "--target",
     type=str,
     default=["metal", "X3_ligand", "E_ligand"],
@@ -78,7 +72,6 @@ def main(args) -> pd.DataFrame:
         "model",
         "nmr_only",
         "dataset_fraction",
-        "max_evals",
         "accuracy_mean",
         "accuracy_lb",
         "accuracy_hb",
@@ -141,7 +134,6 @@ def main(args) -> pd.DataFrame:
                     dataset_size,
                     args.include_structural,
                     model_name,
-                    args.max_evals,
                 )
     return unified_metrics
 
