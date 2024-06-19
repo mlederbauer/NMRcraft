@@ -271,6 +271,10 @@ def plot_bar(
         .reset_index()
     )
 
+    # desired_index = ["Metal", "E", "X3", "Metal & E", "Metal & X3", "X3 & E", "Metal & E & X3"]
+    # pivot_df = aggregated_data.pivot(index="xlabel", columns="target", values="accuracy_mean")
+    # new_df = pivot_df.reindex(desired_index)
+
     # Pivot the aggregated data
     new_df = aggregated_data.pivot(
         index="xlabel", columns="target", values=metric + "_mean"
