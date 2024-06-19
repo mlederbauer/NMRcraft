@@ -118,14 +118,15 @@ def plot_exp_1(
             fontsize=35,
         )
 
-        # Adding the legend on the right side
-        # ax.legend(
-        #     title="Model",
-        #     bbox_to_anchor=(1.05, 0.5),
-        #     loc="center left",
-        #     borderaxespad=0.0,
-        #     fontsize=20,
-        # )
+        # Adding the legend on the right side if metric is F1-Score
+        if metric == "f1":
+            ax.legend(
+                title="Model",
+                bbox_to_anchor=(1.05, 0.5),
+                loc="center left",
+                borderaxespad=0.0,
+                fontsize=20,
+            )
 
         # Adjust the plot layout to accommodate the legend
         fig.subplots_adjust(right=0.75)
@@ -333,6 +334,7 @@ if __name__ == "__main__":
         baselines_dir="metrics/",
         max_evals=args.max_evals,
     )
-    plot_exp_1(df_base=df_base, df_one=df_one)
+    plot_exp_1(df_base=df_base, df_one=df_one, metric="accuracy")
+    plot_exp_1(df_base=df_base, df_one=df_one, metric="f1")
     plot_exp_1_multi(df_base=df_base, df_one=df_one)
     plot_exp_2(df_one=df_one, df_multi=df_multi)
