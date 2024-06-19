@@ -72,6 +72,7 @@ def main(args) -> pd.DataFrame:
         "model",
         "nmr_only",
         "dataset_fraction",
+        "max_evals",
         "accuracy_mean",
         "accuracy_lb",
         "accuracy_hb",

@@ -7,7 +7,7 @@ def add_rows_metrics(
     dataset_size,
     include_structural: bool,
     model_name: str,
-    max_evals: int,
+    max_evals: int = 0,
 ):
     # Add all the newly generated metrics to the unified dataframe targetwise
     for i in range(len(statistical_metrics[0])):
