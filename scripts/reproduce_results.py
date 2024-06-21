@@ -43,14 +43,13 @@ def run_one_target_experiments(max_evals):
     targets = ["metal", "X3_ligand", "E_ligand"]
     # Run with structural features False for all, but True for X3_ligand
     for target in targets:
-        if target == "X3_ligand":
-            include_structural = True
-            run_script(
-                "./scripts/training/one_target.py",
-                [target],
-                include_structural,
-                max_evals,
-            )
+        include_structural = True
+        run_script(
+            "./scripts/training/one_target.py",
+            [target],
+            include_structural,
+            max_evals,
+        )
         include_structural = False
         run_script(
             "./scripts/training/one_target.py",
@@ -72,14 +71,6 @@ def run_multi_target_experiments(max_evals):
     ]
     # Run with and without structural features for the combination of all three targets
     for targets in target_combinations:
-        if len(targets) > 2:
-            include_structural = True
-            run_script(
-                "./scripts/training/multi_targets.py",
-                targets,
-                include_structural,
-                max_evals,
-            )
         include_structural = False
         run_script(
             "./scripts/training/multi_targets.py",
