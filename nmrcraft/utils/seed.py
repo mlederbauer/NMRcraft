@@ -1,3 +1,5 @@
+"""Function to set a random seed."""
+
 import random
 
 import numpy as np
@@ -5,7 +7,7 @@ import numpy as np
 # import torch
 
 
-def set_seed(seed: int = 42):
+def set_seed(seed: int = 42) -> None:
     """Set the seed for reproducibility."""
 
     random.seed(seed)

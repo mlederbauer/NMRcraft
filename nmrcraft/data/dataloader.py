@@ -10,12 +10,12 @@ from sklearn.preprocessing import (
     StandardScaler,
 )
 
-from nmrcraft.data.data_utils import (
+from ..utils import set_seed
+from .data_utils import (
     filename_to_ligands,
     load_dataset_from_hf,
     load_dummy_dataset_locally,
 )
-from nmrcraft.utils.set_seed import set_seed
 
 set_seed()
 

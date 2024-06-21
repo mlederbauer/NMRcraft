@@ -1,4 +1,4 @@
-"""Load and preprocess data."""
+"""Load and preprocess data utils."""
 
 import os
 
@@ -21,7 +21,7 @@ class InvalidTargetError(ValueError):
         super().__init__(f"Invalid target '{t}'")
 
 
-def filename_to_ligands(dataset: pd.DataFrame):
+def filename_to_ligands(dataset: pd.DataFrame) -> pd.DataFrame:
     """
     Extract ligands from the filename and add as columns to the dataset.
     Assumes that filenames are structured in a specific way that can be parsed into ligands.
@@ -40,7 +40,9 @@ def filename_to_ligands(dataset: pd.DataFrame):
     return dataset
 
 
-def load_dummy_dataset_locally(dataset_path: str = "tests/data.csv"):
+def load_dummy_dataset_locally(
+    dataset_path: str = "tests/data.csv",
+) -> pd.DataFrame:
     """
     Load a dummy dataset from a local CSV file for testing purposes.
 
@@ -55,7 +57,7 @@ def load_dummy_dataset_locally(dataset_path: str = "tests/data.csv"):
 
 def load_dataset_from_hf(
     dataset_name: str = "NMRcraft/nmrcraft", data_files: str = "all_no_nan.csv"
-):
+) -> pd.DataFrame:
     """Load the dataset.
 
     This function loads the dataset using the specified dataset name and data files.
