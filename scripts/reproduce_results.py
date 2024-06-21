@@ -3,9 +3,10 @@
 import argparse
 import shlex
 import subprocess
+from typing import List
 
 
-def run_command(cmd):
+def run_command(cmd: List[str]) -> None:
     """
     Helper function to run a command via subprocess.
     """
@@ -21,8 +22,11 @@ def run_command(cmd):
 
 
 def run_script(
-    script_name, targets=None, include_structural=None, max_evals=None
-):
+    script_name,
+    targets=None,
+    include_structural=None,
+    max_evals=None,
+) -> None:
     """
     Helper function to run the Python scripts via subprocess.
     """
@@ -42,7 +46,7 @@ def run_script(
     run_command(cmd)
 
 
-def run_one_target_experiments(max_evals):
+def run_one_target_experiments(max_evals: int) -> None:
     """
     Runs the experiments for single target predictions.
     """
@@ -56,7 +60,7 @@ def run_one_target_experiments(max_evals):
         )
 
 
-def run_multi_target_experiments(max_evals):
+def run_multi_target_experiments(max_evals: int) -> None:
     """
     Runs the experiments for multiple target predictions.
     """
@@ -72,21 +76,21 @@ def run_multi_target_experiments(max_evals):
         )
 
 
-def run_baselines():
+def run_baselines() -> None:
     """
     Runs the baseline experiments.
     """
     run_command(["python", "scripts/training/baselines.py"])
 
 
-def run_visualize_results(script_name, max_evals):
+def run_visualize_results(script_name: str, max_evals: int) -> None:
     """
     Runs the visualization script.
     """
     run_script(script_name, max_evals=max_evals)
 
 
-def run_dataframe_statistics():
+def run_dataframe_statistics() -> None:
     """
     Runs the dataframe statistics script.
     """
@@ -94,7 +98,7 @@ def run_dataframe_statistics():
     run_command(["python", "scripts/analysis/pca_ligand_space.py"])
 
 
-def run_accuracy_table():
+def run_accuracy_table() -> None:
     """
     Runs the accuracy table script.
     """
