@@ -142,6 +142,21 @@ def run_dataframe_statistics():
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
 
 
+def run_accuracy_table():
+    cmd = [
+        "python",
+        "scripts/analysis/accuracy_table.py",
+    ]
+    print(
+        "---------------------------------------------------------------------"
+    )
+    print(f"Running command: {' '.join(cmd)}")
+    print(
+        "---------------------------------------------------------------------"
+    )
+    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run reproducibility script for all experiments."
@@ -163,6 +178,7 @@ def main():
     run_visualize_results(
         "scripts/analysis/visualize_results.py", max_evals=args.max_evals
     )
+    run_accuracy_table()
 
 
 if __name__ == "__main__":
