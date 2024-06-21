@@ -1,3 +1,5 @@
+"""Script to print the accuracy of the models with and without ligands for each target."""
+
 import pandas as pd
 
 

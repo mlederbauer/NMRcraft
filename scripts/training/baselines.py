@@ -1,3 +1,5 @@
+"""Script to train random/dummy baselines for each target."""
+
 import argparse
 import logging as log
 import os
