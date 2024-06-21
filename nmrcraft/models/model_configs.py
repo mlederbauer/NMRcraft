@@ -1,3 +1,5 @@
+"""Model configs used for training."""
+
 from hyperopt import hp
 
 model_configs = {

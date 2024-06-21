@@ -1,3 +1,5 @@
+"""Functions to load a classifier."""
+
 import inspect
 from typing import Any
 
@@ -26,13 +28,13 @@ class InvalidArgumentError(ValueError):
         super().__init__(f"Invalid argument {kwarg} for model {model_name}")
 
 
-def validate_model_availability(model_name, models):
+def validate_model_availability(model_name: str, models: dict) -> None:
     """Ensure the model name exists in the provided models dictionary."""
     if model_name.lower() not in models:
         raise InvalidModelNameError(model_name, models)
 
 
-def validate_kwargs(kwargs, model_class, model_name):
+def validate_kwargs(kwargs: dict, model_class: type, model_name: str) -> None:
     """Check that all kwargs are valid for the model class constructor."""
     args = inspect.signature(model_class.__init__).parameters.keys()
     for kwarg in kwargs:
@@ -40,7 +42,7 @@ def validate_kwargs(kwargs, model_class, model_name):
             raise InvalidArgumentError(kwarg, model_name)
 
 
-def load_model(model_name: str, **kwargs: Any):
+def load_model(model_name: str, **kwargs: Any) -> Any:
     """
     Load a model dynamically based on the model_name argument.
 
