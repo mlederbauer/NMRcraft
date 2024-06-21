@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "nmrcraft"
 version = "0.0.1"
-description = "NMR Chemical Reactivity Analysis with Feature Tracking"
+description = "Crafting Catalysts from NMR Features, Ligand by Ligand"
 authors = ["Karolina Biniek, Magdalena Lederbauer, Samuel Stricker, Tiago Würthner <fmlederbauer@ethz.ch>"]
 repository = "https://github.com/mlederbauer/nmrcraft"
 documentation = "https://mlederbauer.github.io/nmrcraft/"
