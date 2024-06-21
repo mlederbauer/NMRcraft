@@ -91,6 +91,7 @@ def run_dataframe_statistics():
     Runs the dataframe statistics script.
     """
     run_command(["python", "scripts/analysis/dataset_statistics.py"])
+    run_command(["python", "scripts/analysis/pca_ligand_space.py"])
 
 
 def run_accuracy_table():

@@ -72,7 +72,10 @@ def plot_pca(df, pca_df, category, title, filter_condition=None, suffix=""):
             shadow=True,
             ncol=3,
         )
-    plt.savefig(f"plots/pca_{category}{suffix}.png", bbox_inches="tight")
+    plt.savefig(
+        f"plots/dataset_statistics/pca_{category}{suffix}.png",
+        bbox_inches="tight",
+    )
     plt.close()
 
 

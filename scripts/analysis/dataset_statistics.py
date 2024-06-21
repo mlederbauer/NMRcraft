@@ -87,7 +87,7 @@ def main():
         ]
     ]
 
-    output_path = "plots"
+    output_path = "plots/dataset_statistics"
     os.makedirs(output_path, exist_ok=True)
 
     # Modify 'E_ligand' values to group imido-containing ligands
