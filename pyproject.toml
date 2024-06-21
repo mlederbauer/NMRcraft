@@ -95,6 +95,9 @@ ignore = [
     # DoNotAssignLambda
     "E731",
 ]
+extend-exclude = [
+    "*/__init__.py"
+]
 
 [tool.ruff.format]
 preview = true
