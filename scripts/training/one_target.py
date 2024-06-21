@@ -107,6 +107,13 @@ def main(args) -> pd.DataFrame:
             )
 
             for dataset_size in dataset_sizes:
+
+                if args.include_structural:
+                    if dataset_size != 1.0:
+                        continue
+                    if model_name != "random_forest":
+                        continue
+
                 data_loader = DataLoader(
                     target_columns=args.target,
                     dataset_size=dataset_size,
