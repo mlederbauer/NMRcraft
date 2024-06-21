@@ -1,29 +1,14 @@
-"""Scripts for reproducing all results shown in the report."""
+"""Script for reproducing all results shown in the report."""
 
 import argparse
 import shlex
 import subprocess
 
 
-def run_script(script_name, targets, include_structural, max_evals):
+def run_command(cmd):
     """
-    Helper function to run the Python scripts via subprocess, ensuring safety by escaping inputs.
+    Helper function to run a command via subprocess.
     """
-    # Sanitize each target to prevent shell injection, even though shell=False by default
-    targets = [shlex.quote(target) for target in targets]
-    target_string = " ".join(targets)
-
-    # Safely prepare the command array
-    cmd = [
-        "python",
-        script_name,
-        "--target",
-        target_string,
-        "--include_structural",
-        str(include_structural),
-        "--max_evals",
-        str(max_evals),
-    ]
     print(
         "---------------------------------------------------------------------"
     )
@@ -32,8 +17,29 @@ def run_script(script_name, targets, include_structural, max_evals):
         "---------------------------------------------------------------------"
     )
 
-    # pylint: disable=subprocess-run-check
     subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+
+
+def run_script(
+    script_name, targets=None, include_structural=None, max_evals=None
+):
+    """
+    Helper function to run the Python scripts via subprocess.
+    """
+    cmd = ["python", script_name]
+
+    if targets:
+        targets = [shlex.quote(target) for target in targets]
+        target_string = " ".join(targets)
+        cmd.extend(["--target", target_string])
+
+    if include_structural is not None:
+        cmd.extend(["--include_structural", str(include_structural)])
+
+    if max_evals is not None:
+        cmd.extend(["--max_evals", str(max_evals)])
+
+    run_command(cmd)
 
 
 def run_one_target_experiments(max_evals):
@@ -41,21 +47,12 @@ def run_one_target_experiments(max_evals):
     Runs the experiments for single target predictions.
     """
     targets = ["metal", "X3_ligand", "E_ligand"]
-    # Run with structural features False for all, but True for X3_ligand
     for target in targets:
-        include_structural = True
         run_script(
-            "./scripts/training/one_target.py",
-            [target],
-            include_structural,
-            max_evals,
+            "./scripts/training/one_target.py", [target], True, max_evals
         )
-        include_structural = False
         run_script(
-            "./scripts/training/one_target.py",
-            [target],
-            include_structural,
-            max_evals,
+            "./scripts/training/one_target.py", [target], False, max_evals
         )
 
 
@@ -69,83 +66,38 @@ def run_multi_target_experiments(max_evals):
         ("X3_ligand", "E_ligand"),
         ("metal", "E_ligand", "X3_ligand"),
     ]
-    # Run with and without structural features for the combination of all three targets
     for targets in target_combinations:
-        include_structural = False
         run_script(
-            "./scripts/training/multi_targets.py",
-            targets,
-            include_structural,
-            max_evals,
+            "./scripts/training/multi_targets.py", targets, False, max_evals
         )
 
 
 def run_baselines():
-    # Run the script scripts/training/baselines.py
-    cmd = ["python", "scripts/training/baselines.py"]
-    print(
-        "---------------------------------------------------------------------"
-    )
-    print(f"Running command: {' '.join(cmd)}")
-    print(
-        "---------------------------------------------------------------------"
-    )
-
-    # pylint: disable=subprocess-run-check
-    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
-
-    return
+    """
+    Runs the baseline experiments.
+    """
+    run_command(["python", "scripts/training/baselines.py"])
 
 
-def run_visualize_results(script_name: str, max_evals: int):
-    cmd = [
-        "python",
-        script_name,
-        "--max_evals",
-        str(max_evals),
-        "-me",
-        str(max_evals),
-    ]
-    print(
-        "---------------------------------------------------------------------"
-    )
-    print(f"Running command: {' '.join(cmd)}")
-    print(
-        "---------------------------------------------------------------------"
-    )
-
-    # pylint: disable=subprocess-run-check
-    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+def run_visualize_results(script_name, max_evals):
+    """
+    Runs the visualization script.
+    """
+    run_script(script_name, max_evals=max_evals)
 
 
 def run_dataframe_statistics():
-    cmd = [
-        "python",
-        "scripts/analysis/dataset_statistics.py",
-    ]
-    print(
-        "---------------------------------------------------------------------"
-    )
-    print(f"Running command: {' '.join(cmd)}")
-    print(
-        "---------------------------------------------------------------------"
-    )
-    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+    """
+    Runs the dataframe statistics script.
+    """
+    run_command(["python", "scripts/analysis/dataset_statistics.py"])
 
 
 def run_accuracy_table():
-    cmd = [
-        "python",
-        "scripts/analysis/accuracy_table.py",
-    ]
-    print(
-        "---------------------------------------------------------------------"
-    )
-    print(f"Running command: {' '.join(cmd)}")
-    print(
-        "---------------------------------------------------------------------"
-    )
-    subprocess.run(cmd, check=True, shell=False)  # noqa: S603
+    """
+    Runs the accuracy table script.
+    """
+    run_command(["python", "scripts/analysis/accuracy_table.py"])
 
 
 def main():
@@ -161,7 +113,6 @@ def main():
     )
     args = parser.parse_args()
 
-    # run baselines
     run_baselines()
     run_dataframe_statistics()
     run_one_target_experiments(args.max_evals)
