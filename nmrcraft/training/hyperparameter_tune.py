@@ -1,10 +1,10 @@
+"""Setting up and training a (bayesian) hyperparameter tuner with CV."""
+
 import numpy as np
 from hyperopt import STATUS_OK, Trials, fmin, space_eval, tpe
-
-# from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
 
-from nmrcraft.models.models import load_model
+from ..models import load_model
 
 
 class HyperparameterTuner:
