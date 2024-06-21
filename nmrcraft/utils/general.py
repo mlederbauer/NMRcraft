@@ -1,3 +1,5 @@
+"""General utils for dataframe and type transformation."""
+
 import pandas as pd
 
 
@@ -8,7 +10,7 @@ def add_rows_metrics(
     include_structural: bool,
     model_name: str,
     max_evals: int = 0,
-):
+) -> pd.DataFrame:
     """
     Compiles and adds a series of statistical metrics into a unified DataFrame, one row at a time.
 
