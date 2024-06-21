@@ -5,13 +5,13 @@ import os
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from nmrcraft.analysis.plotting import style_setup
-from nmrcraft.data.dataloader import filename_to_ligands, load_dataset_from_hf
+from nmrcraft.analysis import style_setup
+from nmrcraft.data import filename_to_ligands, load_dataset_from_hf
 
 
 def plot_stacked_bars(
     df, group_col, stack_col, output_file, title, rotation_deg
-):
+) -> None:
     """
     Generic function to plot stacked bars, with annotations for counts just below the top of each bar.
     """
