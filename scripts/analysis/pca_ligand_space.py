@@ -1,16 +1,18 @@
 """Script to plot a PCA of the complexes according to their principal components."""
 
+from typing import Callable, List, Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from nmrcraft.analysis.plotting import style_setup
-from nmrcraft.data.dataloader import filename_to_ligands, load_dataset_from_hf
+from nmrcraft.analysis import style_setup
+from nmrcraft.data import filename_to_ligands, load_dataset_from_hf
 
 
-def perform_pca(df, features):
+def perform_pca(df: pd.DataFrame, features: List[str]) -> pd.DataFrame:
     """Perform PCA on specified features and return principal components."""
     scaler = StandardScaler()
     df_scaled = scaler.fit_transform(df[features])
@@ -22,7 +24,14 @@ def perform_pca(df, features):
     return principal_df
 
 
-def plot_pca(df, pca_df, category, title, filter_condition=None, suffix=""):
+def plot_pca(
+    df: pd.DataFrame,
+    pca_df: pd.DataFrame,
+    category: str,
+    title: str,
+    filter_condition: Optional[Callable[[pd.DataFrame], pd.Series]] = None,
+    suffix: str = "",
+) -> None:
     """Generate and save PCA plots colored by categories, with optional filtering."""
     cmap, colors, _ = style_setup()
     fig, ax = plt.subplots()
@@ -72,7 +81,10 @@ def plot_pca(df, pca_df, category, title, filter_condition=None, suffix=""):
             shadow=True,
             ncol=3,
         )
-    plt.savefig(f"plots/pca_{category}{suffix}.png", bbox_inches="tight")
+    plt.savefig(
+        f"plots/dataset_statistics/pca_{category}{suffix}.png",
+        bbox_inches="tight",
+    )
     plt.close()
 
 

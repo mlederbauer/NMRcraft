@@ -1,3 +1,5 @@
+"""Script to train and evaluate models with multiple targets."""
+
 import argparse
 import logging as log
 import os
@@ -6,13 +8,16 @@ import mlflow
 import pandas as pd
 from sklearn.multioutput import MultiOutputClassifier
 
-from nmrcraft.analysis import plotting
-from nmrcraft.data.dataloader import DataLoader
-from nmrcraft.evaluation import evaluation
-from nmrcraft.models.model_configs import model_configs
-from nmrcraft.models.models import load_model
-from nmrcraft.training.hyperparameter_tune import HyperparameterTuner
-from nmrcraft.utils.general import add_rows_metrics, str2bool
+from nmrcraft.analysis import plot_confusion_matrix
+from nmrcraft.data import DataLoader
+from nmrcraft.evaluation import (
+    evaluate_bootstrap,
+    evaluate_model,
+    metrics_statistics,
+)
+from nmrcraft.models import load_model, model_configs
+from nmrcraft.training import HyperparameterTuner
+from nmrcraft.utils import add_rows_metrics, str2bool
 
 # Setup MLflow
 mlflow.set_experiment("Final_results")
@@ -120,11 +125,9 @@ def main(args) -> pd.DataFrame:
                 multioutput_model.fit(X_train, y_train)
                 y_pred = multioutput_model.predict(X_test)
 
-                metrics, cm_list = evaluation.evaluate_model(
-                    y_test, y_pred, args.target
-                )
+                metrics, cm_list = evaluate_model(y_test, y_pred, args.target)
 
-                plotting.plot_confusion_matrix(
+                plot_confusion_matrix(
                     cm_list,
                     y_labels,
                     model_name,
@@ -132,13 +135,11 @@ def main(args) -> pd.DataFrame:
                     args.plot_folder,
                 )
 
-                bootstrap_metrics = evaluation.evaluate_bootstrap(
+                bootstrap_metrics = evaluate_bootstrap(
                     X_test, y_test, multioutput_model, args.target
                 )
 
-                statistical_metrics = evaluation.metrics_statistics(
-                    bootstrap_metrics
-                )
+                statistical_metrics = metrics_statistics(bootstrap_metrics)
 
                 unified_metrics = add_rows_metrics(
                     unified_metrics,

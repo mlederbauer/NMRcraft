@@ -1,14 +1,29 @@
+"""Script to create plots for exp 1 & 2."""
+
 import argparse
 import os
+from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from nmrcraft.analysis.plotting import plot_bar, style_setup
+from nmrcraft.analysis import plot_bar, style_setup
 
 
-def load_results(results_dir: str, baselines_dir: str, max_evals: int):
+def load_results(
+    results_dir: str, baselines_dir: str, max_evals: int
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    """Load the results data frames.
+
+    Args:
+        results_dir (str): The directory containing the results data.
+        baselines_dir (str): The directory containing the baseline data.
+        max_evals (int): The maximum number of evaluations.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: The loaded data frames for baseline, single output, and multi output.
+    """
     import_filename_base = os.path.join(baselines_dir, "results_baselines.csv")
     import_filename_one = os.path.join(results_dir, "results_one_target.csv")
     import_filename_multi = os.path.join(
@@ -28,7 +43,7 @@ def plot_exp_1(
     df_one: pd.DataFrame,
     metric: str = "accuracy",
     legend: bool = True,
-):
+) -> None:
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
     Args:
@@ -147,7 +162,7 @@ def plot_exp_1_multi(
     df_one: pd.DataFrame,
     metric: str = "accuracy",
     legend: bool = True,
-):
+) -> None:
     """Plot single output models with baselines for accuracy/f1-score as a function of dataset size.
 
     Args:
@@ -257,7 +272,7 @@ def plot_exp_1_multi(
         plt.savefig(plotname)
 
 
-def plot_exp_2(df_one, df_multi):
+def plot_exp_2(df_one: pd.DataFrame, df_multi: pd.DataFrame) -> None:
     """Compare the best single-output model to the best multi-output model for each target category."""
     df = pd.concat([df_one, df_multi])
     full_df = df[df["dataset_fraction"] == 1.0]

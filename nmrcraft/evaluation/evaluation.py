@@ -1,4 +1,6 @@
-from typing import Dict, List, Tuple
+"""Functions to evaluate and bootstrap a model."""
+
+from typing import Dict, List, Tuple, Union
 
 import numpy as np
 import scipy.stats as st
@@ -64,7 +66,13 @@ def evaluate_model(
     return metrics, cm_list
 
 
-def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
+def evaluate_bootstrap(
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    model: object,
+    targets: List[str],
+    n_times: int = 10,
+) -> Dict[str, Dict[str, List[float]]]:
     """
     Perform bootstrap evaluation of a model on test data.
 
@@ -84,7 +92,7 @@ def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
         for each target. Each target's value is another dictionary containing lists
         of performance scores ('Accuracy' and 'F1') across the bootstrap samples.
     """
-    bootstrap_metrics: Dict = {}
+    bootstrap_metrics: Dict[str, Dict[str, List[float]]] = {}
     for _ in range(n_times):
         X_test, y_test = resample(
             X_test, y_test, replace=True, random_state=42
@@ -109,8 +117,8 @@ def evaluate_bootstrap(X_test, y_test, model, targets, n_times=10):
 
 
 def metrics_statistics(
-    bootstrapped_metrics,
-):
+    bootstrapped_metrics: Dict[str, Dict[str, List[float]]],
+) -> List[Union[List[str], List[float], List[Tuple[float, float]]]]:
     """Calculate the statistical summary of bootstrapped evaluation metrics with F1 score and Accuracy.
 
     Args:
@@ -127,11 +135,11 @@ def metrics_statistics(
 
         Each element in the list corresponds to a specific set of statistical values related to the performance metrics (accuracy and F1 score) of the bootstrapped models for each target.
     """
-    Targets = []
-    Accuracy_mean = []
-    Accuracy_ci = []
-    F1_mean = []
-    F1_ci = []
+    Targets: List[str] = []
+    Accuracy_mean: List[float] = []
+    Accuracy_ci: List[Tuple[float, float]] = []
+    F1_mean: List[float] = []
+    F1_ci: List[Tuple[float, float]] = []
 
     for target, value in bootstrapped_metrics.items():
         Targets.append(target)
@@ -157,6 +165,8 @@ def metrics_statistics(
                 scale=st.sem(value["F1"]),
             )
         )
-    metrics_stats = [Targets, Accuracy_mean, Accuracy_ci, F1_mean, F1_ci]
+    metrics_stats: List[
+        Union[List[str], List[float], List[Tuple[float, float]]]
+    ] = [Targets, Accuracy_mean, Accuracy_ci, F1_mean, F1_ci]
 
     return metrics_stats
