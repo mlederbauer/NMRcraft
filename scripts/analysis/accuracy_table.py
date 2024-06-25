@@ -5,7 +5,6 @@ import pandas as pd
 
 def create_accuracy_table(one_target_path):
     one_target_df = pd.read_csv(one_target_path)
-
     targets = ["metal", "E_ligand", "X3_ligand"]
     results = []
 
@@ -14,14 +13,14 @@ def create_accuracy_table(one_target_path):
             (one_target_df["target"] == target)
             & (one_target_df["model"] == "random_forest")
             & (one_target_df["dataset_fraction"] == 1.0)
-            & (one_target_df["nmr_only"] is False)
+            & (one_target_df["nmr_only"] == False)
         ]
 
         without_ligands = one_target_df[
             (one_target_df["target"] == target)
             & (one_target_df["model"] == "random_forest")
             & (one_target_df["dataset_fraction"] == 1.0)
-            & (one_target_df["nmr_only"] is True)
+            & (one_target_df["nmr_only"] == True)
         ]
 
         if not with_ligands.empty:
@@ -46,3 +45,7 @@ def create_accuracy_table(one_target_path):
     )
     print(results_df)
     return results_df
+
+
+if __name__ == "__main__":
+    create_accuracy_table("metrics/results_one_target.csv")
