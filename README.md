@@ -66,7 +66,7 @@ To download the image, follow the same steps as either console or docker desktop
 <li> In the Docker Tab on the right, right click on the image and select run interactive. Now a conainer should appear in the Container section. Right click on it and select stop to start it back up.</li>
 <li> Right click again on the container and select start to start it back up.</li>
 <li> Right click again on the container and select attach Visual Studio Code. A new VS Code window should apear, this window is now fully in the container. If necessary, switch to `/home/steve/NMRcraft`.</li>
-<li>Pull the latest changes to the repository with `git pull origin main`.</li>
+<li> Pull the latest changes to the repository with `git pull origin main`.</li>
 <li> Have fun developing.</li>
 </ol>
 </details>
@@ -76,7 +76,8 @@ To download the image, follow the same steps as either console or docker desktop
 For the script to be able to access the dataset, you must login via to huggingface by using the following command:
 
 ```bash
-huggingface-cli login
+pip install -U "huggingface_hub[cli]" # if not installed already
+huggingface-cli login # log in after generating an authentification token for huggingface
 ```
 
 We include the link to be authenticated in the report appendix. If you run into issues accessing the dataset, contact [mlederbauer@ethz.ch](mlederbauer@ethz.ch).
@@ -94,11 +95,12 @@ python scripts/reproduce_results.py
 
 This script will interatively
 
-- plot dataset statistics (stored in `./plots/dataset`)
+- plot dataset statistics and PCA plots (stored in `./plots/dataset`)
 - train and evaluate all single-output models (stored in `./metrics/single_targets.csv`)
 - traom and evaluate all multi-output models (stored in `./metrics/one_target.csv`)
 - train and evaluate all baseline models (stored in `./metrics/baselines.csv`)
-- create the plots (stored in `./plots/models`).
+- create the plots (stored in `./plots/models`)
+- print the table of experiment 3 to the terminal.
 
 When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines.
 
@@ -112,6 +114,7 @@ If you were not able to visit our beautiful poster at ETH Zurich on May 30th 202
 
 <details>
   <summary>See developer instructions</summary>
+
 ### Activate the Poetry venv
 
 To use the packages installed via poetry you need to execute the following command:
