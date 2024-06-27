@@ -102,7 +102,7 @@ This script will interatively
 - create the plots (stored in `./plots/models`)
 - print the table of experiment 3 to the terminal.
 
-When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines.
+When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines. Results are also accessible via the polybox [here](https://polybox.ethz.ch/index.php/s/mghh60CmkdlX2x8).
 
 # 🖼️Poster
 
