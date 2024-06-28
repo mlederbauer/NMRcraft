@@ -96,13 +96,13 @@ python scripts/reproduce_results.py
 This script will interatively
 
 - plot dataset statistics and PCA plots (stored in `./plots/dataset`)
-- train and evaluate all single-output models (stored in `./metrics/single_targets.csv`)
-- traom and evaluate all multi-output models (stored in `./metrics/one_target.csv`)
-- train and evaluate all baseline models (stored in `./metrics/baselines.csv`)
+- train and evaluate all single-output models (stored in `./metrics/results_one_targets.csv`)
+- train and evaluate all multi-output models (stored in `./metrics/results_multi_target.csv`)
+- train and evaluate all baseline models (stored in `./metrics/results_baselines.csv`)
 - create the plots (stored in `./plots/models`)
 - print the table of experiment 3 to the terminal.
 
-When the parameter `max_eval` is set to a high value such as 20, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines. Results are also accessible via the polybox [here](https://polybox.ethz.ch/index.php/s/mghh60CmkdlX2x8).
+When the parameter `max_eval` is set to a high value such as 50, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines. Results are also accessible via the polybox [here](https://polybox.ethz.ch/index.php/s/CX9zH819uTlL4sr).
 
 # 🖼️Poster
 
