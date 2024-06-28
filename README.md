@@ -102,7 +102,7 @@ This script will interatively
 - create the plots (stored in `./plots/{models,baselines,dataset_statistics,results}`)
 - print the table of experiment 3 to the terminal.
 
-When the parameter `max_eval` is set to a high value such as 50, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multiple_targets}.sh` for running individual pipelines (although running `scripts/reproduce_results.py` is recommended). Results are also accessible via the polybox [here](https://polybox.ethz.ch/index.php/s/CX9zH819uTlL4sr).
+When the parameter `max_eval` is set to a high value such as 50, expect the whole process to take about two hours. Alternatively – which results in worse model performance –, `max_eval` can be set to a low value such as 2 for testing. Run `scripts/training/{one_target,multi_targets}.sh` for running individual pipelines (although running `scripts/reproduce_results.py` is recommended). Results are also accessible via the polybox [here](https://polybox.ethz.ch/index.php/s/CX9zH819uTlL4sr).
 
 # 🖼️Poster
 
